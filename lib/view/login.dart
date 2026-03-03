@@ -10,6 +10,7 @@ class LoginScreen extends StatelessWidget {
       body: Column(
         children: [
           Image.asset('assets/images/logo.png', height: 120, width: 120,),
+          Text('Login'),
         ],
       ),
     );
