@@ -11,6 +11,8 @@ class HomeContent extends StatefulWidget {
 class _HomeContentState extends State<HomeContent> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: AppBar(backgroundColor: AppColor.navy));
+    return Scaffold(
+      appBar: AppBar(backgroundColor: AppColor.navy, title: Text("Home")),
+    );
   }
 }
