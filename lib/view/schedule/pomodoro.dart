@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../models/program_model.dart';
+import '../../models/program_model.dart';
 
 class PomodoroScreen extends StatefulWidget {
   final JadwalBelajar jadwal;

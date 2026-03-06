@@ -1,7 +1,7 @@
-import 'package:educu_project/view/pomodoro.dart';
+import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
-import '../models/program_model.dart';
-import 'program.dart';
+import '../../models/program_model.dart';
+import '../programs/program.dart';
 import 'pomodoro.dart';
 
 class JadwalScreen extends StatelessWidget {

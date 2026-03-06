@@ -1,8 +1,8 @@
 import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/view/home_content.dart';
-import 'package:educu_project/view/jadwal.dart';
-import 'package:educu_project/view/profile.dart';
-import 'package:educu_project/view/program.dart';
+import 'package:educu_project/view/schedule/schedule.dart';
+import 'package:educu_project/view/profile/profile.dart';
+import 'package:educu_project/view/programs/program.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatefulWidget {

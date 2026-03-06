@@ -1,5 +1,5 @@
 import 'package:educu_project/constant/app_color.dart';
-import 'package:educu_project/view/edit_profile.dart';
+import 'package:educu_project/view/profile/edit_profile.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {

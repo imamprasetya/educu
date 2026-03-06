@@ -1,7 +1,7 @@
 import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/database/sqflite.dart';
 import 'package:educu_project/models/user_model.dart';
-import 'package:educu_project/view/login.dart';
+import 'package:educu_project/view/auth/login.dart';
 import 'package:flutter/material.dart';
 
 class RegisterScreen extends StatefulWidget {

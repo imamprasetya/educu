@@ -2,7 +2,7 @@ import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/models/user_model.dart';
 import 'package:educu_project/database/preference.dart';
 import 'package:educu_project/database/sqflite.dart';
-import 'package:educu_project/view/register.dart';
+import 'package:educu_project/view/auth/register.dart';
 import 'package:educu_project/view/homescreen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
