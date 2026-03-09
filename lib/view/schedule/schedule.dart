@@ -1,68 +1,87 @@
-import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
-import '../../models/program_model.dart';
-import '../programs/program.dart';
+import '../../database/sqflite.dart';
+import '../../models/session_model.dart';
 import 'pomodoro.dart';
 
-class JadwalScreen extends StatelessWidget {
+class JadwalScreen extends StatefulWidget {
   const JadwalScreen({super.key});
 
-  List<JadwalBelajar> ambilJadwal() {
-    List<JadwalBelajar> semua = [];
+  @override
+  State<JadwalScreen> createState() => _JadwalScreenState();
+}
 
-    for (var p in ProgramScreen.programs) {
-      semua.addAll(p.jadwal);
-    }
+class _JadwalScreenState extends State<JadwalScreen> {
+  List<Map<String, dynamic>> schedules = [];
 
-    return semua;
+  @override
+  void initState() {
+    super.initState();
+    loadSchedules();
+  }
+
+  /// LOAD JADWAL DARI DATABASE
+  Future<void> loadSchedules() async {
+    final data = await DBHelper.getSessions();
+
+    setState(() {
+      schedules = data;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final jadwal = ambilJadwal();
-
-    if (jadwal.isEmpty) {
-      return const Center(child: Text("Tidak Ada Jadwal"));
+    if (schedules.isEmpty) {
+      return const Center(
+        child: Text("Tidak Ada Jadwal", style: TextStyle(fontSize: 18)),
+      );
     }
 
     return ListView.builder(
-      itemCount: jadwal.length,
+      itemCount: schedules.length,
       itemBuilder: (context, index) {
-        final j = jadwal[index];
+        final j = schedules[index];
 
         return Card(
           margin: const EdgeInsets.all(12),
+          elevation: 3,
           child: ListTile(
-            title: Text(j.namaProgram),
+            title: Text(
+              j["topic"] ?? "",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
 
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [Text(j.materi), Text("${j.jamMulai}-${j.jamSelesai}")],
+              children: [
+                Text(j["date"] ?? ""),
+                Text("${j["startTime"]} - ${j["endTime"]}"),
+              ],
             ),
 
-            trailing: Icon(
-              j.selesai ? Icons.check_circle : Icons.circle_outlined,
-              color: j.selesai ? Colors.green : Colors.grey,
-            ),
+            trailing: const Icon(Icons.circle_outlined, color: Colors.grey),
 
             onTap: () {
               showDialog(
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: Text(j.namaProgram),
+                    title: Text(j["topic"] ?? ""),
 
                     content: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(j.materi),
+                        Text(j["date"] ?? ""),
 
-                        Text("${j.jamMulai}-${j.jamSelesai}"),
+                        const SizedBox(height: 5),
 
-                        const SizedBox(height: 10),
+                        Text("${j["startTime"]} - ${j["endTime"]}"),
 
-                        Image.network(
-                          "https://img.youtube.com/vi/${extractId(j.youtube)}/0.jpg",
+                        const SizedBox(height: 20),
+
+                        const Icon(
+                          Icons.play_circle_fill,
+                          size: 60,
+                          color: Colors.blue,
                         ),
                       ],
                     ),
@@ -70,12 +89,14 @@ class JadwalScreen extends StatelessWidget {
                     actions: [
                       ElevatedButton(
                         child: const Text("Mulai Belajar"),
-
                         onPressed: () {
+                          Navigator.pop(context);
+
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => PomodoroScreen(jadwal: j),
+                              builder: (context) =>
+                                  PomodoroScreen(topic: j["topic"]),
                             ),
                           );
                         },
@@ -89,13 +110,5 @@ class JadwalScreen extends StatelessWidget {
         );
       },
     );
-  }
-
-  String extractId(String url) {
-    if (url.contains("v=")) {
-      return url.split("v=")[1];
-    }
-
-    return "";
   }
 }

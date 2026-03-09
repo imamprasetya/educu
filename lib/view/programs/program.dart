@@ -1,141 +1,102 @@
-import 'package:educu_project/constant/app_color.dart';
 import 'package:flutter/material.dart';
-import '../../models/program_model.dart';
+import 'package:educu_project/constant/app_color.dart';
+import '../../database/sqflite.dart';
 import 'add_program.dart';
 
 class ProgramScreen extends StatefulWidget {
   const ProgramScreen({super.key});
-
-  static List<Program> programs = [];
 
   @override
   State<ProgramScreen> createState() => _ProgramScreenState();
 }
 
 class _ProgramScreenState extends State<ProgramScreen> {
+  List<Map<String, dynamic>> programs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadPrograms();
+  }
+
+  /// LOAD DATA PROGRAM DARI DATABASE
+  Future<void> loadPrograms() async {
+    final data = await DBHelper.getPrograms();
+
+    setState(() {
+      programs = data;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(title: const Text("Program Belajar")),
-      // body: Padding(
-      //   padding: const EdgeInsets.all(12),
-      //   child: Column(
-      //     children: [
-      //       Stack(
-      //         children: [
-      //           Container(
-      //             height: 120,
-      //             width: double.infinity,
-      //             padding: EdgeInsets.all(16),
-      //             decoration: BoxDecoration(
-      //               gradient: LinearGradient(
-      //                 colors: [
-      //                   const Color.fromARGB(255, 56, 113, 139),
-      //                   AppColor.logo,
-      //                 ],
-      //                 begin: Alignment.topLeft,
-      //                 end: Alignment.bottomRight,
-      //               ),
-      //               borderRadius: BorderRadius.circular(15),
-      //             ),
-      //       child: Column(
-      //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //         children: [
-      //           Row(
-      //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //             children: [
-      //               Text(
-      //                 "Overall Progress",
-      //                 style: TextStyle(
-      //                   color: Colors.white,
-      //                   fontWeight: FontWeight.bold,
-      //                   fontSize: 18,
-      //                 ),
-      //               ),
-      //               Text(
-      //                 "60%",
-      //                 style: TextStyle(
-      //                   color: Colors.white,
-      //                   fontSize: 20,
-      //                   fontWeight: FontWeight.bold,
-      //                 ),
-      //               ),
-      //             ],
-      //           ),
+      body: programs.isEmpty
+          /// JIKA BELUM ADA PROGRAM
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.menu_book_outlined, size: 80, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    "Tidak ada Program",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "Silakan tambah program belajar",
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
+          /// JIKA ADA PROGRAM
+          : ListView.builder(
+              itemCount: programs.length,
+              itemBuilder: (context, index) {
+                final program = programs[index];
 
-      //           //progress bar
-      //           LinearProgressIndicator(
-      //             value: 0.6,
-      //             backgroundColor: Colors.white,
-      //             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-      //           ),
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: ListTile(
+                    leading: const Icon(Icons.school, color: Colors.blue),
+                    title: Text(
+                      program["subject"] ?? "",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      "${program["startDate"]} - ${program["endDate"]}",
+                    ),
+                  ),
+                );
+              },
+            ),
 
-      //           Row(
-      //             children: [
-      //               Text(
-      //                 "2 active programs",
-      //                 style: TextStyle(
-      //                   color: Colors.white,
-      //                   fontWeight: FontWeight.bold,
-      //                 ),
-      //               ),
-      //             ],
-      //           ),
-      //         ],
-      //       ),
-      //     ),
-      //   ],
-      // ),
-
-      // ProgramScreen.programs.isEmpty
-      //     ? const Center(child: Text("Belum Ada Program"))
-      //     : ListView.builder(
-      //         itemCount: ProgramScreen.programs.length,
-      //         itemBuilder: (context, index) {
-      //           final program = ProgramScreen.programs[index];
-
-      //           return Card(
-      //             margin: const EdgeInsets.all(16),
-      //             child: ListTile(
-      //               title: Text(program.namaProgram),
-
-      //               subtitle: Text(
-      //                 "${program.mulai.day}/${program.mulai.month}/${program.mulai.year} - "
-      //                 "${program.selesai.day}/${program.selesai.month}/${program.selesai.year}",
-      //               ),
-
-      //               trailing: PopupMenuButton(
-      //                 itemBuilder: (context) => [
-      //                   const PopupMenuItem(
-      //                     value: "edit",
-      //                     child: Text("Edit"),
-      //                   ),
-      //                   const PopupMenuItem(
-      //                     value: "hapus",
-      //                     child: Text("Hapus"),
-      //                   ),
-      //                 ],
-      //               ),
-      //             ),
-      //           );
-      //         },
-      //       ),
-      //     ],
-      //   ),
-      // ),
+      /// BUTTON TAMBAH PROGRAM
       floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColor.logo,
         child: const Icon(Icons.add),
-
         onPressed: () async {
-          final programBaru = await Navigator.push(
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddProgram()),
           );
 
-          if (programBaru != null) {
-            setState(() {
-              ProgramScreen.programs.add(programBaru);
-            });
+          /// REFRESH DATA SETELAH TAMBAH PROGRAM
+          if (result == true) {
+            loadPrograms();
           }
         },
       ),

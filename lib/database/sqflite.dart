@@ -5,48 +5,103 @@ import 'package:path/path.dart';
 class DBHelper {
   static Future<Database> db() async {
     final dbPath = await getDatabasesPath();
+
     return openDatabase(
-      join(dbPath, 'my_educu.db'),
+      join(dbPath, 'educu.db'),
+      version: 1,
+
       onCreate: (db, version) async {
-        await db.execute(
-          'CREATE TABLE user (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, password TEXT)',
-        );
-        await db.execute(
-          'CREATE TABLE siswa (id INTEGER PRIMARY KEY AUTOINCREMENT, nama TEXT,kelas TEXT)',
-        );
-        await db.execute(
-          'CREATE TABLE sinau (id INTEGER PRIMARY KEY AUTOINCREMENT, pelajaran TEXT, materi TEXT, guru TEXT, kelas TEXT)',
-        );
-      },
-      version: 4,
-      onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 4) {
-          await db.execute(
-            'CREATE TABLE sinau (id INTEGER PRIMARY KEY AUTOINCREMENT, pelajaran TEXT, materi TEXT, guru TEXT, kelas TEXT)',
-          );
-        }
+        // USER TABLE
+        await db.execute('''
+        CREATE TABLE user(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          email TEXT,
+          password TEXT
+        )
+        ''');
+
+        // PROGRAM TABLE
+        await db.execute('''
+        CREATE TABLE program(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          subject TEXT,
+          startDate TEXT,
+          endDate TEXT,
+          description TEXT
+        )
+        ''');
+
+        // SESSION TABLE
+        await db.execute('''
+        CREATE TABLE session(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          programId INTEGER,
+          topic TEXT,
+          date TEXT,
+          startTime TEXT,
+          endTime TEXT
+        )
+        ''');
       },
     );
   }
 
+  // REGISTER USER
   static Future<void> registerUser(UserModel user) async {
     final dbs = await db();
+
     await dbs.insert('user', user.toMap());
   }
 
+  // LOGIN USER
   static Future<UserModel?> loginUser({
     required String email,
     required String password,
   }) async {
     final dbs = await db();
-    final List<Map<String, dynamic>> results = await dbs.query(
+
+    final result = await dbs.query(
       "user",
       where: 'email = ? AND password = ?',
       whereArgs: [email, password],
     );
-    if (results.isNotEmpty) {
-      return UserModel.fromMap(results.first);
+
+    if (result.isNotEmpty) {
+      return UserModel.fromMap(result.first);
     }
+
     return null;
+  }
+
+  // INSERT PROGRAM
+  static Future<int> insertProgram(Map<String, dynamic> data) async {
+    final dbs = await db();
+
+    return await dbs.insert("program", data);
+  }
+
+  // GET PROGRAM
+  static Future<List<Map<String, dynamic>>> getPrograms() async {
+    final dbs = await db();
+
+    return await dbs.query("program", orderBy: "id DESC");
+  }
+
+  // INSERT SESSION
+  static Future<void> insertSession(Map<String, dynamic> data) async {
+    final dbs = await db();
+
+    await dbs.insert("session", data);
+  }
+
+  // GET SESSION BY PROGRAM
+  static Future<List<Map<String, dynamic>>> getSessions(int programId) async {
+    final dbs = await db();
+
+    return await dbs.query(
+      "session",
+      where: "programId = ?",
+      whereArgs: [programId],
+    );
   }
 }

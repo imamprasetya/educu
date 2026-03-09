@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'package:educu_project/view/schedule/schedule.dart';
 import 'package:flutter/material.dart';
 import '../../models/program_model.dart';
 
 class PomodoroScreen extends StatefulWidget {
-  final JadwalBelajar jadwal;
+  final JadwalScreen jadwal;
 
   const PomodoroScreen({super.key, required this.jadwal});
 

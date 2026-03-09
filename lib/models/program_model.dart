@@ -1,33 +1,42 @@
-class JadwalBelajar {
-  String namaProgram;
-  String materi;
-  DateTime tanggal;
-  String jamMulai;
-  String jamSelesai;
-  String youtube;
-  bool selesai;
+import 'dart:convert';
 
-  JadwalBelajar({
-    required this.namaProgram,
-    required this.materi,
-    required this.tanggal,
-    required this.jamMulai,
-    required this.jamSelesai,
-    required this.youtube,
-    this.selesai = false,
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+class ProgramModel {
+  int? id;
+  final String subject;
+  final String startDate;
+  final String endDate;
+  final String description;
+  ProgramModel({
+    this.id,
+    required this.subject,
+    required this.startDate,
+    required this.endDate,
+    required this.description,
   });
-}
 
-class Program {
-  String namaProgram;
-  DateTime mulai;
-  DateTime selesai;
-  List<JadwalBelajar> jadwal;
+  Map<String, dynamic> toMap() {
+    return <String, dynamic>{
+      'id': id,
+      'subject': subject,
+      'startDate': startDate,
+      'endDate': endDate,
+      'description': description,
+    };
+  }
 
-  Program({
-    required this.namaProgram,
-    required this.mulai,
-    required this.selesai,
-    required this.jadwal,
-  });
+  factory ProgramModel.fromMap(Map<String, dynamic> map) {
+    return ProgramModel(
+      id: map['id'] != null ? map['id'] as int : null,
+      subject: map['subject'] as String,
+      startDate: map['startDate'] as String,
+      endDate: map['endDate'] as String,
+      description: map['description'] as String,
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory ProgramModel.fromJson(String source) =>
+      ProgramModel.fromMap(json.decode(source) as Map<String, dynamic>);
 }

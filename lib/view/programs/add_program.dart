@@ -1,4 +1,5 @@
 import 'package:educu_project/constant/app_color.dart';
+import 'package:educu_project/database/sqflite.dart';
 import 'package:flutter/material.dart';
 
 class AddProgram extends StatefulWidget {
@@ -13,11 +14,25 @@ class _AddProgramState extends State<AddProgram> {
   final TextEditingController startController = TextEditingController();
   final TextEditingController endController = TextEditingController();
   final TextEditingController deskController = TextEditingController();
-  final TextEditingController topicController = TextEditingController();
-  final TextEditingController dateController = TextEditingController();
-  final TextEditingController timeController = TextEditingController();
 
-  //Fungsi Tanggal
+  List<SessionData> sessions = [SessionData()];
+
+  void _addSession() {
+    setState(() {
+      sessions.add(SessionData());
+    });
+  }
+
+  void _removeSession(int index) {
+    setState(() {
+      if (sessions.length > 1) {
+        sessions[index].dispose();
+        sessions.removeAt(index);
+      }
+    });
+  }
+
+  /// SELECT DATE PROGRAM
   Future<void> _selectDate(
     BuildContext context,
     TextEditingController controller,
@@ -28,14 +43,44 @@ class _AddProgramState extends State<AddProgram> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
+
     if (picked != null) {
-      setState(() {
-        controller.text = picked.toString().split(' ')[0];
-      });
+      controller.text = picked.toString().split(' ')[0];
+      setState(() {});
     }
   }
 
-  //Fungsi Jam
+  /// VALIDASI DATE SESSION
+  Future<void> _selectSessionsDate(
+    BuildContext context,
+    TextEditingController controller,
+  ) async {
+    if (startController.text.isEmpty || endController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Pilih Start Date dan End Date terlebih dahulu!"),
+        ),
+      );
+      return;
+    }
+
+    DateTime firstAllowed = DateTime.parse(startController.text);
+    DateTime lastAllowed = DateTime.parse(endController.text);
+
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: firstAllowed,
+      firstDate: firstAllowed,
+      lastDate: lastAllowed,
+    );
+
+    if (picked != null) {
+      controller.text = picked.toString().split(' ')[0];
+      setState(() {});
+    }
+  }
+
+  /// SELECT TIME
   Future<void> _selectTime(
     BuildContext context,
     TextEditingController controller,
@@ -46,214 +91,238 @@ class _AddProgramState extends State<AddProgram> {
     );
 
     if (picked != null) {
-      setState(() {
-        controller.text = picked.format(context);
+      controller.text = picked.format(context);
+      setState(() {});
+    }
+  }
+
+  /// SAVE DATA
+  Future<void> _submitAndExit() async {
+    /// INSERT PROGRAM KE DATABASE
+    int programId = await DBHelper.insertProgram({
+      "subject": subjectController.text,
+      "startDate": startController.text,
+      "endDate": endController.text,
+      "description": deskController.text,
+    });
+
+    /// INSERT SESSION KE DATABASE
+    for (var s in sessions) {
+      await DBHelper.insertSession({
+        "programId": programId,
+        "topic": s.topicController.text,
+        "date": s.dateController.text,
+        "startTime": s.startTimeController.text,
+        "endTime": s.endTimeController.text,
       });
     }
+
+    /// ALERT BERHASIL
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Icon(Icons.check_circle, color: Colors.green, size: 60),
+          content: const Text(
+            "Program berhasil disimpan!",
+            textAlign: TextAlign.center,
+          ),
+          actions: [
+            Center(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: AppColor.logo),
+                onPressed: () {
+                  Navigator.pop(context);
+
+                  /// KIRIM SIGNAL KE PROGRAM SCREEN
+                  Navigator.pop(context, true);
+                },
+                child: const Text("OK", style: TextStyle(color: Colors.white)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    subjectController.dispose();
+    startController.dispose();
+    endController.dispose();
+    deskController.dispose();
+
+    for (var session in sessions) {
+      session.dispose();
+    }
+
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
-        title: Text(
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: AppColor.logo,
+        title: const Text(
           "Tambah Program Belajar",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: AppColor.logo,
       ),
+
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Stack(
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+
+          child: Column(
+            children: [
+              /// PROGRAM INFO
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blueGrey.withOpacity(0.5),
+                      spreadRadius: 3,
+                      blurRadius: 5,
+                    ),
+                  ],
+                ),
+
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// SUBJECT
+                    const Text(
+                      "Subject Name",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+
+                    const SizedBox(height: 7),
+
+                    TextFormField(
+                      controller: subjectController,
+                      decoration: InputDecoration(
+                        hintText: "Enter subject name",
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blueGrey.withOpacity(0.5),
-                              spreadRadius: 3,
-                              blurRadius: 5,
-                              offset: Offset(0, 0),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            //Subject Name
-                            Row(
-                              children: [
-                                Text(
-                                  "Subject Name",
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 7),
-                            TextFormField(
-                              controller: subjectController,
-                              decoration: InputDecoration(
-                                contentPadding: EdgeInsets.all(10),
-                                filled: true,
-                                fillColor: Colors.grey[200],
-                                hintText: "Enter subject name",
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(color: Colors.grey),
-                                ),
-                              ),
-                            ),
-
-                            SizedBox(height: 15),
-
-                            //Tanggal
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Start Date",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 7),
-                                      TextFormField(
-                                        controller: startController,
-                                        readOnly: true,
-                                        onTap: () => _selectDate(
-                                          context,
-                                          startController,
-                                        ),
-                                        decoration: InputDecoration(
-                                          contentPadding: EdgeInsets.all(10),
-                                          filled: true,
-                                          fillColor: Colors.grey[200],
-                                          hintText: "Select Date",
-                                          suffixIcon: Icon(
-                                            Icons.calendar_today,
-                                            size: 18,
-                                          ),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            borderSide: BorderSide(
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "End Date",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 7),
-                                      TextFormField(
-                                        controller: endController,
-                                        readOnly: true,
-                                        onTap: () =>
-                                            _selectDate(context, endController),
-                                        decoration: InputDecoration(
-                                          contentPadding: EdgeInsets.all(10),
-                                          filled: true,
-                                          fillColor: Colors.grey[200],
-                                          hintText: "Select Date",
-                                          suffixIcon: Icon(
-                                            Icons.calendar_today,
-                                            size: 18,
-                                          ),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                            borderSide: BorderSide(
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 15),
-
-                            //Description
-                            Row(
-                              children: [
-                                Text(
-                                  "Short Description",
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 7),
-                            TextFormField(
-                              controller: deskController,
-                              maxLines: 5,
-                              keyboardType: TextInputType.multiline,
-                              decoration: InputDecoration(
-                                contentPadding: EdgeInsets.all(10),
-                                filled: true,
-                                fillColor: Colors.grey[200],
-                                hintText: "Enter program description",
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide(color: Colors.grey),
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
                       ),
-                    ],
-                  ),
-                  SizedBox(height: 10),
+                    ),
 
-                  //Session
-                  Row(
-                    children: [
-                      Text(
-                        "Sessions",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                    const SizedBox(height: 15),
+
+                    /// DATE ROW
+                    Row(
+                      children: [
+                        /// START DATE
+                        Expanded(
+                          child: TextFormField(
+                            controller: startController,
+                            readOnly: true,
+                            onTap: () => _selectDate(context, startController),
+                            decoration: InputDecoration(
+                              hintText: "Start Date",
+                              filled: true,
+                              fillColor: Colors.grey[200],
+                              suffixIcon: const Icon(Icons.calendar_today),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 10),
+
+                        /// END DATE
+                        Expanded(
+                          child: TextFormField(
+                            controller: endController,
+                            readOnly: true,
+                            onTap: () => _selectDate(context, endController),
+                            decoration: InputDecoration(
+                              hintText: "End Date",
+                              filled: true,
+                              fillColor: Colors.grey[200],
+                              suffixIcon: const Icon(Icons.calendar_today),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    /// DESCRIPTION
+                    const Text(
+                      "Description",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+
+                    const SizedBox(height: 7),
+
+                    TextFormField(
+                      controller: deskController,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: "Enter program description",
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      // FloatingActionButton(onPressed: )
-                    ],
-                  ),
-                  SizedBox(height: 10),
+                    ),
+                  ],
+                ),
+              ),
 
-                  // Sessions Container
-                  Container(
-                    width: double.infinity,
+              const SizedBox(height: 20),
+
+              /// SESSION TITLE
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Sessions",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                  ),
+
+                  IconButton(
+                    onPressed: _addSession,
+                    icon: Icon(
+                      Icons.add_circle,
+                      color: AppColor.logo,
+                      size: 32,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 10),
+
+              /// SESSION LIST
+              Column(
+                children: List.generate(sessions.length, (index) {
+                  final session = sessions[index];
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(16),
+
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -262,129 +331,173 @@ class _AddProgramState extends State<AddProgram> {
                           color: Colors.blueGrey.withOpacity(0.5),
                           spreadRadius: 3,
                           blurRadius: 5,
-                          offset: const Offset(0, 0),
                         ),
                       ],
                     ),
+
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "Day 1",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blueAccent,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Day ${index + 1}",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueAccent,
+                              ),
+                            ),
 
-                        // Material Topic
+                            if (sessions.length > 1)
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => _removeSession(index),
+                              ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        /// TOPIC
                         const Text(
                           "Material Topic",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
+
                         const SizedBox(height: 7),
+
                         TextFormField(
-                          controller: topicController,
+                          controller: session.topicController,
                           decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.all(10),
+                            hintText: "Enter topic",
                             filled: true,
                             fillColor: Colors.grey[200],
-                            hintText: "Enter Topic",
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
-                              borderSide: const BorderSide(color: Colors.grey),
                             ),
                           ),
                         ),
+
                         const SizedBox(height: 15),
 
-                        // Date and Time Row
+                        /// DATE
+                        TextFormField(
+                          controller: session.dateController,
+                          readOnly: true,
+                          onTap: () => _selectSessionsDate(
+                            context,
+                            session.dateController,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: "Select Date",
+                            prefixIcon: const Icon(Icons.calendar_today),
+                            filled: true,
+                            fillColor: Colors.grey[200],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        /// TIME ROW
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            //DATE
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    "Date",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                              child: TextFormField(
+                                controller: session.startTimeController,
+                                readOnly: true,
+                                onTap: () => _selectTime(
+                                  context,
+                                  session.startTimeController,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: "Start Time",
+                                  prefixIcon: const Icon(Icons.access_time),
+                                  filled: true,
+                                  fillColor: Colors.grey[200],
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
-                                  const SizedBox(height: 7),
-                                  TextFormField(
-                                    controller: dateController,
-                                    readOnly: true,
-                                    onTap: () =>
-                                        _selectDate(context, dateController),
-                                    decoration: InputDecoration(
-                                      contentPadding: const EdgeInsets.all(10),
-                                      filled: true,
-                                      fillColor: Colors.grey[200],
-                                      hintText: "Select Date",
-                                      prefixIcon: const Icon(
-                                        Icons.calendar_today,
-                                        size: 18,
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            //TIME
+
+                            const SizedBox(width: 10),
+
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    "Time",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                              child: TextFormField(
+                                controller: session.endTimeController,
+                                readOnly: true,
+                                onTap: () => _selectTime(
+                                  context,
+                                  session.endTimeController,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: "End Time",
+                                  prefixIcon: const Icon(Icons.access_time),
+                                  filled: true,
+                                  fillColor: Colors.grey[200],
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
-                                  const SizedBox(height: 7),
-                                  TextFormField(
-                                    controller: timeController,
-                                    readOnly: true,
-                                    onTap: () =>
-                                        _selectTime(context, timeController),
-                                    decoration: InputDecoration(
-                                      contentPadding: const EdgeInsets.all(10),
-                                      filled: true,
-                                      fillColor: Colors.grey[200],
-                                      hintText: "Select Time",
-                                      prefixIcon: const Icon(
-                                        Icons.access_time,
-                                        size: 18,
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ],
                     ),
-                  ),
-
-                  //Button
-                ],
+                  );
+                }),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 20),
+
+              /// SAVE BUTTON
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.logo,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  onPressed: _submitAndExit,
+                  child: const Text(
+                    "Save Program",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+}
+
+class SessionData {
+  TextEditingController topicController = TextEditingController();
+  TextEditingController dateController = TextEditingController();
+  TextEditingController startTimeController = TextEditingController();
+  TextEditingController endTimeController = TextEditingController();
+
+  void dispose() {
+    topicController.dispose();
+    dateController.dispose();
+    startTimeController.dispose();
+    endTimeController.dispose();
   }
 }
