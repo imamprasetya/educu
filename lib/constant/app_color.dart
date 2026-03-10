@@ -5,6 +5,12 @@ class AppColor {
   static const Color biru = Color(0xFFCDEDFF);
   static const Color biru1 = Color.fromARGB(255, 238, 249, 255);
   static const Color logo = Color(0xFF2F4A6B);
+  static const Color box = Color(0xFFEFE9FC);
+  static const Color box1 = Color(0xFFF6F5FF);
+
+  //Gradient
+  static const Color gradien1 = Color(0xFF6554FF);
+  static const Color gradien2 = Color(0xFF4388FF);
 
   //darkmode
   static const Color gelap = Color(0xFF000031);

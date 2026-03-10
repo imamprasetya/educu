@@ -128,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         context,
                       ).showSnackBar(SnackBar(content: Text("Login Berhasil")));
                       await Future.delayed(Duration(seconds: 2));
-                      context.push(HomeScreen());
+                      context.pushReplacement(HomeScreen());
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(

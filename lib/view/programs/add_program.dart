@@ -166,12 +166,55 @@ class _AddProgramState extends State<AddProgram> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: AppColor.logo,
-        title: const Text(
-          "Tambah Program Belajar",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      // appBar: AppBar(
+      //   iconTheme: const IconThemeData(color: Colors.white),
+      //   backgroundColor: AppColor.logo,
+      //   title: const Text(
+      //     "Tambah Program Belajar",
+      //     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      //   ),
+      // ),
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(80),
+        child: Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppColor.gradien2, AppColor.gradien1],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(20),
+              bottomRight: Radius.circular(20),
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    Text(
+                      "Add Study Program",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
       ),
 
@@ -212,19 +255,20 @@ class _AddProgramState extends State<AddProgram> {
                       decoration: InputDecoration(
                         hintText: "Enter subject name",
                         filled: true,
-                        fillColor: Colors.grey[200],
+                        fillColor: AppColor.box1,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(25),
+                          borderSide: BorderSide.none,
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 15),
 
-                    /// DATE ROW
+                    // DATE ROW
                     Row(
                       children: [
-                        /// START DATE
+                        // START DATE
                         Expanded(
                           child: TextFormField(
                             controller: startController,
@@ -233,10 +277,11 @@ class _AddProgramState extends State<AddProgram> {
                             decoration: InputDecoration(
                               hintText: "Start Date",
                               filled: true,
-                              fillColor: Colors.grey[200],
+                              fillColor: AppColor.box1,
                               suffixIcon: const Icon(Icons.calendar_today),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(25),
+                                borderSide: BorderSide.none,
                               ),
                             ),
                           ),
@@ -253,10 +298,11 @@ class _AddProgramState extends State<AddProgram> {
                             decoration: InputDecoration(
                               hintText: "End Date",
                               filled: true,
-                              fillColor: Colors.grey[200],
+                              fillColor: AppColor.box1,
                               suffixIcon: const Icon(Icons.calendar_today),
                               border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(25),
+                                borderSide: BorderSide.none,
                               ),
                             ),
                           ),
@@ -280,9 +326,10 @@ class _AddProgramState extends State<AddProgram> {
                       decoration: InputDecoration(
                         hintText: "Enter program description",
                         filled: true,
-                        fillColor: Colors.grey[200],
+                        fillColor: AppColor.box1,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(25),
+                          borderSide: BorderSide.none,
                         ),
                       ),
                     ),
@@ -305,7 +352,7 @@ class _AddProgramState extends State<AddProgram> {
                     onPressed: _addSession,
                     icon: Icon(
                       Icons.add_circle,
-                      color: AppColor.logo,
+                      color: AppColor.gradien2,
                       size: 32,
                     ),
                   ),
@@ -314,7 +361,7 @@ class _AddProgramState extends State<AddProgram> {
 
               const SizedBox(height: 10),
 
-              /// SESSION LIST
+              // SESSION LIST
               Column(
                 children: List.generate(sessions.length, (index) {
                   final session = sessions[index];
@@ -362,7 +409,7 @@ class _AddProgramState extends State<AddProgram> {
 
                         const SizedBox(height: 10),
 
-                        /// TOPIC
+                        // TOPIC
                         const Text(
                           "Material Topic",
                           style: TextStyle(fontWeight: FontWeight.bold),
@@ -375,9 +422,10 @@ class _AddProgramState extends State<AddProgram> {
                           decoration: InputDecoration(
                             hintText: "Enter topic",
                             filled: true,
-                            fillColor: Colors.grey[200],
+                            fillColor: AppColor.box1,
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(25),
+                              borderSide: BorderSide.none,
                             ),
                           ),
                         ),
@@ -396,9 +444,10 @@ class _AddProgramState extends State<AddProgram> {
                             hintText: "Select Date",
                             prefixIcon: const Icon(Icons.calendar_today),
                             filled: true,
-                            fillColor: Colors.grey[200],
+                            fillColor: AppColor.box1,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide.none,
                             ),
                           ),
                         ),
@@ -420,9 +469,10 @@ class _AddProgramState extends State<AddProgram> {
                                   hintText: "Start Time",
                                   prefixIcon: const Icon(Icons.access_time),
                                   filled: true,
-                                  fillColor: Colors.grey[200],
+                                  fillColor: AppColor.box1,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
                                   ),
                                 ),
                               ),
@@ -442,9 +492,10 @@ class _AddProgramState extends State<AddProgram> {
                                   hintText: "End Time",
                                   prefixIcon: const Icon(Icons.access_time),
                                   filled: true,
-                                  fillColor: Colors.grey[200],
+                                  fillColor: AppColor.box1,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
                                   ),
                                 ),
                               ),
@@ -464,7 +515,7 @@ class _AddProgramState extends State<AddProgram> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.logo,
+                    backgroundColor: AppColor.gradien1,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
