@@ -15,6 +15,7 @@ class DBHelper {
         await db.execute('''
         CREATE TABLE user(
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT,
           email TEXT,
           password TEXT
         )
@@ -42,6 +43,11 @@ class DBHelper {
           endTime TEXT
         )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 1) {
+          await db.execute("ALTER TABLE user ADD COLUMN name TEXT");
+        }
       },
     );
   }

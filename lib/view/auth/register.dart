@@ -172,18 +172,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
-                              await DBHelper.registerUser(
-                                UserModel(
-                                  email: emailController.text,
-                                  password: passwordController.text,
-                                ),
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Pendaftaran Berhasil"),
-                                ),
-                              );
-                              clearForm();
+                              try {
+                                await DBHelper.registerUser(
+                                  UserModel(
+                                    name: namaController.text,
+                                    email: emailController.text,
+                                    password: passwordController.text,
+                                  ),
+                                );
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Pendaftaran Berhasil"),
+                                  ),
+                                );
+
+                                clearForm();
+                              } catch (e) {
+                                print("ERROR REGISTER: $e");
+                              }
                             }
                           },
                           child: Text(

@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
 
-        selectedIconTheme: IconThemeData(color: AppColor.navy),
+        selectedIconTheme: IconThemeData(color: AppColor.gradien2),
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Beranda"),
@@ -45,7 +45,10 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.calendar_month),
             label: "Jadwal",
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: "Program"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu_book),
+            label: "Program",
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
         ],
       ),
