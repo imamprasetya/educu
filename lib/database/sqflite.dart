@@ -104,4 +104,29 @@ class DBHelper {
       whereArgs: [programId],
     );
   }
+
+  //Edit Program
+  static Future<void> updateProgram(int id, Map<String, dynamic> data) async {
+    final dbs = await db();
+
+    await dbs.update("program", data, where: "id = ?", whereArgs: [id]);
+  }
+
+  //Delete Program dan Session
+  static Future<void> deleteProgram(int id) async {
+    final dbs = await db();
+
+    // hapus session dulu
+    await dbs.delete("session", where: "programId = ?", whereArgs: [id]);
+
+    // hapus program
+    await dbs.delete("program", where: "id = ?", whereArgs: [id]);
+  }
+
+  // DELETE SESSION BY PROGRAM
+  static Future<void> deleteSessionsByProgram(int programId) async {
+    final dbs = await db();
+
+    await dbs.delete("session", where: "programId = ?", whereArgs: [programId]);
+  }
 }

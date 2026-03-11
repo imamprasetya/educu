@@ -1,3 +1,5 @@
+import 'package:educu_project/view/programs/delete_program.dart';
+import 'package:educu_project/view/programs/edit_program.dart';
 import 'package:educu_project/view/programs/program_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:educu_project/constant/app_color.dart';
@@ -150,14 +152,6 @@ class _ProgramScreenState extends State<ProgramScreen> {
                   color: Colors.blue.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: Colors.blueAccent),
-                  // boxShadow: const [
-                  //   BoxShadow(
-                  //     color: Colors.blueGrey,
-                  //     blurRadius: 2,
-                  //     spreadRadius: 1,
-                  //     offset: Offset(0, 1),
-                  //   ),
-                  // ],
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -226,10 +220,6 @@ class _ProgramScreenState extends State<ProgramScreen> {
                           ),
 
                           child: ListTile(
-                            // leading: const Icon(
-                            //   Icons.school,
-                            //   color: Colors.blue,
-                            // ),
                             title: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -240,17 +230,37 @@ class _ProgramScreenState extends State<ProgramScreen> {
                                   ),
                                 ),
                                 Row(
-                                  children: const [
-                                    Icon(
-                                      Icons.edit,
-                                      size: 18,
-                                      color: Colors.grey,
+                                  children: [
+                                    IconButton(
+                                      onPressed: () async {
+                                        final result = await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                EditProgram(program: items),
+                                          ),
+                                        );
+                                      },
+                                      icon: Icon(
+                                        Icons.edit,
+                                        size: 20,
+                                        color: Colors.blue,
+                                      ),
                                     ),
-                                    SizedBox(width: 8),
-                                    Icon(
-                                      Icons.delete,
-                                      size: 18,
-                                      color: Colors.grey,
+                                    IconButton(
+                                      onPressed: () async {
+                                        await showDeleteDialog(
+                                          context,
+                                          items.id!,
+                                        );
+                                        await loadPrograms();
+                                        setState(() {});
+                                      },
+                                      icon: Icon(
+                                        Icons.delete,
+                                        size: 20,
+                                        color: Colors.red,
+                                      ),
                                     ),
                                   ],
                                 ),

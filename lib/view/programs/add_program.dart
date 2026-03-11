@@ -166,14 +166,6 @@ class _AddProgramState extends State<AddProgram> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   iconTheme: const IconThemeData(color: Colors.white),
-      //   backgroundColor: AppColor.logo,
-      //   title: const Text(
-      //     "Tambah Program Belajar",
-      //     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      //   ),
-      // ),
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(80),
         child: Container(
