@@ -1,6 +1,8 @@
+import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
 import '../../constant/app_color.dart';
 import '../../database/sqflite.dart';
+import '../schedule/pomodoro.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -11,30 +13,55 @@ class ScheduleScreen extends StatefulWidget {
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
   List<Map<String, dynamic>> sessions = [];
-  String selectedDate = "";
+
+  DateTime today = DateTime.now();
+  DateTime selectedDate = DateTime.now();
+
+  List<DateTime> weekDays = [];
 
   @override
   void initState() {
     super.initState();
-
-    DateTime now = DateTime.now();
-    selectedDate = "${now.year}-${now.month}-${now.day}";
-
+    generateWeek();
     loadSchedule();
   }
 
-  /// LOAD DATA SESSION
+  /// GENERATE WEEK (MONDAY - SUNDAY)
+  void generateWeek() {
+    DateTime now = DateTime.now();
+
+    DateTime monday = now.subtract(Duration(days: now.weekday - 1));
+
+    weekDays = [];
+
+    for (int i = 0; i < 7; i++) {
+      weekDays.add(monday.add(Duration(days: i)));
+    }
+  }
+
+  /// LOAD SESSION FROM DATABASE
   Future<void> loadSchedule() async {
     final db = await DBHelper.db();
 
+    String date =
+        "${selectedDate.year.toString().padLeft(4, '0')}-"
+        "${selectedDate.month.toString().padLeft(2, '0')}-"
+        "${selectedDate.day.toString().padLeft(2, '0')}";
+
     final data = await db.rawQuery(
       '''
-    SELECT session.*, program.subject
-    FROM session
-    JOIN program ON session.programId = program.id
-    WHERE session.date = ?
-    ''',
-      [selectedDate],
+      SELECT
+        session.topic,
+        session.startTime,
+        session.endTime,
+        session.date,
+        program.subject
+      FROM session
+      JOIN program
+      ON session.programId = program.id
+      WHERE session.date = ?
+      ''',
+      [date],
     );
 
     setState(() {
@@ -42,54 +69,69 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     });
   }
 
-  /// FORMAT DATE
-  String formatDate(int day) {
-    DateTime now = DateTime.now();
-    return "${now.year}-${now.month}-$day";
-  }
+  /// DATE ITEM
+  Widget dayItem(DateTime date) {
+    bool isSelected =
+        date.year == selectedDate.year &&
+        date.month == selectedDate.month &&
+        date.day == selectedDate.day;
 
-  /// DAY ITEM
-  Widget dayItem(String day, int date) {
-    bool active = selectedDate == formatDate(date);
+    bool isToday =
+        date.year == today.year &&
+        date.month == today.month &&
+        date.day == today.day;
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedDate = formatDate(date);
-        });
+    Color bgColor = Colors.transparent;
+    Color textColor = Colors.black;
 
-        loadSchedule();
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-        decoration: BoxDecoration(
-          color: active ? const Color(0xFF4D6FFF) : Colors.transparent,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Column(
-          children: [
-            Text(
-              day,
-              style: TextStyle(
-                color: active ? Colors.white : Colors.black,
-                fontSize: 12,
+    if (isSelected) {
+      bgColor = const Color(0xFF4D6FFF);
+      textColor = Colors.white;
+    } else if (isToday) {
+      bgColor = const Color(0x334D6FFF);
+    }
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            selectedDate = date;
+          });
+
+          loadSchedule();
+        },
+
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+
+          child: Column(
+            children: [
+              Text(
+                ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][date.weekday -
+                    1],
+                style: TextStyle(fontSize: 12, color: textColor),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              date.toString(),
-              style: TextStyle(
-                color: active ? Colors.white : Colors.black,
-                fontWeight: FontWeight.bold,
+
+              const SizedBox(height: 4),
+
+              Text(
+                date.day.toString(),
+                style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  /// CARD
+  /// CARD JADWAL
   Widget scheduleCard(Map<String, dynamic> data) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -107,51 +149,68 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.circle, size: 10, color: Colors.blue),
-              const SizedBox(width: 8),
-
-              Text(
-                data["subject"],
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
+          /// SUBJECT
+          Text(
+            data["subject"],
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
 
           const SizedBox(height: 6),
 
+          /// MATERI
           Text(
-            "Topic: ${data["topic"]}",
+            "Materi : ${data["topic"]}",
             style: const TextStyle(color: Colors.black54),
           ),
 
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
 
-          Text(
-            "${data["startTime"]} - ${data["endTime"]}",
-            style: const TextStyle(
-              color: Colors.blue,
-              fontWeight: FontWeight.w500,
-            ),
+          /// JAM BELAJAR
+          Row(
+            children: [
+              const Icon(Icons.access_time, size: 16, color: Colors.blue),
+
+              const SizedBox(width: 5),
+
+              Text(
+                "${data["startTime"]} - ${data["endTime"]}",
+                style: const TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 15),
 
+          /// BUTTON START STUDY
           SizedBox(
             width: double.infinity,
+
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF4D6FFF),
+
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),
               ),
 
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PomodoroScreen(
+                      subject: data["subject"],
+                      topic: data["topic"],
+                    ),
+                  ),
+                );
+              },
 
               child: const Text(
-                "Start Study",
+                "Mulai Belajar",
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -168,6 +227,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(120),
+
         child: Container(
           padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
 
@@ -207,55 +267,40 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         ),
       ),
 
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 15),
+      body: Column(
+        children: [
+          const SizedBox(height: 15),
 
-            /// DATE SELECTOR
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(12),
+          /// DATE SELECTOR
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(12),
 
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
 
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  dayItem("Mon", 6),
-                  dayItem("Tue", 7),
-                  dayItem("Wed", 8),
-                  dayItem("Thu", 9),
-                  dayItem("Fri", 10),
-                  dayItem("Sat", 11),
-                  dayItem("Sun", 12),
-                ],
-              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
 
-            const SizedBox(height: 20),
+            child: Row(
+              children: weekDays.map((date) => dayItem(date)).toList(),
+            ),
+          ),
 
-            /// LIST SESSION
-            sessions.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Text("No schedule today"),
-                  )
+          const SizedBox(height: 20),
+
+          /// SESSION LIST
+          Expanded(
+            child: sessions.isEmpty
+                ? const Center(child: Text("No schedule today"))
                 : ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-
                     itemCount: sessions.length,
 
                     itemBuilder: (context, index) {
@@ -264,10 +309,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       return scheduleCard(data);
                     },
                   ),
-
-            const SizedBox(height: 30),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

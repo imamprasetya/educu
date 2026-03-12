@@ -1,10 +1,13 @@
+import 'package:educu_project/models/user_model.dart';
 import 'package:educu_project/view/auth/login.dart';
+import 'package:educu_project/view/notes/notes_screen.dart';
 import 'package:flutter/material.dart';
 import '../../constant/app_color.dart';
 import '../../database/sqflite.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final UserModel user;
+  const ProfileScreen({super.key, required this.user});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -15,28 +18,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool soundNotif = true;
   bool darkMode = false;
 
-  String userName = "User";
-  String userEmail = "";
+  late String userName;
+  late String userEmail;
 
   /// LOAD USER DATA
-  Future<void> loadUser() async {
-    final db = await DBHelper.db();
+  // Future<void> loadUser() async {
+  //   final db = await DBHelper.db();
 
-    final result = await db.query("user", limit: 1);
+  //   final result = await db.query("user", limit: 1);
 
-    if (result.isNotEmpty) {
-      setState(() {
-        userName = result.first["name"]?.toString() ?? "User";
+  //   if (result.isNotEmpty) {
+  //     setState(() {
+  //       userName = result.first["name"]?.toString() ?? "User";
 
-        userEmail = result.first["email"]?.toString() ?? "";
-      });
-    }
-  }
+  //       userEmail = result.first["email"]?.toString() ?? "";
+  //     });
+  //   }
+  // }
 
   @override
   void initState() {
     super.initState();
-    loadUser();
+    userName = widget.user.name ?? "User";
+    userEmail = widget.user.email ?? "";
   }
 
   /// CONTACT US
@@ -242,7 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 20),
 
-            /// SETTINGS TITLE
+            // SETTINGS TITLE
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
               child: Align(
@@ -256,7 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 10),
 
-            /// SETTINGS CARD
+            // SETTINGS CARD
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
 
@@ -318,6 +322,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const Divider(height: 1),
 
                   settingItem(
+                    icon: Icons.notes,
+                    title: "Notes",
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotesScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 1),
+
+                  settingItem(
                     icon: Icons.mail_outline,
                     title: "Contact us",
                     trailing: const Icon(Icons.chevron_right),
@@ -338,7 +357,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 20),
 
-            /// LOGOUT
+            // LOGOUT
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
 

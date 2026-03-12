@@ -1,4 +1,4 @@
-import 'package:educu_project/view/auth/login.dart';
+// import 'package:educu_project/view/auth/login.dart';
 import 'package:educu_project/view/splash_screen.dart';
 import 'package:flutter/material.dart';
 

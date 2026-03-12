@@ -8,7 +8,7 @@ class DBHelper {
 
     return openDatabase(
       join(dbPath, 'educu.db'),
-      version: 1,
+      version: 2,
 
       onCreate: (db, version) async {
         // USER TABLE
@@ -43,10 +43,27 @@ class DBHelper {
           endTime TEXT
         )
         ''');
+
+        // NOTES TABLE
+        await db.execute('''
+        CREATE TABLE notes(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT,
+          content TEXT,
+          date TEXT
+        )
+        ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 1) {
-          await db.execute("ALTER TABLE user ADD COLUMN name TEXT");
+        if (oldVersion < 2) {
+          await db.execute('''
+          CREATE TABLE notes(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT,
+            content TEXT,
+            date TEXT
+          )
+          ''');
         }
       },
     );
@@ -134,5 +151,30 @@ class DBHelper {
     final dbs = await db();
 
     await dbs.delete("session", where: "programId = ?", whereArgs: [programId]);
+  }
+
+  // NOTES
+  static Future<int> insertNote(Map<String, dynamic> data) async {
+    final dbs = await db();
+
+    return await dbs.insert("notes", data);
+  }
+
+  static Future<List<Map<String, dynamic>>> getNotes() async {
+    final dbs = await db();
+
+    return await dbs.query("notes", orderBy: "id DESC");
+  }
+
+  static Future<void> updateNote(int id, Map<String, dynamic> data) async {
+    final dbs = await db();
+
+    await dbs.update("notes", data, where: "id = ?", whereArgs: [id]);
+  }
+
+  static Future<void> deleteNote(int id) async {
+    final dbs = await db();
+
+    await dbs.delete("notes", where: "id = ?", whereArgs: [id]);
   }
 }

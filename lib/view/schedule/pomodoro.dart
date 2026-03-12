@@ -1,15 +1,45 @@
 import 'package:flutter/material.dart';
 
-class PomodoroTimer extends StatefulWidget {
-  const PomodoroTimer({super.key});
+class PomodoroScreen extends StatelessWidget {
+  final String subject;
+  final String topic;
 
-  @override
-  State<PomodoroTimer> createState() => _PomodoroTimerState();
-}
+  const PomodoroScreen({super.key, required this.subject, required this.topic});
 
-class _PomodoroTimerState extends State<PomodoroTimer> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Column(children: [Text("Pomodoro")]));
+    return Scaffold(
+      appBar: AppBar(title: const Text("Pomodoro Timer")),
+
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              subject,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 10),
+
+            Text(
+              topic,
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+
+            const SizedBox(height: 40),
+
+            const Text(
+              "25:00",
+              style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 20),
+
+            ElevatedButton(onPressed: () {}, child: const Text("Start Timer")),
+          ],
+        ),
+      ),
+    );
   }
 }
