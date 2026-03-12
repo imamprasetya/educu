@@ -1,9 +1,10 @@
 import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/models/notes_model.dart';
 import 'package:flutter/material.dart';
 
 class EditNoteScreen extends StatefulWidget {
-  final Map<String, dynamic>? note;
+  final NotesModel? note;
 
   const EditNoteScreen({super.key, this.note});
 
@@ -20,23 +21,24 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     super.initState();
 
     if (widget.note != null) {
-      titleController.text = widget.note!['title'];
+      titleController.text = widget.note!.title;
 
-      contentController.text = widget.note!['content'];
+      contentController.text = widget.note!.content;
     }
   }
 
   void saveNote() async {
-    final data = {
-      "title": titleController.text,
-      "content": contentController.text,
-      "date": DateTime.now().toString(),
-    };
+    final note = NotesModel(
+      id: widget.note?.id, // pakai id kalau edit
+      title: titleController.text,
+      content: contentController.text,
+      date: DateTime.now().toString(),
+    );
 
     if (widget.note == null) {
-      await DBHelper.insertNote(data);
+      await DBHelper.insertNote(note);
     } else {
-      await DBHelper.updateNote(widget.note!['id'], data);
+      await DBHelper.updateNote(note);
     }
 
     Navigator.pop(context);

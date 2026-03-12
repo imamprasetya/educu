@@ -1,6 +1,8 @@
 import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/models/notes_model.dart';
 import 'package:educu_project/view/notes/edit_notes.dart';
+import 'package:educu_project/view/notes/delete_notes.dart';
 import 'package:flutter/material.dart';
 
 class NotesScreen extends StatefulWidget {
@@ -11,8 +13,8 @@ class NotesScreen extends StatefulWidget {
 }
 
 class _NotesScreenState extends State<NotesScreen> {
-  List<Map<String, dynamic>> notes = [];
-  List<Map<String, dynamic>> filteredNotes = [];
+  List<NotesModel> notes = [];
+  List<NotesModel> filteredNotes = [];
 
   final searchController = TextEditingController();
 
@@ -33,9 +35,7 @@ class _NotesScreenState extends State<NotesScreen> {
 
   void searchNotes(String value) {
     final result = notes.where((note) {
-      final title = note['title'].toString().toLowerCase();
-
-      return title.contains(value.toLowerCase());
+      return note.title.toLowerCase().contains(value.toLowerCase());
     }).toList();
 
     setState(() {
@@ -176,7 +176,7 @@ class _NotesScreenState extends State<NotesScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              note['title'],
+                              note.title,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -186,7 +186,7 @@ class _NotesScreenState extends State<NotesScreen> {
                             const SizedBox(height: 5),
 
                             Text(
-                              note['date'],
+                              note.title,
                               style: const TextStyle(
                                 color: Colors.grey,
                                 fontSize: 12,
@@ -218,16 +218,18 @@ class _NotesScreenState extends State<NotesScreen> {
                             },
                           ),
 
-                          IconButton(
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.red,
-                              size: 20,
-                            ),
-
-                            onPressed: () {
-                              deleteNote(note['id']);
+                       IconButton(
+                            onPressed: () async {
+                              if (note.id != null) {
+                                await showDeleteDialogNotes(context, note.id!);
+                                await loadNotes();
+                              }
                             },
+                            icon: Icon(
+                              Icons.delete,
+                              size: 20,
+                              color: Colors.red,
+                            ),
                           ),
                         ],
                       ),

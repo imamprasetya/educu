@@ -1,5 +1,6 @@
 import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/models/session_model.dart';
 import 'package:flutter/material.dart';
 
 class AddProgram extends StatefulWidget {
@@ -32,7 +33,7 @@ class _AddProgramState extends State<AddProgram> {
     });
   }
 
-  /// SELECT DATE PROGRAM
+  // Tanggal Sucject
   Future<void> _selectDate(
     BuildContext context,
     TextEditingController controller,
@@ -50,7 +51,7 @@ class _AddProgramState extends State<AddProgram> {
     }
   }
 
-  /// VALIDASI DATE SESSION
+  // Validasi Tanggal Sesi
   Future<void> _selectSessionsDate(
     BuildContext context,
     TextEditingController controller,
@@ -80,7 +81,7 @@ class _AddProgramState extends State<AddProgram> {
     }
   }
 
-  /// SELECT TIME
+  /// Tanggal Sesi
   Future<void> _selectTime(
     BuildContext context,
     TextEditingController controller,
@@ -106,18 +107,20 @@ class _AddProgramState extends State<AddProgram> {
       "description": deskController.text,
     });
 
-    /// INSERT SESSION KE DATABASE
+    // Inseret Session Ke Database
     for (var s in sessions) {
-      await DBHelper.insertSession({
-        "programId": programId,
-        "topic": s.topicController.text,
-        "date": s.dateController.text,
-        "startTime": s.startTimeController.text,
-        "endTime": s.endTimeController.text,
-      });
+      SessionModel session = SessionModel(
+        programId: programId,
+        topic: s.topicController.text,
+        date: s.dateController.text,
+        startTime: s.startTimeController.text,
+        endTime: s.endTimeController.text,
+      );
+
+      await DBHelper.insertSession(session);
     }
 
-    /// ALERT BERHASIL
+    // Alert Berhasil
     showDialog(
       context: context,
       builder: (context) {
@@ -137,7 +140,6 @@ class _AddProgramState extends State<AddProgram> {
                 onPressed: () {
                   Navigator.pop(context);
 
-                  /// KIRIM SIGNAL KE PROGRAM SCREEN
                   Navigator.pop(context, true);
                 },
                 child: const Text("OK", style: TextStyle(color: Colors.white)),
@@ -212,13 +214,13 @@ class _AddProgramState extends State<AddProgram> {
 
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
 
           child: Column(
             children: [
-              /// PROGRAM INFO
+              // Input Program
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
@@ -234,13 +236,13 @@ class _AddProgramState extends State<AddProgram> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// SUBJECT
-                    const Text(
+                    // Subject
+                    Text(
                       "Subject Name",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
 
-                    const SizedBox(height: 7),
+                    SizedBox(height: 7),
 
                     TextFormField(
                       controller: subjectController,
@@ -255,12 +257,11 @@ class _AddProgramState extends State<AddProgram> {
                       ),
                     ),
 
-                    const SizedBox(height: 15),
+                    SizedBox(height: 15),
 
-                    // DATE ROW
                     Row(
                       children: [
-                        // START DATE
+                        // Start Date
                         Expanded(
                           child: TextFormField(
                             controller: startController,
@@ -270,7 +271,7 @@ class _AddProgramState extends State<AddProgram> {
                               hintText: "Start Date",
                               filled: true,
                               fillColor: AppColor.box1,
-                              suffixIcon: const Icon(Icons.calendar_today),
+                              suffixIcon: Icon(Icons.calendar_today),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(25),
                                 borderSide: BorderSide.none,
@@ -279,9 +280,9 @@ class _AddProgramState extends State<AddProgram> {
                           ),
                         ),
 
-                        const SizedBox(width: 10),
+                        SizedBox(width: 10),
 
-                        /// END DATE
+                        // End Date
                         Expanded(
                           child: TextFormField(
                             controller: endController,
@@ -291,7 +292,7 @@ class _AddProgramState extends State<AddProgram> {
                               hintText: "End Date",
                               filled: true,
                               fillColor: AppColor.box1,
-                              suffixIcon: const Icon(Icons.calendar_today),
+                              suffixIcon: Icon(Icons.calendar_today),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(25),
                                 borderSide: BorderSide.none,
@@ -302,15 +303,15 @@ class _AddProgramState extends State<AddProgram> {
                       ],
                     ),
 
-                    const SizedBox(height: 15),
+                    SizedBox(height: 15),
 
-                    /// DESCRIPTION
-                    const Text(
+                    // Description
+                    Text(
                       "Description",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
 
-                    const SizedBox(height: 7),
+                    SizedBox(height: 7),
 
                     TextFormField(
                       controller: deskController,
@@ -329,13 +330,13 @@ class _AddProgramState extends State<AddProgram> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
 
-              /// SESSION TITLE
+              // Sesions
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     "Sessions",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                   ),
@@ -351,9 +352,9 @@ class _AddProgramState extends State<AddProgram> {
                 ],
               ),
 
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
 
-              // SESSION LIST
+              // Session List
               Column(
                 children: List.generate(sessions.length, (index) {
                   final session = sessions[index];
@@ -381,7 +382,7 @@ class _AddProgramState extends State<AddProgram> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Day ${index + 1}",
+                              "Session ${index + 1}",
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.blueAccent,
@@ -424,7 +425,7 @@ class _AddProgramState extends State<AddProgram> {
 
                         const SizedBox(height: 15),
 
-                        /// DATE
+                        // Date
                         TextFormField(
                           controller: session.dateController,
                           readOnly: true,
@@ -446,7 +447,6 @@ class _AddProgramState extends State<AddProgram> {
 
                         const SizedBox(height: 15),
 
-                        /// TIME ROW
                         Row(
                           children: [
                             Expanded(
@@ -502,7 +502,7 @@ class _AddProgramState extends State<AddProgram> {
 
               const SizedBox(height: 20),
 
-              /// SAVE BUTTON
+              // Simpan
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

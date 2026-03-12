@@ -1,3 +1,5 @@
+import 'package:educu_project/models/notes_model.dart';
+import 'package:educu_project/models/session_model.dart';
 import 'package:educu_project/models/user_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
@@ -111,10 +113,10 @@ class DBHelper {
   }
 
   // INSERT SESSION
-  static Future<void> insertSession(Map<String, dynamic> data) async {
+  static Future<int> insertSession(SessionModel session) async {
     final dbs = await db();
 
-    await dbs.insert("session", data);
+    return await dbs.insert("session", session.toMap());
   }
 
   // GET SESSION BY PROGRAM
@@ -154,22 +156,30 @@ class DBHelper {
   }
 
   // NOTES
-  static Future<int> insertNote(Map<String, dynamic> data) async {
+  // Insert Notes
+  static Future<int> insertNote(NotesModel note) async {
     final dbs = await db();
-
-    return await dbs.insert("notes", data);
+    return await dbs.insert("notes", note.toMap());
   }
 
-  static Future<List<Map<String, dynamic>>> getNotes() async {
+  //Get Notes
+  static Future<List<NotesModel>> getNotes() async {
     final dbs = await db();
-
-    return await dbs.query("notes", orderBy: "id DESC");
+    final result = await dbs.query("notes", orderBy: "id DESC");
+    return result.map((noteMap) => NotesModel.fromMap(noteMap)).toList();
   }
 
-  static Future<void> updateNote(int id, Map<String, dynamic> data) async {
+  // Update Notes
+  static Future<void> updateNote(NotesModel note) async {
     final dbs = await db();
-
-    await dbs.update("notes", data, where: "id = ?", whereArgs: [id]);
+    if (note.id != null) {
+      await dbs.update(
+        "notes",
+        note.toMap(),
+        where: "id = ?",
+        whereArgs: [note.id],
+      );
+    }
   }
 
   static Future<void> deleteNote(int id) async {

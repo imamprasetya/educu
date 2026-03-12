@@ -1,6 +1,7 @@
 import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/database/sqflite.dart';
 import 'package:educu_project/models/program_model.dart';
+import 'package:educu_project/models/session_model.dart';
 import 'package:flutter/material.dart';
 
 class EditProgram extends StatefulWidget {
@@ -32,7 +33,7 @@ class _EditProgramState extends State<EditProgram> {
     loadSessions();
   }
 
-  /// DATE PICKER
+  // DATE PICKER
   Future<void> pickDate(TextEditingController controller) async {
     DateTime startDate = DateTime.parse(startController.text);
     DateTime endDate = DateTime.parse(endController.text);
@@ -50,7 +51,7 @@ class _EditProgramState extends State<EditProgram> {
     }
   }
 
-  /// TIME PICKER
+  // TIME PICKER
   Future<void> pickTime(TextEditingController controller) async {
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
@@ -62,7 +63,7 @@ class _EditProgramState extends State<EditProgram> {
     }
   }
 
-  /// LOAD SESSION
+  // LOAD SESSION
   Future<void> loadSessions() async {
     final data = await DBHelper.getSessions(widget.program.id!);
 
@@ -80,14 +81,14 @@ class _EditProgramState extends State<EditProgram> {
     setState(() {});
   }
 
-  /// TAMBAH SESSION
+  // TAMBAH SESSION
   void addSession() {
     setState(() {
       sessions.add(SessionData());
     });
   }
 
-  /// HAPUS SESSION
+  // HAPUS SESSION
   void removeSession(int index) {
     setState(() {
       sessions[index].dispose();
@@ -95,7 +96,7 @@ class _EditProgramState extends State<EditProgram> {
     });
   }
 
-  /// UPDATE PROGRAM
+  // UPDATE PROGRAM
   Future<void> updateProgram() async {
     int programId = widget.program.id!;
 
@@ -109,13 +110,15 @@ class _EditProgramState extends State<EditProgram> {
     await DBHelper.deleteSessionsByProgram(programId);
 
     for (var s in sessions) {
-      await DBHelper.insertSession({
-        "programId": programId,
-        "topic": s.topicController.text,
-        "date": s.dateController.text,
-        "startTime": s.startTimeController.text,
-        "endTime": s.endTimeController.text,
-      });
+      SessionModel session = SessionModel(
+        programId: programId,
+        topic: s.topicController.text,
+        date: s.dateController.text,
+        startTime: s.startTimeController.text,
+        endTime: s.endTimeController.text,
+      );
+
+      await DBHelper.insertSession(session);
     }
 
     Navigator.pop(context, true);
@@ -139,14 +142,18 @@ class _EditProgramState extends State<EditProgram> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Edit Study Program"),
+        iconTheme: IconThemeData(color: Colors.white),
+        title: Text(
+          "Edit Study Program",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: AppColor.gradien1,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            /// PROGRAM INFO
+            // PROGRAM
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -182,7 +189,7 @@ class _EditProgramState extends State<EditProgram> {
 
                   const SizedBox(height: 15),
 
-                  /// START & END DATE
+                  // START & END DATE
                   Row(
                     children: [
                       Expanded(

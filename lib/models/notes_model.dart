@@ -13,6 +13,7 @@ class NotesModel {
     required this.date,
   });
 
+
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
