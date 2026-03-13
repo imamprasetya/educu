@@ -21,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColor.biru,
+      backgroundColor: AppColor.biru1,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 "Hello Welcome Back",
                 style: TextStyle(
-                  color: AppColor.gelap,
+                  color: AppColor.gradien2,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -55,13 +55,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
               SizedBox(height: 35),
 
-              Row(children: [Text("Username")]),
+              Row(children: [Text("Email")]),
               SizedBox(height: 5),
               TextFormField(
                 controller: emailController,
                 decoration: InputDecoration(
                   prefixIcon: Icon(Icons.person),
-                  hintText: 'Masukkan username Anda',
+                  hintText: 'Masukkan email Anda',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
@@ -115,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadiusGeometry.circular(30),
                     ),
-                    backgroundColor: Color.fromARGB(255, 0, 0, 51),
+                    backgroundColor: AppColor.gradien2,
                   ),
                   onPressed: () async {
                     final UserModel? login = await DBHelper.loginUser(

@@ -12,7 +12,6 @@ class HomeContent extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            /// HEADER
             Container(
               padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
               decoration: BoxDecoration(
@@ -81,7 +80,7 @@ class HomeContent extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            /// MOTIVATION CARD
+            // MOTIVATION CARD
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(20),
@@ -102,7 +101,7 @@ class HomeContent extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            /// INDICATOR DOT
+            // INDICATOR DOT
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [dot(true), dot(false), dot(false), dot(false)],
@@ -110,7 +109,7 @@ class HomeContent extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            /// STUDY PROGRESS CARD
+            // STUDY PROGRESS CARD
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(16),
@@ -135,7 +134,7 @@ class HomeContent extends StatelessWidget {
 
                   const SizedBox(height: 10),
 
-                  /// CHART PLACEHOLDER
+                  // CHART PLACEHOLDER
                   Container(
                     height: 150,
                     decoration: BoxDecoration(
@@ -147,7 +146,7 @@ class HomeContent extends StatelessWidget {
 
                   const SizedBox(height: 15),
 
-                  /// STATS
+                  // STATS
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -192,7 +191,7 @@ class HomeContent extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            /// TODAY SCHEDULE TITLE
+            // TODAY SCHEDULE TITLE
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -210,10 +209,10 @@ class HomeContent extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            /// SCHEDULE CARD
-            scheduleCard("Mathematics", "14:00 - 16:00"),
-            scheduleCard("Physics", "16:30 - 18:00"),
-            scheduleCard("Chemistry", "19:00 - 20:30"),
+            // SCHEDULE CARD
+            scheduleCard("App Developer", "14:00 - 16:00"),
+            scheduleCard("Web Developer", "16:30 - 18:00"),
+            scheduleCard("Cyber Scurity", "19:00 - 20:30"),
 
             const SizedBox(height: 30),
           ],
@@ -222,7 +221,7 @@ class HomeContent extends StatelessWidget {
     );
   }
 
-  /// DOT INDICATOR
+  // DOT INDICATOR
   static Widget dot(bool active) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -235,7 +234,7 @@ class HomeContent extends StatelessWidget {
     );
   }
 
-  /// SCHEDULE CARD
+  // SCHEDULE CARD
   static Widget scheduleCard(String subject, String time) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -271,7 +270,7 @@ class HomeContent extends StatelessWidget {
               ),
             ),
             onPressed: () {},
-            child: const Text("Start"),
+            child: const Text("Start", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

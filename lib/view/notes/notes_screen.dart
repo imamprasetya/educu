@@ -186,7 +186,7 @@ class _NotesScreenState extends State<NotesScreen> {
                             const SizedBox(height: 5),
 
                             Text(
-                              note.title,
+                              note.date,
                               style: const TextStyle(
                                 color: Colors.grey,
                                 fontSize: 12,
@@ -218,7 +218,7 @@ class _NotesScreenState extends State<NotesScreen> {
                             },
                           ),
 
-                       IconButton(
+                          IconButton(
                             onPressed: () async {
                               if (note.id != null) {
                                 await showDeleteDialogNotes(context, note.id!);

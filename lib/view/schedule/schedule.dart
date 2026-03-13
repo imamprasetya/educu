@@ -26,7 +26,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     loadSchedule();
   }
 
-  /// GENERATE WEEK (MONDAY - SUNDAY)
+  // GENERATE WEEK
   void generateWeek() {
     DateTime now = DateTime.now();
 
@@ -39,7 +39,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }
   }
 
-  /// LOAD SESSION FROM DATABASE
+  // LOAD SESSION FROM DATABASE
   Future<void> loadSchedule() async {
     final db = await DBHelper.db();
 
@@ -69,7 +69,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     });
   }
 
-  /// DATE ITEM
+  // DATE ITEM
   Widget dayItem(DateTime date) {
     bool isSelected =
         date.year == selectedDate.year &&

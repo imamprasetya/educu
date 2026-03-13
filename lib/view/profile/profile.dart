@@ -85,7 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// SETTINGS ITEM WIDGET
+  // SETTINGS ITEM WIDGET
   Widget settingItem({
     required IconData icon,
     required String title,
@@ -124,7 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            /// HEADER
+            // HEADER
             Container(
               padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
 
@@ -166,7 +166,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 20),
 
-            /// PROFILE CARD
+            // PROFILE CARD
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
 
