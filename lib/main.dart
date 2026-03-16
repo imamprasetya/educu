@@ -1,8 +1,13 @@
 // import 'package:educu_project/view/auth/login.dart';
+import 'package:educu_project/database/preference.dart';
 import 'package:educu_project/view/splash_screen.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await PreferenceHandler().init();
+
   runApp(const MyApp());
 }
 

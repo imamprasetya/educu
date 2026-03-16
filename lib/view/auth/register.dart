@@ -15,7 +15,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController namaController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  bool isPasswordHidden = true;
+  bool isConfirmPasswordHidden = true;
 
   @override
   Widget build(BuildContext context) {
@@ -31,10 +36,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 SizedBox(height: 25),
                 Container(
-                  height: 800,
                   padding: EdgeInsets.all(15.0),
                   decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 0, 0, 51),
+                    color: AppColor.gradien2,
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [
                       BoxShadow(
@@ -46,6 +50,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ],
                   ),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Center(
                         child: Text(
@@ -59,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       SizedBox(height: 25),
 
-                      // NAMA
+                      // Nama
                       Row(
                         children: [
                           Text(
@@ -85,14 +90,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Nama wajib diisi';
+                            return 'Full name is required';
                           }
                           return null;
                         },
                       ),
                       SizedBox(height: 25),
 
-                      // EMAIL
+                      // Email
                       Row(
                         children: [
                           Text("Email", style: TextStyle(color: Colors.white)),
@@ -115,17 +120,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Email wajib diisi';
+                            return 'Email is required';
                           }
                           if (!value.contains('@')) {
-                            return 'Email harus mengandung @';
+                            return 'Email must contain @';
                           }
                           return null;
                         },
                       ),
                       SizedBox(height: 25),
 
-                      // PASSWORD
+                      // Password
                       Row(
                         children: [
                           Text(
@@ -137,10 +142,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       SizedBox(height: 8),
                       TextFormField(
                         controller: passwordController,
-                        obscureText: true,
+                        obscureText: isPasswordHidden,
                         decoration: InputDecoration(
                           hintText: 'Enter Password',
                           prefixIcon: Icon(Icons.lock),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              isPasswordHidden
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                isPasswordHidden = !isPasswordHidden;
+                              });
+                            },
+                          ),
                           filled: true,
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
@@ -152,10 +169,57 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Password wajib diisi';
+                            return 'Password is required';
                           }
                           if (value.length < 6) {
-                            return 'Password minimal 6 karakter';
+                            return 'Password must be at least 6 characters';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 25),
+
+                      // Confirm Password
+                      Row(
+                        children: [
+                          Text(
+                            "Confirm Password",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      TextFormField(
+                        controller: confirmPasswordController,
+                        obscureText: isConfirmPasswordHidden,
+                        decoration: InputDecoration(
+                          hintText: 'Enter Confirm Password',
+                          prefixIcon: Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              isConfirmPasswordHidden
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                isConfirmPasswordHidden =
+                                    !isConfirmPasswordHidden;
+                              });
+                            },
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Color.fromARGB(255, 214, 237, 255),
+                            ),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value != passwordController.text) {
+                            return 'Passwords do not match';
                           }
                           return null;
                         },
@@ -168,7 +232,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         height: 40,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromARGB(255, 0, 71, 194),
+                            backgroundColor: AppColor.navy,
                           ),
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
@@ -183,7 +247,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text("Pendaftaran Berhasil"),
+                                    content: Text("Registration Successful"),
+                                    backgroundColor: AppColor.gradien1,
                                   ),
                                 );
 
@@ -194,7 +259,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             }
                           },
                           child: Text(
-                            "DAFTAR",
+                            "REGISTER",
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -224,7 +289,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             child: Text(
                               "Sign In",
                               style: TextStyle(
-                                color: Colors.blue,
+                                color: AppColor.navy,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -247,6 +312,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     namaController.dispose();
     emailController.dispose();
     passwordController.dispose();
+    confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -255,5 +321,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     namaController.clear();
     emailController.clear();
     passwordController.clear();
+    confirmPasswordController.clear();
   }
 }

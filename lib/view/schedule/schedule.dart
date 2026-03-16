@@ -2,7 +2,7 @@ import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
 import '../../constant/app_color.dart';
 import '../../database/sqflite.dart';
-import '../schedule/pomodoro.dart';
+import '../../database/preference.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -19,14 +19,27 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   List<DateTime> weekDays = [];
 
+  int? userId;
+
   @override
   void initState() {
     super.initState();
     generateWeek();
-    loadSchedule();
+    init();
   }
 
-  /// GENERATE WEEK (MONDAY - SUNDAY)
+  /// INIT USER
+  Future<void> init() async {
+    await getUser();
+    await loadSchedule();
+  }
+
+  /// GET USER ID
+  Future<void> getUser() async {
+    userId = await PreferenceHandler.getUserId();
+  }
+
+  /// GENERATE WEEK
   void generateWeek() {
     DateTime now = DateTime.now();
 
@@ -41,6 +54,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   /// LOAD SESSION FROM DATABASE
   Future<void> loadSchedule() async {
+    if (userId == null) return;
+
     final db = await DBHelper.db();
 
     String date =
@@ -60,8 +75,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       JOIN program
       ON session.programId = program.id
       WHERE session.date = ?
+      AND program.userId = ?
       ''',
-      [date],
+      [date, userId],
     );
 
     setState(() {
@@ -69,7 +85,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     });
   }
 
-  /// DATE ITEM
+  /// DAY ITEM
   Widget dayItem(DateTime date) {
     bool isSelected =
         date.year == selectedDate.year &&
@@ -157,7 +173,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
           const SizedBox(height: 6),
 
-          /// MATERI
+          /// TOPIC
           Text(
             "Materi : ${data["topic"]}",
             style: const TextStyle(color: Colors.black54),
@@ -165,7 +181,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
           const SizedBox(height: 6),
 
-          /// JAM BELAJAR
+          /// TIME
           Row(
             children: [
               const Icon(Icons.access_time, size: 16, color: Colors.blue),
@@ -184,7 +200,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
           const SizedBox(height: 15),
 
-          /// BUTTON START STUDY
+          /// START STUDY BUTTON
           SizedBox(
             width: double.infinity,
 

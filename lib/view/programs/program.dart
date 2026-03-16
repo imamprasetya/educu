@@ -3,6 +3,8 @@ import 'package:educu_project/view/programs/edit_program.dart';
 import 'package:educu_project/view/programs/program_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:educu_project/constant/app_color.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../database/sqflite.dart';
 import '../../models/program_model.dart';
 import 'add_program.dart';
@@ -23,11 +25,12 @@ class _ProgramScreenState extends State<ProgramScreen> {
 
   bool isFocused = false;
 
+  int? userId;
+
   @override
   void initState() {
     super.initState();
-    loadPrograms();
-
+    getUser();
     searchFocus.addListener(() {
       setState(() {
         isFocused = searchFocus.hasFocus;
@@ -35,9 +38,18 @@ class _ProgramScreenState extends State<ProgramScreen> {
     });
   }
 
-  // LOAD DATA PROGRAM DARI DATABASE
+  // mengambil user yang sedang login
+  Future<void> getUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    userId = prefs.getInt("userId");
+    loadPrograms();
+  }
+
+  // load program berdasarkan user
   Future<void> loadPrograms() async {
-    final data = await DBHelper.getPrograms();
+    if (userId == null) return;
+
+    final data = await DBHelper.getProgramsByUser(userId!);
     final result = data.map((e) => ProgramModel.fromMap(e)).toList();
 
     setState(() {
@@ -46,7 +58,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
     });
   }
 
-  // Search Program
+  // search program
   void searchProgram(String keyword) {
     if (keyword.isEmpty) {
       setState(() {
@@ -114,7 +126,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              // Search
+              // search
               Container(
                 height: 45,
                 decoration: BoxDecoration(
@@ -143,7 +155,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
 
               const SizedBox(height: 20),
 
-              // Progress Card
+              // progress card
               Container(
                 padding: const EdgeInsets.all(16),
                 height: 100,
@@ -198,7 +210,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
 
               const SizedBox(height: 20),
 
-              // List Program
+              // list program
               filteredPrograms.isEmpty
                   ? const Center(
                       child: Text(
@@ -218,53 +230,12 @@ class _ProgramScreenState extends State<ProgramScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-
                           child: ListTile(
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  items.subject ?? "",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    IconButton(
-                                      onPressed: () async {
-                                        final result = await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                EditProgram(program: items),
-                                          ),
-                                        );
-                                      },
-                                      icon: Icon(
-                                        Icons.edit,
-                                        size: 20,
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      onPressed: () async {
-                                        await showDeleteDialog(
-                                          context,
-                                          items.id!,
-                                        );
-                                        await loadPrograms();
-                                        setState(() {});
-                                      },
-                                      icon: Icon(
-                                        Icons.delete,
-                                        size: 20,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                            title: Text(
+                              items.subject ?? "",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
 
                             subtitle: Column(
@@ -272,32 +243,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
                               children: [
                                 Text("${items.startDate} - ${items.endDate}"),
                                 const SizedBox(height: 10),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: const [
-                                    Text("Progress"),
-                                    Text(
-                                      "75%",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 5),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: const LinearProgressIndicator(
-                                    value: 0.6,
-                                    minHeight: 8,
-                                    backgroundColor: Color(0xFFDBD8FF),
-                                    valueColor: AlwaysStoppedAnimation(
-                                      Colors.blueAccent,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
+
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
@@ -305,10 +251,11 @@ class _ProgramScreenState extends State<ProgramScreen> {
                                       backgroundColor: Colors.blueAccent,
                                     ),
                                     onPressed: () async {
-                                      final result = await Navigator.push(
+                                      await Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => ProgramDetail(),
+                                          builder: (context) =>
+                                              ProgramDetail(program: items),
                                         ),
                                       );
                                     },
@@ -317,6 +264,38 @@ class _ProgramScreenState extends State<ProgramScreen> {
                                       style: TextStyle(color: Colors.white),
                                     ),
                                   ),
+                                ),
+                              ],
+                            ),
+
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.blue,
+                                  ),
+                                  onPressed: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            EditProgram(program: items),
+                                      ),
+                                    );
+                                    loadPrograms();
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () async {
+                                    await showDeleteDialog(context, items.id!);
+                                    loadPrograms();
+                                  },
                                 ),
                               ],
                             ),
@@ -329,7 +308,6 @@ class _ProgramScreenState extends State<ProgramScreen> {
         ),
       ),
 
-      // Button Add
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blueAccent,
         child: const Icon(Icons.add, color: Colors.white),

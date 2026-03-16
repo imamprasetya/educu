@@ -3,12 +3,15 @@ import 'dart:convert';
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class ProgramModel {
   int? id;
+  int userId;
   final String subject;
   final String startDate;
   final String endDate;
   final String description;
+
   ProgramModel({
     this.id,
+    required this.userId,
     required this.subject,
     required this.startDate,
     required this.endDate,
@@ -18,6 +21,7 @@ class ProgramModel {
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
+      'userId': userId,
       'subject': subject,
       'startDate': startDate,
       'endDate': endDate,
@@ -28,6 +32,7 @@ class ProgramModel {
   factory ProgramModel.fromMap(Map<String, dynamic> map) {
     return ProgramModel(
       id: map['id'] != null ? map['id'] as int : null,
+      userId: map['userId'] as int,
       subject: map['subject'] as String,
       startDate: map['startDate'] as String,
       endDate: map['endDate'] as String,
