@@ -98,9 +98,6 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-<<<<<<< HEAD
-      appBar: AppBar(title: Text("Pomodoro Timer")),
-=======
       backgroundColor: const Color(0xFFF3F3F6),
 
       appBar: AppBar(
@@ -110,33 +107,11 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
 
       body: Padding(
         padding: const EdgeInsets.all(20),
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
 
           children: [
-<<<<<<< HEAD
-            Text(
-              subject,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-
-            SizedBox(height: 10),
-
-            Text(topic, style: TextStyle(fontSize: 16, color: Colors.grey)),
-
-            SizedBox(height: 40),
-
-            Text(
-              "25:00",
-              style: TextStyle(fontSize: 60, fontWeight: FontWeight.bold),
-            ),
-
-            SizedBox(height: 20),
-
-            ElevatedButton(onPressed: () {}, child: Text("Start Timer")),
-=======
             /// SUBJECT CARD
             Container(
               width: double.infinity,
@@ -268,7 +243,6 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.black54),
             ),
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
           ],
         ),
       ),

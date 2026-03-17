@@ -18,6 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  bool isPasswordHidden = true;
+
   Future<void> loginUser() async {
     final UserModel? login = await DBHelper.loginUser(
       email: emailController.text,
@@ -47,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  /// ALERT FEATURE IN DEVELOPMENT
+  // ALERT FEATURE IN DEVELOPMENT
   void showComingSoon() {
     showDialog(
       context: context,
@@ -71,61 +73,13 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-<<<<<<< HEAD
-      backgroundColor: AppColor.biru1,
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/images/logo.png', height: 120, width: 120),
-              Text(
-                'EDUCU',
-                style: TextStyle(
-                  color: AppColor.logo,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 40,
-                ),
-              ),
-              SizedBox(height: 10),
-
-              Text(
-                "Hello Welcome Back",
-                style: TextStyle(
-                  color: AppColor.gradien2,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 7),
-              Text(
-                "Sign in to your account. Have a good time",
-                style: TextStyle(color: Colors.blueGrey),
-              ),
-=======
       backgroundColor: AppColor.biru,
-
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(16),
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
-
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-
-<<<<<<< HEAD
-              Row(children: [Text("Email")]),
-              SizedBox(height: 5),
-              TextFormField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.person),
-                  hintText: 'Masukkan email Anda',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-=======
               children: [
                 Image.asset('assets/images/logo.png', height: 120, width: 120),
 
@@ -134,10 +88,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'EDUCU',
                   style: TextStyle(
-                    color: AppColor.logo,
+                    color: const Color(0xFF2F4A6B),
                     fontWeight: FontWeight.bold,
                     fontSize: 40,
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
                   ),
                 ),
 
@@ -161,6 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 35),
 
+                // EMAIL
                 const Row(children: [Text("Email")]),
 
                 const SizedBox(height: 5),
@@ -178,16 +132,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 15),
 
+                // PASSWORD
                 const Row(children: [Text("Password")]),
 
                 const SizedBox(height: 5),
 
                 TextFormField(
                   controller: passwordController,
-                  obscureText: true,
+                  obscureText: isPasswordHidden,
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.lock),
                     hintText: 'Enter your password',
+
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        isPasswordHidden
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          isPasswordHidden = !isPasswordHidden;
+                        });
+                      },
+                    ),
+
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
@@ -196,10 +165,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 25),
 
+                // LOGIN BUTTON
                 SizedBox(
                   height: 45,
                   width: double.infinity,
-
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
@@ -207,9 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       backgroundColor: const Color.fromARGB(255, 0, 0, 51),
                     ),
-
                     onPressed: loginUser,
-
                     child: const Text(
                       "LOGIN",
                       style: TextStyle(
@@ -222,6 +189,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 25),
 
+                // OR SIGN IN WITH
                 Row(
                   children: const [
                     Expanded(child: Divider(thickness: 1)),
@@ -232,42 +200,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: TextStyle(color: Colors.blueGrey),
                       ),
                     ),
-<<<<<<< HEAD
-                    backgroundColor: AppColor.gradien2,
-                  ),
-                  onPressed: () async {
-                    final UserModel? login = await DBHelper.loginUser(
-                      email: emailController.text,
-                      password: passwordController.text,
-                    );
-                    if (login != null) {
-                      PreferenceHandler().storingIsLogin(true);
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text("Login Berhasil")));
-                      await Future.delayed(Duration(seconds: 2));
-                      context.pushReplacement(HomeScreen(user: login));
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            "Login gagal, email atau password tidak terdaftar",
-=======
                     Expanded(child: Divider(thickness: 1)),
                   ],
                 ),
 
                 const SizedBox(height: 20),
 
-                /// GOOGLE & FACEBOOK BUTTONS
+                // GOOGLE & FACEBOOK
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-
                   children: [
                     SizedBox(
                       height: 50,
                       width: 160,
-
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
@@ -278,19 +223,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             229,
                             243,
                             255,
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
                           ),
                         ),
-
                         onPressed: showComingSoon,
-
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Image.asset("assets/images/google.png", height: 30),
-
                             const SizedBox(width: 8),
-
                             const Text(
                               "Google",
                               style: TextStyle(
@@ -307,7 +247,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       height: 50,
                       width: 160,
-
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
@@ -320,9 +259,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             255,
                           ),
                         ),
-
                         onPressed: showComingSoon,
-
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -330,9 +267,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               "assets/images/facebook.png",
                               height: 30,
                             ),
-
                             const SizedBox(width: 8),
-
                             const Text(
                               "Facebook",
                               style: TextStyle(
@@ -350,17 +285,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 35),
 
+                /// SIGN UP
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-
                   children: [
                     const Text(
                       "Don't have an account?",
                       style: TextStyle(color: Colors.blueGrey),
                     ),
-
                     const SizedBox(width: 5),
-
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
@@ -370,7 +303,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         );
                       },
-
                       child: const Text(
                         "Sign Up",
                         style: TextStyle(

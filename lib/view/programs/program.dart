@@ -231,11 +231,50 @@ class _ProgramScreenState extends State<ProgramScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: ListTile(
-                            title: Text(
-                              items.subject ?? "",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  items.subject ?? "",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color: Colors.blue,
+                                      ),
+                                      onPressed: () async {
+                                        await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                EditProgram(program: items),
+                                          ),
+                                        );
+                                        loadPrograms();
+                                      },
+                                    ),
+
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () async {
+                                        await showDeleteDialog(
+                                          context,
+                                          items.id!,
+                                        );
+                                        loadPrograms();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
 
                             subtitle: Column(
@@ -243,7 +282,36 @@ class _ProgramScreenState extends State<ProgramScreen> {
                               children: [
                                 Text("${items.startDate} - ${items.endDate}"),
                                 const SizedBox(height: 10),
-
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Progress",
+                                      style: TextStyle(color: Colors.black54),
+                                    ),
+                                    Text(
+                                      "50%",
+                                      style: TextStyle(
+                                        color: AppColor.gradien2,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 5),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: const LinearProgressIndicator(
+                                    value: 0.5,
+                                    minHeight: 8,
+                                    backgroundColor: Color(0xFFDBD8FF),
+                                    valueColor: AlwaysStoppedAnimation(
+                                      Colors.blueAccent,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 5),
                                 SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
@@ -264,38 +332,6 @@ class _ProgramScreenState extends State<ProgramScreen> {
                                       style: TextStyle(color: Colors.white),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.edit,
-                                    color: Colors.blue,
-                                  ),
-                                  onPressed: () async {
-                                    await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            EditProgram(program: items),
-                                      ),
-                                    );
-                                    loadPrograms();
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    color: Colors.red,
-                                  ),
-                                  onPressed: () async {
-                                    await showDeleteDialog(context, items.id!);
-                                    loadPrograms();
-                                  },
                                 ),
                               ],
                             ),

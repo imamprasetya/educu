@@ -49,10 +49,7 @@ class _HomeContentState extends State<HomeContent> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-<<<<<<< HEAD
-=======
             // header
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
             Container(
               padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
               decoration: BoxDecoration(
@@ -86,7 +83,7 @@ class _HomeContentState extends State<HomeContent> {
                             style: TextStyle(color: Colors.white70),
                           ),
                           Text(
-                            "Imam",
+                            "User",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 20,
@@ -101,7 +98,7 @@ class _HomeContentState extends State<HomeContent> {
                   SizedBox(height: 15),
 
                   Text(
-                    "Good afternoon Imam 👋",
+                    "Good afternoon User 👋",
                     style: TextStyle(
                       fontSize: 20,
                       color: Colors.white,
@@ -121,11 +118,7 @@ class _HomeContentState extends State<HomeContent> {
 
             const SizedBox(height: 20),
 
-<<<<<<< HEAD
-            // MOTIVATION CARD
-=======
             // motivation card
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               height: 80,
@@ -164,11 +157,7 @@ class _HomeContentState extends State<HomeContent> {
 
             const SizedBox(height: 10),
 
-<<<<<<< HEAD
-            // INDICATOR DOT
-=======
             // indicator dot
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
@@ -179,11 +168,7 @@ class _HomeContentState extends State<HomeContent> {
 
             const SizedBox(height: 20),
 
-<<<<<<< HEAD
-            // STUDY PROGRESS CARD
-=======
             // study progress card
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(16),
@@ -209,11 +194,7 @@ class _HomeContentState extends State<HomeContent> {
 
                   const SizedBox(height: 10),
 
-<<<<<<< HEAD
-                  // CHART PLACEHOLDER
-=======
                   // chart placeholder
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
                   Container(
                     height: 150,
                     decoration: BoxDecoration(
@@ -225,11 +206,7 @@ class _HomeContentState extends State<HomeContent> {
 
                   const SizedBox(height: 15),
 
-<<<<<<< HEAD
-                  // STATS
-=======
                   // stats
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -276,11 +253,7 @@ class _HomeContentState extends State<HomeContent> {
 
             const SizedBox(height: 20),
 
-<<<<<<< HEAD
-            // TODAY SCHEDULE TITLE
-=======
             // today schedule title
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -298,17 +271,10 @@ class _HomeContentState extends State<HomeContent> {
 
             const SizedBox(height: 10),
 
-<<<<<<< HEAD
-            // SCHEDULE CARD
-            scheduleCard("App Developer", "14:00 - 16:00"),
-            scheduleCard("Web Developer", "16:30 - 18:00"),
-            scheduleCard("Cyber Scurity", "19:00 - 20:30"),
-=======
             // schedule card
             scheduleCard("Mathematics", "14:00 - 16:00"),
             scheduleCard("Physics", "16:30 - 18:00"),
             scheduleCard("Chemistry", "19:00 - 20:30"),
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
 
             const SizedBox(height: 30),
           ],
@@ -317,11 +283,7 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-<<<<<<< HEAD
-  // DOT INDICATOR
-=======
   // dot indicator
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
   static Widget dot(bool active) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -334,11 +296,7 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-<<<<<<< HEAD
-  // SCHEDULE CARD
-=======
   // schedule card
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
   static Widget scheduleCard(String subject, String time) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),

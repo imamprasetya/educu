@@ -189,11 +189,7 @@ class _NotesScreenState extends State<NotesScreen> {
                             const SizedBox(height: 5),
 
                             Text(
-<<<<<<< HEAD
-                              note.date,
-=======
                               note.content,
->>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
                               style: const TextStyle(
                                 color: Colors.grey,
                                 fontSize: 12,
