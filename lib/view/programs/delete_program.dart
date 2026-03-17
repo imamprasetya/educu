@@ -1,4 +1,5 @@
 import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/constant/app_color.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showDeleteDialog(BuildContext context, int id) async {
@@ -6,20 +7,37 @@ Future<void> showDeleteDialog(BuildContext context, int id) async {
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: const Text("Konfirmasi"),
-        content: const Text("Apakah anda yakin ingin menghapus data ini?"),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Column(
+          children: const [
+            Icon(Icons.warning_amber_rounded, color: Colors.red, size: 50),
+            SizedBox(height: 10),
+            Text("Delete Confirmation", textAlign: TextAlign.center),
+          ],
+        ),
+        content: const Text(
+          "Are you sure you want to delete this program?",
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.center,
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(context, false);
             },
-            child: const Text("Batal"),
+            child: const Text("Cancel"),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColor.gradien1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
             onPressed: () {
               Navigator.pop(context, true);
             },
-            child: const Text("Hapus"),
+            child: const Text("Delete", style: TextStyle(color: Colors.white)),
           ),
         ],
       );
@@ -29,8 +47,8 @@ Future<void> showDeleteDialog(BuildContext context, int id) async {
   if (confirm == true) {
     await DBHelper.deleteProgram(id);
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text("Data berhasil dihapus")));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Program deleted successfully")),
+    );
   }
 }

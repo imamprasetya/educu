@@ -1,8 +1,45 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../constant/app_color.dart';
 
-class HomeContent extends StatelessWidget {
+class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
+
+  @override
+  State<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
+  final PageController _pageController = PageController();
+  int currentPage = 0;
+
+  final List<String> quotes = [
+    "Study a little every day for big results.",
+    "Small progress is still progress.",
+    "Consistency beats motivation.",
+    "Your future is created by what you do today.",
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (currentPage < quotes.length - 1) {
+        currentPage++;
+      } else {
+        currentPage = 0;
+      }
+
+      _pageController.animateToPage(
+        currentPage,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeIn,
+      );
+
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,6 +49,10 @@ class HomeContent extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
+<<<<<<< HEAD
+=======
+            // header
+>>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
             Container(
               padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
               decoration: BoxDecoration(
@@ -80,36 +121,69 @@ class HomeContent extends StatelessWidget {
 
             const SizedBox(height: 20),
 
+<<<<<<< HEAD
             // MOTIVATION CARD
+=======
+            // motivation card
+>>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(20),
+              height: 80,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [AppColor.gradien2, AppColor.gradien1],
                 ),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Center(
-                child: Text(
-                  "Study a little every day for big results.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
+
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    currentPage = index;
+                  });
+                },
+                itemCount: quotes.length,
+                itemBuilder: (context, index) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        quotes[index],
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
 
             const SizedBox(height: 10),
 
+<<<<<<< HEAD
             // INDICATOR DOT
+=======
+            // indicator dot
+>>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [dot(true), dot(false), dot(false), dot(false)],
+              children: List.generate(
+                quotes.length,
+                (index) => dot(index == currentPage),
+              ),
             ),
 
             const SizedBox(height: 20),
 
+<<<<<<< HEAD
             // STUDY PROGRESS CARD
+=======
+            // study progress card
+>>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(16),
@@ -124,6 +198,7 @@ class HomeContent extends StatelessWidget {
                   ),
                 ],
               ),
+
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -134,7 +209,11 @@ class HomeContent extends StatelessWidget {
 
                   const SizedBox(height: 10),
 
+<<<<<<< HEAD
                   // CHART PLACEHOLDER
+=======
+                  // chart placeholder
+>>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
                   Container(
                     height: 150,
                     decoration: BoxDecoration(
@@ -146,7 +225,11 @@ class HomeContent extends StatelessWidget {
 
                   const SizedBox(height: 15),
 
+<<<<<<< HEAD
                   // STATS
+=======
+                  // stats
+>>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -154,6 +237,7 @@ class HomeContent extends StatelessWidget {
                         children: const [
                           Icon(Icons.local_fire_department, color: Colors.red),
                           SizedBox(width: 6),
+
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -171,6 +255,7 @@ class HomeContent extends StatelessWidget {
                         children: const [
                           Icon(Icons.access_time, color: Colors.blue),
                           SizedBox(width: 6),
+
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -191,7 +276,11 @@ class HomeContent extends StatelessWidget {
 
             const SizedBox(height: 20),
 
+<<<<<<< HEAD
             // TODAY SCHEDULE TITLE
+=======
+            // today schedule title
+>>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -209,10 +298,17 @@ class HomeContent extends StatelessWidget {
 
             const SizedBox(height: 10),
 
+<<<<<<< HEAD
             // SCHEDULE CARD
             scheduleCard("App Developer", "14:00 - 16:00"),
             scheduleCard("Web Developer", "16:30 - 18:00"),
             scheduleCard("Cyber Scurity", "19:00 - 20:30"),
+=======
+            // schedule card
+            scheduleCard("Mathematics", "14:00 - 16:00"),
+            scheduleCard("Physics", "16:30 - 18:00"),
+            scheduleCard("Chemistry", "19:00 - 20:30"),
+>>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
 
             const SizedBox(height: 30),
           ],
@@ -221,7 +317,11 @@ class HomeContent extends StatelessWidget {
     );
   }
 
+<<<<<<< HEAD
   // DOT INDICATOR
+=======
+  // dot indicator
+>>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
   static Widget dot(bool active) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -234,11 +334,16 @@ class HomeContent extends StatelessWidget {
     );
   }
 
+<<<<<<< HEAD
   // SCHEDULE CARD
+=======
+  // schedule card
+>>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
   static Widget scheduleCard(String subject, String time) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
+
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
@@ -265,6 +370,7 @@ class HomeContent extends StatelessWidget {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),

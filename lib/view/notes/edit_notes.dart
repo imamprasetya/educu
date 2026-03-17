@@ -2,6 +2,7 @@ import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/database/sqflite.dart';
 import 'package:educu_project/models/notes_model.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EditNoteScreen extends StatefulWidget {
   final NotesModel? note;
@@ -16,20 +17,31 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   final titleController = TextEditingController();
   final contentController = TextEditingController();
 
+  int? userId;
+
   @override
   void initState() {
     super.initState();
+    getUser();
 
     if (widget.note != null) {
       titleController.text = widget.note!.title;
-
       contentController.text = widget.note!.content;
     }
   }
 
+  // ambil user login
+  Future<void> getUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    userId = prefs.getInt("userId");
+  }
+
   void saveNote() async {
+    if (userId == null) return;
+
     final note = NotesModel(
-      id: widget.note?.id, // pakai id kalau edit
+      id: widget.note?.id,
+      userId: userId!, // penting untuk multi user
       title: titleController.text,
       content: contentController.text,
       date: DateTime.now().toString(),
@@ -48,12 +60,15 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColor.biru1,
+
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
+
         backgroundColor: AppColor.gradien1,
+
         title: Text(
           widget.note == null ? "Add Note" : "Edit Note",
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
 
         actions: [
@@ -71,7 +86,6 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
           children: [
             TextField(
               controller: titleController,
-
               decoration: const InputDecoration(hintText: "Title"),
             ),
 
@@ -80,11 +94,8 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
             Expanded(
               child: TextField(
                 controller: contentController,
-
                 maxLines: null,
-
                 expands: true,
-
                 decoration: const InputDecoration(
                   hintText: "Write your note...",
                   border: OutlineInputBorder(),

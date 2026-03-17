@@ -4,6 +4,7 @@ import 'package:educu_project/models/notes_model.dart';
 import 'package:educu_project/view/notes/edit_notes.dart';
 import 'package:educu_project/view/notes/delete_notes.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -18,14 +19,25 @@ class _NotesScreenState extends State<NotesScreen> {
 
   final searchController = TextEditingController();
 
+  int? userId;
+
   @override
   void initState() {
     super.initState();
+    getUser();
+  }
+
+  // ambil user login
+  Future<void> getUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    userId = prefs.getInt("userId");
     loadNotes();
   }
 
   Future<void> loadNotes() async {
-    final data = await DBHelper.getNotes();
+    if (userId == null) return;
+
+    final data = await DBHelper.getNotesByUser(userId!);
 
     setState(() {
       notes = data;
@@ -45,7 +57,6 @@ class _NotesScreenState extends State<NotesScreen> {
 
   void deleteNote(int id) async {
     await DBHelper.deleteNote(id);
-
     loadNotes();
   }
 
@@ -71,7 +82,6 @@ class _NotesScreenState extends State<NotesScreen> {
 
       body: Column(
         children: [
-          // HEADER
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(
@@ -84,8 +94,7 @@ class _NotesScreenState extends State<NotesScreen> {
               gradient: LinearGradient(
                 colors: [AppColor.gradien2, AppColor.gradien1],
               ),
-
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(30),
                 bottomRight: Radius.circular(30),
               ),
@@ -100,10 +109,12 @@ class _NotesScreenState extends State<NotesScreen> {
                       onPressed: () async {
                         Navigator.pop(context);
                       },
-                      icon: Icon(Icons.arrow_back, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
                     ),
-                    SizedBox(width: 15),
-                    Text(
+
+                    const SizedBox(width: 15),
+
+                    const Text(
                       "My Notes",
                       style: TextStyle(
                         fontSize: 26,
@@ -114,22 +125,16 @@ class _NotesScreenState extends State<NotesScreen> {
                   ],
                 ),
 
-                SizedBox(height: 15),
+                const SizedBox(height: 15),
 
                 TextField(
                   controller: searchController,
-
                   onChanged: searchNotes,
-
                   decoration: InputDecoration(
                     hintText: "Search your notes...",
-
                     filled: true,
-
                     fillColor: AppColor.box,
-
                     prefixIcon: const Icon(Icons.search),
-
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20),
                       borderSide: BorderSide.none,
@@ -142,11 +147,9 @@ class _NotesScreenState extends State<NotesScreen> {
 
           const SizedBox(height: 10),
 
-          // LIST NOTES
           Expanded(
             child: ListView.builder(
               itemCount: filteredNotes.length,
-
               itemBuilder: (context, index) {
                 final note = filteredNotes[index];
 
@@ -160,20 +163,20 @@ class _NotesScreenState extends State<NotesScreen> {
 
                   decoration: BoxDecoration(
                     color: Colors.white,
-
                     borderRadius: BorderRadius.circular(15),
-
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(color: Colors.black12, blurRadius: 4),
                     ],
                   ),
 
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
                     children: [
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+
                           children: [
                             Text(
                               note.title,
@@ -186,7 +189,11 @@ class _NotesScreenState extends State<NotesScreen> {
                             const SizedBox(height: 5),
 
                             Text(
+<<<<<<< HEAD
                               note.date,
+=======
+                              note.content,
+>>>>>>> 0520a2b859a19dbaba28f1d9c0ea10fa11c7e78e
                               style: const TextStyle(
                                 color: Colors.grey,
                                 fontSize: 12,
@@ -204,7 +211,6 @@ class _NotesScreenState extends State<NotesScreen> {
                               size: 20,
                               color: AppColor.gradien2,
                             ),
-
                             onPressed: () async {
                               await Navigator.push(
                                 context,
@@ -213,7 +219,6 @@ class _NotesScreenState extends State<NotesScreen> {
                                       EditNoteScreen(note: note),
                                 ),
                               );
-
                               loadNotes();
                             },
                           ),
@@ -225,7 +230,7 @@ class _NotesScreenState extends State<NotesScreen> {
                                 await loadNotes();
                               }
                             },
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.delete,
                               size: 20,
                               color: Colors.red,

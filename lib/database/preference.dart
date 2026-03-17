@@ -1,8 +1,9 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PreferenceHandler {
-  //Singleton
+  // singleton
   static final PreferenceHandler _instance = PreferenceHandler._internal();
+
   late SharedPreferences _preferences;
 
   factory PreferenceHandler() => _instance;
@@ -13,42 +14,42 @@ class PreferenceHandler {
     _preferences = await SharedPreferences.getInstance();
   }
 
-  // KEY
+  // key
   static const String _isLogin = 'isLogin';
   static const String _userId = 'userId';
 
-  // LOGIN STATUS
+  //  LOGIN STATUS
 
-  //CREATE
+  // create
   Future<void> storingIsLogin(bool isLogin) async {
     await _preferences.setBool(_isLogin, isLogin);
   }
 
-  //GET
+  // read
   static Future<bool?> getIsLogin() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_isLogin);
   }
 
-  //DELETE
+  // delete
   Future<void> deleteIsLogin() async {
     await _preferences.remove(_isLogin);
   }
 
-  // USER ID SESSION
+  //  USER ID
 
-  //CREATE USER ID
+  // create user id
   Future<void> storingUserId(int id) async {
     await _preferences.setInt(_userId, id);
   }
 
-  //GET USER ID
+  // read user id
   static Future<int?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(_userId);
   }
 
-  //DELETE USER ID
+  // delete user id
   Future<void> deleteUserId() async {
     await _preferences.remove(_userId);
   }
