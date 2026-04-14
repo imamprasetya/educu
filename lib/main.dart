@@ -1,12 +1,16 @@
 // import 'package:educu_project/view/auth/login.dart';
 import 'package:educu_project/database/preference.dart';
+import 'package:educu_project/firebase_options.dart';
 import 'package:educu_project/view/splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await PreferenceHandler().init();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(const MyApp());
 }

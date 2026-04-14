@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "719904836232",
+    "project_id": "educu-work",
+    "storage_bucket": "educu-work.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:719904836232:android:dd76a64221d3517d072d3d",
+        "android_client_info": {
+          "package_name": "com.ppkd.educu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBF2kpsJpsVlQjnJ9q49BRlFEC3XxVLV0I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
