@@ -59,22 +59,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  Widget _pickOption(IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: AppColor.gradien2.withValues(alpha: 0.15),
-            child: Icon(icon, size: 28, color: AppColor.gradien2),
-          ),
-          const SizedBox(height: 8),
-          Text(label),
-        ],
-      ),
-    );
-  }
+
 
   // Hapus foto
   void _removePhoto() {

@@ -442,7 +442,7 @@ class _HomeContentState extends State<HomeContent> {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      PomodoroScreen(subject: subject, topic: topic),
+                      PomodoroScreen(subject: subject, topic: topic, sessionId: data["id"]),
                 ),
               );
             },

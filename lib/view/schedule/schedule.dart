@@ -187,6 +187,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     builder: (context) => PomodoroScreen(
                       subject: data["subject"] ?? "",
                       topic: data["topic"] ?? "",
+                      sessionId: data["id"],
                     ),
                   ),
                 );

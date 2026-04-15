@@ -111,6 +111,19 @@ class FirebaseService {
     await _firestore.collection('programs').doc(id).update(data);
   }
 
+  // Update session
+  static Future<void> updateSession(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    await _firestore.collection('sessions').doc(id).update(data);
+  }
+
+  // Delete single session
+  static Future<void> deleteSession(String id) async {
+    await _firestore.collection('sessions').doc(id).delete();
+  }
+
   // Delete program dan sessions-nya
   static Future<void> deleteProgram(String id) async {
     // hapus semua session milik program ini
@@ -210,6 +223,33 @@ class FirebaseService {
     }
 
     return result;
+  }
+
+  // Mark session sebagai selesai
+  static Future<void> markSessionCompleted(String sessionId) async {
+    await _firestore.collection('sessions').doc(sessionId).update({
+      'completed': true,
+    });
+  }
+
+  // Get sessions sebagai List<SessionModel>
+  static Future<List<SessionModel>> getSessionModels(String programId) async {
+    final snapshot = await _firestore
+        .collection('sessions')
+        .where('programId', isEqualTo: programId)
+        .get();
+
+    return snapshot.docs.map((doc) {
+      return SessionModel.fromMap(doc.data(), docId: doc.id);
+    }).toList();
+  }
+
+  // Hitung progress program (completed sessions / total sessions)
+  static Future<double> getProgramProgress(String programId) async {
+    final sessions = await getSessionModels(programId);
+    if (sessions.isEmpty) return 0.0;
+    final completed = sessions.where((s) => s.completed).length;
+    return completed / sessions.length;
   }
 
   // ==================== NOTES ====================

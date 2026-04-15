@@ -1,37 +1,56 @@
 import 'dart:async';
+import 'package:educu_project/services/firebase_service.dart';
 import 'package:flutter/material.dart';
 import '../../constant/app_color.dart';
 
 class PomodoroScreen extends StatefulWidget {
   final String subject;
   final String topic;
+  final String? sessionId;
+  final int durationMinutes;
 
-  PomodoroScreen({super.key, required this.subject, required this.topic});
+  const PomodoroScreen({
+    super.key,
+    required this.subject,
+    required this.topic,
+    this.sessionId,
+    this.durationMinutes = 25,
+  });
 
   @override
   State<PomodoroScreen> createState() => _PomodoroScreenState();
 }
 
 class _PomodoroScreenState extends State<PomodoroScreen> {
-  static const int pomodoroTime = 25 * 60;
-
-  int timeLeft = pomodoroTime;
+  late int totalSeconds;
+  late int timeLeft;
 
   Timer? timer;
-
   bool isRunning = false;
+  bool isCompleted = false;
 
-  /// FORMAT TIME
+  @override
+  void initState() {
+    super.initState();
+    totalSeconds = widget.durationMinutes * 60;
+    timeLeft = totalSeconds;
+  }
+
+  // FORMAT TIME
   String formatTime(int seconds) {
-    int minutes = seconds ~/ 60;
+    int hours = seconds ~/ 3600;
+    int minutes = (seconds % 3600) ~/ 60;
     int sec = seconds % 60;
 
+    if (hours > 0) {
+      return "${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}";
+    }
     return "${minutes.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}";
   }
 
-  /// START TIMER
+  // START TIMER
   void startTimer() {
-    if (isRunning) return;
+    if (isRunning || isCompleted) return;
 
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (timeLeft > 0) {
@@ -40,28 +59,12 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
         });
       } else {
         timer.cancel();
-
         setState(() {
           isRunning = false;
+          isCompleted = true;
         });
 
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text("Pomodoro Selesai"),
-            content: const Text(
-              "Waktu belajar telah selesai, istirahat sebentar!",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text("OK"),
-              ),
-            ],
-          ),
-        );
+        _showCompletedDialog();
       }
     });
 
@@ -70,23 +73,81 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     });
   }
 
-  /// PAUSE TIMER
+  // PAUSE TIMER
   void pauseTimer() {
     timer?.cancel();
-
     setState(() {
       isRunning = false;
     });
   }
 
-  /// RESET TIMER
+  // RESET TIMER
   void resetTimer() {
+    timer?.cancel();
+    setState(() {
+      timeLeft = totalSeconds;
+      isRunning = false;
+      isCompleted = false;
+    });
+  }
+
+  // SELESAI - mark session as completed
+  Future<void> _markComplete() async {
+    if (widget.sessionId != null) {
+      await FirebaseService.markSessionCompleted(widget.sessionId!);
+    }
+
     timer?.cancel();
 
     setState(() {
-      timeLeft = pomodoroTime;
       isRunning = false;
+      isCompleted = true;
     });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Session completed! Great job! 🎉"),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context, true);
+    }
+  }
+
+  void _showCompletedDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: const Icon(Icons.celebration, size: 50, color: Colors.orange),
+        content: const Text(
+          "Waktu belajar telah selesai!\nApakah anda ingin menandai session ini sebagai selesai?",
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Nanti"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            onPressed: () {
+              Navigator.pop(context);
+              _markComplete();
+            },
+            child: const Text(
+              "Selesai ✓",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -95,13 +156,22 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     super.dispose();
   }
 
+  double get progress {
+    if (totalSeconds == 0) return 0;
+    return 1 - (timeLeft / totalSeconds);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F3F6),
 
       appBar: AppBar(
-        title: const Text("Pomodoro Timer"),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          "Study Timer",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: AppColor.gradien1,
       ),
 
@@ -109,18 +179,14 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
         padding: const EdgeInsets.all(20),
 
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-
           children: [
-            /// SUBJECT CARD
+            // SUBJECT CARD
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
-
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
-
                 boxShadow: const [
                   BoxShadow(
                     color: Colors.black12,
@@ -129,10 +195,8 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                   ),
                 ],
               ),
-
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-
                 children: [
                   Text(
                     widget.subject,
@@ -141,12 +205,15 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 5),
-
                   Text(
-                    "Materi : ${widget.topic}",
+                    "Topic : ${widget.topic}",
                     style: const TextStyle(color: Colors.black54),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    "Duration : ${widget.durationMinutes} minutes",
+                    style: const TextStyle(color: Colors.blue, fontSize: 12),
                   ),
                 ],
               ),
@@ -154,38 +221,64 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
 
             const SizedBox(height: 40),
 
-            /// TIMER
-            Container(
+            // CIRCULAR TIMER
+            SizedBox(
               height: 220,
               width: 220,
-
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [AppColor.gradien1, AppColor.gradien2],
-                ),
-              ),
-
-              child: Center(
-                child: Text(
-                  formatTime(timeLeft),
-                  style: const TextStyle(
-                    fontSize: 42,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    height: 220,
+                    width: 220,
+                    child: CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 10,
+                      backgroundColor: Colors.grey.shade300,
+                      valueColor: AlwaysStoppedAnimation(
+                        isCompleted ? Colors.green : AppColor.gradien2,
+                      ),
+                    ),
                   ),
-                ),
+                  Container(
+                    height: 190,
+                    width: 190,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: isCompleted
+                            ? [Colors.green.shade400, Colors.green.shade700]
+                            : [AppColor.gradien1, AppColor.gradien2],
+                      ),
+                    ),
+                    child: Center(
+                      child: isCompleted
+                          ? const Icon(
+                              Icons.check,
+                              size: 60,
+                              color: Colors.white,
+                            )
+                          : Text(
+                              formatTime(timeLeft),
+                              style: const TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
-            const SizedBox(height: 50),
+            const SizedBox(height: 40),
 
-            /// BUTTONS
+            // CONTROL BUTTONS
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-
               children: [
-                /// START
+                // START
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
@@ -194,14 +287,15 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                       vertical: 12,
                     ),
                   ),
-
-                  onPressed: startTimer,
-
-                  icon: const Icon(Icons.play_arrow),
-                  label: const Text("Start"),
+                  onPressed: isCompleted ? null : startTimer,
+                  icon: const Icon(Icons.play_arrow, color: Colors.white),
+                  label: const Text(
+                    "Start",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
 
-                /// PAUSE
+                // PAUSE
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange,
@@ -210,14 +304,15 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                       vertical: 12,
                     ),
                   ),
-
                   onPressed: pauseTimer,
-
-                  icon: const Icon(Icons.pause),
-                  label: const Text("Pause"),
+                  icon: const Icon(Icons.pause, color: Colors.white),
+                  label: const Text(
+                    "Pause",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
 
-                /// RESET
+                // RESET
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
@@ -226,22 +321,40 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                       vertical: 12,
                     ),
                   ),
-
                   onPressed: resetTimer,
-
-                  icon: const Icon(Icons.refresh),
-                  label: const Text("Reset"),
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  label: const Text(
+                    "Reset",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
 
-            /// INFO TEXT
-            const Text(
-              "Focus selama 25 menit, lalu istirahat 5 menit.\nMetode ini disebut Pomodoro Technique.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black54),
+            // SELESAI BUTTON
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isCompleted ? Colors.grey : AppColor.gradien1,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+                onPressed: isCompleted ? null : _markComplete,
+                icon: const Icon(Icons.check_circle, color: Colors.white),
+                label: Text(
+                  isCompleted ? "Sudah Selesai" : "Selesai",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

@@ -97,8 +97,70 @@ class _AddProgramState extends State<AddProgram> {
     }
   }
 
+  DateTime? _parseTime(String time) {
+    try {
+      final lower = time.toLowerCase().trim();
+      final isPM = lower.contains('pm');
+      final isAM = lower.contains('am');
+      final cleaned = lower.replaceAll(RegExp(r'[ap]m'), '').trim();
+      final parts = cleaned.split(':');
+      int hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1].trim());
+      if (isPM && hour != 12) hour += 12;
+      if (isAM && hour == 12) hour = 0;
+      return DateTime(2000, 1, 1, hour, minute);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool _hasConflictingSessions() {
+    for (var i = 0; i < sessions.length; i++) {
+      final first = sessions[i];
+      if (first.dateController.text.isEmpty ||
+          first.startTimeController.text.isEmpty ||
+          first.endTimeController.text.isEmpty) {
+        continue;
+      }
+
+      final firstDate = first.dateController.text;
+      final firstStart = _parseTime(first.startTimeController.text);
+      final firstEnd = _parseTime(first.endTimeController.text);
+      if (firstStart == null || firstEnd == null) continue;
+
+      for (var j = i + 1; j < sessions.length; j++) {
+        final second = sessions[j];
+        if (second.dateController.text != firstDate) continue;
+        if (second.startTimeController.text.isEmpty ||
+            second.endTimeController.text.isEmpty) {
+          continue;
+        }
+
+        final secondStart = _parseTime(second.startTimeController.text);
+        final secondEnd = _parseTime(second.endTimeController.text);
+        if (secondStart == null || secondEnd == null) continue;
+
+        final overlap =
+            firstStart.isBefore(secondEnd) && secondStart.isBefore(firstEnd);
+        if (overlap) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   // save data program dan session
   Future<void> _submitAndExit() async {
+    if (_hasConflictingSessions()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Session times cannot overlap on the same date."),
+        ),
+      );
+      return;
+    }
+
     // ambil user id yang sedang login dari Firebase
     String? userId = FirebaseService.getCurrentUid();
     if (userId == null) return;

@@ -20,6 +20,7 @@ class _EditProgramState extends State<EditProgram> {
   final TextEditingController deskController = TextEditingController();
 
   List<SessionData> sessions = [];
+  List<String> originalSessionIds = [];
 
   @override
   void initState() {
@@ -63,13 +64,73 @@ class _EditProgramState extends State<EditProgram> {
     }
   }
 
+  DateTime? _parseTime(String time) {
+    try {
+      final lower = time.toLowerCase().trim();
+      final isPM = lower.contains('pm');
+      final isAM = lower.contains('am');
+      final cleaned = lower.replaceAll(RegExp(r'[ap]m'), '').trim();
+      final parts = cleaned.split(':');
+      int hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1].trim());
+      if (isPM && hour != 12) hour += 12;
+      if (isAM && hour == 12) hour = 0;
+      return DateTime(2000, 1, 1, hour, minute);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool _hasConflictingSessions() {
+    for (var i = 0; i < sessions.length; i++) {
+      final first = sessions[i];
+      if (first.dateController.text.isEmpty ||
+          first.startTimeController.text.isEmpty ||
+          first.endTimeController.text.isEmpty) {
+        continue;
+      }
+
+      final firstDate = first.dateController.text;
+      final firstStart = _parseTime(first.startTimeController.text);
+      final firstEnd = _parseTime(first.endTimeController.text);
+      if (firstStart == null || firstEnd == null) continue;
+
+      for (var j = i + 1; j < sessions.length; j++) {
+        final second = sessions[j];
+        if (second.dateController.text != firstDate) continue;
+        if (second.startTimeController.text.isEmpty ||
+            second.endTimeController.text.isEmpty) {
+          continue;
+        }
+
+        final secondStart = _parseTime(second.startTimeController.text);
+        final secondEnd = _parseTime(second.endTimeController.text);
+        if (secondStart == null || secondEnd == null) continue;
+
+        final overlap =
+            firstStart.isBefore(secondEnd) && secondStart.isBefore(firstEnd);
+        if (overlap) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   // LOAD SESSION from Firestore
   Future<void> loadSessions() async {
     final data = await FirebaseService.getSessions(widget.program.id!);
 
+    originalSessionIds = data
+        .where((s) => s['id'] != null)
+        .map<String>((s) => s['id'] as String)
+        .toList();
+
     sessions = data.map((s) {
       final session = SessionData();
 
+      session.id = s['id'] as String?;
+      session.completed = s['completed'] == true;
       session.topicController.text = s["topic"];
       session.dateController.text = s["date"];
       session.startTimeController.text = s["startTime"];
@@ -98,6 +159,15 @@ class _EditProgramState extends State<EditProgram> {
 
   // UPDATE PROGRAM
   Future<void> updateProgram() async {
+    if (_hasConflictingSessions()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Session times cannot overlap on the same date."),
+        ),
+      );
+      return;
+    }
+
     String programId = widget.program.id!;
 
     await FirebaseService.updateProgram(programId, {
@@ -107,19 +177,44 @@ class _EditProgramState extends State<EditProgram> {
       "description": deskController.text,
     });
 
-    await FirebaseService.deleteSessionsByProgram(programId);
+    final currentIds = sessions
+        .where((s) => s.id != null)
+        .map((s) => s.id!)
+        .toList();
+
+    final removedIds = originalSessionIds
+        .where((id) => !currentIds.contains(id))
+        .toList();
+
+    for (var sessionId in removedIds) {
+      await FirebaseService.deleteSession(sessionId);
+    }
 
     for (var s in sessions) {
-      SessionModel session = SessionModel(
-        programId: programId,
-        topic: s.topicController.text,
-        date: s.dateController.text,
-        startTime: s.startTimeController.text,
-        endTime: s.endTimeController.text,
-      );
+      if (s.id != null) {
+        await FirebaseService.updateSession(s.id!, {
+          "topic": s.topicController.text,
+          "date": s.dateController.text,
+          "startTime": s.startTimeController.text,
+          "endTime": s.endTimeController.text,
+          "completed": s.completed,
+        });
+      } else {
+        SessionModel session = SessionModel(
+          programId: programId,
+          topic: s.topicController.text,
+          date: s.dateController.text,
+          startTime: s.startTimeController.text,
+          endTime: s.endTimeController.text,
+        );
 
-      await FirebaseService.insertSession(session);
+        await FirebaseService.insertSession(session);
+      }
     }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Program updated successfully.")),
+    );
 
     Navigator.pop(context, true);
   }
@@ -441,6 +536,8 @@ class _EditProgramState extends State<EditProgram> {
 }
 
 class SessionData {
+  String? id;
+  bool completed = false;
   TextEditingController topicController = TextEditingController();
   TextEditingController dateController = TextEditingController();
   TextEditingController startTimeController = TextEditingController();

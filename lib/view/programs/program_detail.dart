@@ -1,4 +1,7 @@
 import 'package:educu_project/constant/app_color.dart';
+import 'package:educu_project/models/session_model.dart';
+import 'package:educu_project/services/firebase_service.dart';
+import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
 import '../../models/program_model.dart';
 
@@ -12,11 +15,81 @@ class ProgramDetail extends StatefulWidget {
 }
 
 class _ProgramDetailState extends State<ProgramDetail> {
-  List<String> images = [];
+  List<SessionModel> sessions = [];
+  bool isLoading = true;
+  double progress = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    loadSessions();
+  }
+
+  Future<void> loadSessions() async {
+    final data = await FirebaseService.getSessionModels(widget.program.id!);
+    final prog = await FirebaseService.getProgramProgress(widget.program.id!);
+
+    data.sort((a, b) {
+      final dateA = DateTime.tryParse(a.date);
+      final dateB = DateTime.tryParse(b.date);
+      if (dateA != null && dateB != null) {
+        final dateComparison = dateA.compareTo(dateB);
+        if (dateComparison != 0) return dateComparison;
+      } else if (dateA != null) {
+        return -1;
+      } else if (dateB != null) {
+        return 1;
+      }
+
+      final startA = _parseTime(a.startTime);
+      final startB = _parseTime(b.startTime);
+      if (startA != null && startB != null) {
+        return startA.compareTo(startB);
+      }
+      return 0;
+    });
+
+    setState(() {
+      sessions = data;
+      progress = prog;
+      isLoading = false;
+    });
+  }
+
+  DateTime? _parseTime(String time) {
+    try {
+      final lower = time.toLowerCase().trim();
+      final isPM = lower.contains('pm');
+      final isAM = lower.contains('am');
+      final cleaned = lower.replaceAll(RegExp(r'[ap]m'), '').trim();
+      final parts = cleaned.split(':');
+      int hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1].trim());
+      if (isPM && hour != 12) hour += 12;
+      if (isAM && hour == 12) hour = 0;
+      return DateTime(2000, 1, 1, hour, minute);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // Hitung durasi program
+  String _getDuration() {
+    try {
+      final start = DateTime.parse(widget.program.startDate);
+      final end = DateTime.parse(widget.program.endDate);
+      final diff = end.difference(start).inDays;
+      return "$diff days";
+    } catch (_) {
+      return "-";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final program = widget.program;
+    final pct = (progress * 100).toInt();
+    final completedCount = sessions.where((s) => s.completed).length;
 
     return Scaffold(
       appBar: PreferredSize(
@@ -41,22 +114,23 @@ class _ProgramDetailState extends State<ProgramDetail> {
               Row(
                 children: [
                   IconButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                     icon: const Icon(
                       Icons.arrow_back,
                       color: Colors.white,
                       size: 25,
                     ),
                   ),
-                  const SizedBox(width: 15),
-                  Text(
-                    program.subject ?? "Program Detail",
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 25,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      program.subject,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -66,153 +140,344 @@ class _ProgramDetailState extends State<ProgramDetail> {
         ),
       ),
 
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-
-          child: Column(
-            children: [
-              // program info
-              Container(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Padding(
                 padding: const EdgeInsets.all(16),
-                height: 220,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(25),
-                  border: Border.all(color: Colors.blue),
-                ),
-
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Description",
-                          style: TextStyle(color: Colors.black54),
+                    // PROGRAM INFO CARD
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: Colors.blue.withValues(alpha: 0.3),
                         ),
-
-                        const SizedBox(height: 3),
-
-                        Text(program.description ?? "-"),
-                      ],
-                    ),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-
-                          children: [
-                            const Text(
-                              "Timeline",
-                              style: TextStyle(color: Colors.black54),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Description",
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontSize: 12,
                             ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            program.description.isNotEmpty
+                                ? program.description
+                                : "-",
+                            style: const TextStyle(fontSize: 14),
+                          ),
 
-                            const SizedBox(height: 3),
+                          const SizedBox(height: 16),
 
-                            Text("${program.startDate} - ${program.endDate}"),
-                          ],
-                        ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Timeline",
+                                    style: TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "${program.startDate} - ${program.endDate}",
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  const Text(
+                                    "Duration",
+                                    style: TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _getDuration(),
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
 
-                        const Column(
-                          children: [
-                            Text(
-                              "Duration",
-                              style: TextStyle(color: Colors.black54),
-                            ),
-                            SizedBox(height: 3),
-                            Text("90 days"),
-                          ],
-                        ),
-                      ],
-                    ),
+                          const SizedBox(height: 16),
 
-                    Column(
-                      children: [
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Progress",
-                              style: TextStyle(color: Colors.black54),
-                            ),
-                            Text(
-                              "65%",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blueAccent,
+                          // Progress
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Progress ($completedCount/${sessions.length})",
+                                style: const TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              Text(
+                                "$pct%",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: progress >= 1.0
+                                      ? Colors.green
+                                      : Colors.blueAccent,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              minHeight: 8,
+                              backgroundColor: const Color(0xFFDBD8FF),
+                              valueColor: AlwaysStoppedAnimation(
+                                progress >= 1.0
+                                    ? Colors.green
+                                    : Colors.blueAccent,
                               ),
                             ),
-                          ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // SESSIONS TITLE
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Sessions",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
                         ),
-
-                        const SizedBox(height: 10),
-
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: const LinearProgressIndicator(
-                            value: 0.65,
-                            minHeight: 8,
-                            backgroundColor: Color(0xFFDBD8FF),
-                            valueColor: AlwaysStoppedAnimation(
-                              Colors.blueAccent,
-                            ),
+                        Text(
+                          "$completedCount/${sessions.length} completed",
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 13,
                           ),
                         ),
                       ],
                     ),
+
+                    const SizedBox(height: 12),
+
+                    // SESSION LIST
+                    if (sessions.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(30),
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: AppColor.box1,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            "No sessions yet",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      )
+                    else
+                      ...sessions.asMap().entries.map((entry) {
+                        final idx = entry.key;
+                        final session = entry.value;
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.all(
+                              color: session.completed
+                                  ? Colors.green.withValues(alpha: 0.4)
+                                  : Colors.grey.withValues(alpha: 0.2),
+                            ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 2,
+                                offset: Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              // Session number indicator
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: session.completed
+                                      ? Colors.green
+                                      : Colors.grey.shade300,
+                                ),
+                                child: Center(
+                                  child: session.completed
+                                      ? const Icon(
+                                          Icons.check,
+                                          color: Colors.white,
+                                          size: 18,
+                                        )
+                                      : Text(
+                                          "${idx + 1}",
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                ),
+                              ),
+
+                              const SizedBox(width: 12),
+
+                              // Session info
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      session.topic,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        decoration: session.completed
+                                            ? TextDecoration.lineThrough
+                                            : null,
+                                        color: session.completed
+                                            ? Colors.grey
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.calendar_today,
+                                          size: 12,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          session.date,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Icon(
+                                          Icons.access_time,
+                                          size: 12,
+                                          color: Colors.grey.shade500,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          "${session.startTime} - ${session.endTime}",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Status / action
+                              if (session.completed)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Text(
+                                    "Selesai",
+                                    style: TextStyle(
+                                      color: Colors.green,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                )
+                              else
+                                SizedBox(
+                                  height: 30,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColor.gradien2,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => PomodoroScreen(
+                                            subject: program.subject,
+                                            topic: session.topic,
+                                            sessionId: session.id,
+                                            durationMinutes:
+                                                session.durationMinutes,
+                                          ),
+                                        ),
+                                      );
+
+                                      if (result == true) {
+                                        loadSessions();
+                                      }
+                                    },
+                                    child: const Text(
+                                      "Mulai",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      }),
                   ],
                 ),
               ),
-
-              const SizedBox(height: 15),
-
-              const Row(
-                children: [
-                  Text(
-                    "Daily Sessions",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 15),
-
-              Container(
-                padding: const EdgeInsets.all(16),
-                width: double.infinity,
-                height: 220,
-                decoration: BoxDecoration(
-                  color: AppColor.box1,
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.blueGrey,
-                      spreadRadius: 1,
-                      blurRadius: 1,
-                      offset: Offset(0, 1),
-                    ),
-                  ],
-                ),
-
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Session list akan muncul dari database nanti"),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }
