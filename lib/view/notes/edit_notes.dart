@@ -1,8 +1,7 @@
 import 'package:educu_project/constant/app_color.dart';
-import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/models/notes_model.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class EditNoteScreen extends StatefulWidget {
   final NotesModel? note;
@@ -17,7 +16,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   final titleController = TextEditingController();
   final contentController = TextEditingController();
 
-  int? userId;
+  String? userId;
 
   @override
   void initState() {
@@ -32,8 +31,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
 
   // ambil user login
   Future<void> getUser() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    userId = prefs.getInt("userId");
+    userId = FirebaseService.getCurrentUid();
   }
 
   void saveNote() async {
@@ -48,9 +46,9 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     );
 
     if (widget.note == null) {
-      await DBHelper.insertNote(note);
+      await FirebaseService.insertNote(note);
     } else {
-      await DBHelper.updateNote(note);
+      await FirebaseService.updateNote(note);
     }
 
     Navigator.pop(context);

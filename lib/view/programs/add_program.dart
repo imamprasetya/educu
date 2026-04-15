@@ -1,8 +1,7 @@
 import 'package:educu_project/constant/app_color.dart';
-import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/models/session_model.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AddProgram extends StatefulWidget {
   const AddProgram({super.key});
@@ -100,12 +99,12 @@ class _AddProgramState extends State<AddProgram> {
 
   // save data program dan session
   Future<void> _submitAndExit() async {
-    // ambil user id yang sedang login
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int? userId = prefs.getInt("userId");
+    // ambil user id yang sedang login dari Firebase
+    String? userId = FirebaseService.getCurrentUid();
+    if (userId == null) return;
 
-    // insert program ke database
-    int programId = await DBHelper.insertProgram({
+    // insert program ke Firestore
+    String programId = await FirebaseService.insertProgram({
       "userId": userId,
       "subject": subjectController.text,
       "startDate": startController.text,
@@ -113,7 +112,7 @@ class _AddProgramState extends State<AddProgram> {
       "description": deskController.text,
     });
 
-    // insert session ke database
+    // insert session ke Firestore
     for (var s in sessions) {
       SessionModel session = SessionModel(
         programId: programId,
@@ -123,7 +122,7 @@ class _AddProgramState extends State<AddProgram> {
         endTime: s.endTimeController.text,
       );
 
-      await DBHelper.insertSession(session);
+      await FirebaseService.insertSession(session);
     }
 
     // alert berhasil

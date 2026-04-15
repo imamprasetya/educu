@@ -3,9 +3,8 @@ import 'package:educu_project/view/programs/edit_program.dart';
 import 'package:educu_project/view/programs/program_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:educu_project/constant/app_color.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../database/sqflite.dart';
+import '../../services/firebase_service.dart';
 import '../../models/program_model.dart';
 import 'add_program.dart';
 
@@ -25,7 +24,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
 
   bool isFocused = false;
 
-  int? userId;
+  String? userId;
 
   @override
   void initState() {
@@ -40,8 +39,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
 
   // mengambil user yang sedang login
   Future<void> getUser() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    userId = prefs.getInt("userId");
+    userId = FirebaseService.getCurrentUid();
     loadPrograms();
   }
 
@@ -49,8 +47,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
   Future<void> loadPrograms() async {
     if (userId == null) return;
 
-    final data = await DBHelper.getProgramsByUser(userId!);
-    final result = data.map((e) => ProgramModel.fromMap(e)).toList();
+    final result = await FirebaseService.getProgramsByUser(userId!);
 
     setState(() {
       programs = result;
@@ -68,7 +65,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
     }
 
     final results = programs.where((program) {
-      final subject = program.subject?.toLowerCase() ?? "";
+      final subject = program.subject.toLowerCase();
       final input = keyword.toLowerCase();
       return subject.contains(input);
     }).toList();
@@ -235,7 +232,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  items.subject ?? "",
+                                  items.subject,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),

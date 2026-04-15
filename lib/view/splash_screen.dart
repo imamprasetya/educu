@@ -1,6 +1,6 @@
 import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/database/preference.dart';
-import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/models/user_model.dart';
 import 'package:educu_project/extension/navigator.dart';
 import 'package:educu_project/view/homescreen.dart';
@@ -27,21 +27,14 @@ class _SplashScreenState extends State<SplashScreen> {
     bool? isLogin = await PreferenceHandler.getIsLogin();
 
     if (isLogin == true) {
-      int? userId = await PreferenceHandler.getUserId();
+      // coba ambil data user dari Firebase
+      UserModel? user = await FirebaseService.getCurrentUser();
 
-      final db = await DBHelper.db();
-
-      final result = await db.query(
-        "user",
-        where: "id = ?",
-        whereArgs: [userId],
-      );
-
-      if (result.isNotEmpty) {
-        UserModel user = UserModel.fromMap(result.first);
-
+      if (user != null) {
         context.pushAndRemoveAll(HomeScreen(user: user));
       } else {
+        // user tidak ditemukan, clear preference dan ke login
+        await PreferenceHandler().clearAll();
         context.pushAndRemoveAll(const LoginScreen());
       }
     } else {

@@ -1,8 +1,8 @@
-import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/constant/app_color.dart';
 import 'package:flutter/material.dart';
 
-Future<void> showDeleteDialog(BuildContext context, int id) async {
+Future<void> showDeleteDialog(BuildContext context, String id) async {
   final confirm = await showDialog(
     context: context,
     builder: (context) {
@@ -45,7 +45,7 @@ Future<void> showDeleteDialog(BuildContext context, int id) async {
   );
 
   if (confirm == true) {
-    await DBHelper.deleteProgram(id);
+    await FirebaseService.deleteProgram(id);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Program deleted successfully")),

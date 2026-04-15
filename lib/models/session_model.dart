@@ -2,8 +2,8 @@ import 'dart:convert';
 
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class SessionModel {
-  int? id;
-  int programId;
+  String? id;
+  String programId;
   final String topic;
   final String date;
   final String startTime;
@@ -19,7 +19,6 @@ class SessionModel {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'id': id,
       'programId': programId,
       'topic': topic,
       'date': date,
@@ -28,10 +27,10 @@ class SessionModel {
     };
   }
 
-  factory SessionModel.fromMap(Map<String, dynamic> map) {
+  factory SessionModel.fromMap(Map<String, dynamic> map, {String? docId}) {
     return SessionModel(
-      id: map['id'] != null ? map['id'] as int : null,
-      programId: map['programId'] as int,
+      id: docId ?? (map['id'] != null ? map['id'] as String : null),
+      programId: map['programId'] as String,
       topic: map['topic'] as String,
       date: map['date'] as String,
       startTime: map['startTime'] as String,

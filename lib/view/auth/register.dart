@@ -1,6 +1,5 @@
 import 'package:educu_project/constant/app_color.dart';
-import 'package:educu_project/database/sqflite.dart';
-import 'package:educu_project/models/user_model.dart';
+import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/view/auth/login.dart';
 import 'package:flutter/material.dart';
 
@@ -22,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool isPasswordHidden = true;
   bool isConfirmPasswordHidden = true;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -233,37 +233,87 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColor.navy,
                           ),
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              try {
-                                await DBHelper.registerUser(
-                                  UserModel(
-                                    name: namaController.text,
-                                    email: emailController.text,
-                                    password: passwordController.text,
-                                  ),
-                                );
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    setState(() => isLoading = true);
 
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("Registration Successful"),
-                                  ),
-                                );
+                                    try {
+                                      await FirebaseService.registerUser(
+                                        name: namaController.text.trim(),
+                                        email: emailController.text.trim(),
+                                        password: passwordController.text,
+                                      );
 
-                                clearForm();
-                              } catch (e) {
-                                print("ERROR REGISTER: $e");
-                              }
-                            }
-                          },
-                          child: const Text(
-                            "REGISTER",
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                                      // logout setelah register agar user login sendiri
+                                      await FirebaseService.signOut();
+
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              "Registration Successful! Please login."),
+                                        ),
+                                      );
+
+                                      clearForm();
+
+                                      // navigate ke login
+                                      Navigator.pushReplacement(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const LoginScreen(),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      String message = "Registration failed";
+
+                                      if (e
+                                          .toString()
+                                          .contains("email-already-in-use")) {
+                                        message =
+                                            "Email is already registered";
+                                      } else if (e
+                                          .toString()
+                                          .contains("weak-password")) {
+                                        message =
+                                            "Password is too weak (min 6 characters)";
+                                      } else if (e
+                                          .toString()
+                                          .contains("invalid-email")) {
+                                        message = "Invalid email format";
+                                      }
+
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(content: Text(message)),
+                                      );
+                                    } finally {
+                                      if (mounted) {
+                                        setState(() => isLoading = false);
+                                      }
+                                    }
+                                  }
+                                },
+                          child: isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  "REGISTER",
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ),
 

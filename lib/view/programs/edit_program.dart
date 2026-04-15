@@ -1,5 +1,5 @@
 import 'package:educu_project/constant/app_color.dart';
-import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/models/program_model.dart';
 import 'package:educu_project/models/session_model.dart';
 import 'package:flutter/material.dart';
@@ -63,9 +63,9 @@ class _EditProgramState extends State<EditProgram> {
     }
   }
 
-  // LOAD SESSION
+  // LOAD SESSION from Firestore
   Future<void> loadSessions() async {
-    final data = await DBHelper.getSessions(widget.program.id!);
+    final data = await FirebaseService.getSessions(widget.program.id!);
 
     sessions = data.map((s) {
       final session = SessionData();
@@ -98,16 +98,16 @@ class _EditProgramState extends State<EditProgram> {
 
   // UPDATE PROGRAM
   Future<void> updateProgram() async {
-    int programId = widget.program.id!;
+    String programId = widget.program.id!;
 
-    await DBHelper.updateProgram(programId, {
+    await FirebaseService.updateProgram(programId, {
       "subject": subjectController.text,
       "startDate": startController.text,
       "endDate": endController.text,
       "description": deskController.text,
     });
 
-    await DBHelper.deleteSessionsByProgram(programId);
+    await FirebaseService.deleteSessionsByProgram(programId);
 
     for (var s in sessions) {
       SessionModel session = SessionModel(
@@ -118,7 +118,7 @@ class _EditProgramState extends State<EditProgram> {
         endTime: s.endTimeController.text,
       );
 
-      await DBHelper.insertSession(session);
+      await FirebaseService.insertSession(session);
     }
 
     Navigator.pop(context, true);

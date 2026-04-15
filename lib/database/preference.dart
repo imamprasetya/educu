@@ -36,21 +36,27 @@ class PreferenceHandler {
     await _preferences.remove(_isLogin);
   }
 
-  //  USER ID
+  //  USER ID (now String for Firebase UID)
 
   // create user id
-  Future<void> storingUserId(int id) async {
-    await _preferences.setInt(_userId, id);
+  Future<void> storingUserId(String uid) async {
+    await _preferences.setString(_userId, uid);
   }
 
   // read user id
-  static Future<int?> getUserId() async {
+  static Future<String?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_userId);
+    return prefs.getString(_userId);
   }
 
   // delete user id
   Future<void> deleteUserId() async {
     await _preferences.remove(_userId);
+  }
+
+  // clear all on logout
+  Future<void> clearAll() async {
+    await deleteIsLogin();
+    await deleteUserId();
   }
 }

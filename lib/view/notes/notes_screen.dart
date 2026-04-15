@@ -1,10 +1,9 @@
 import 'package:educu_project/constant/app_color.dart';
-import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/models/notes_model.dart';
 import 'package:educu_project/view/notes/edit_notes.dart';
 import 'package:educu_project/view/notes/delete_notes.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class NotesScreen extends StatefulWidget {
   const NotesScreen({super.key});
@@ -19,7 +18,7 @@ class _NotesScreenState extends State<NotesScreen> {
 
   final searchController = TextEditingController();
 
-  int? userId;
+  String? userId;
 
   @override
   void initState() {
@@ -29,15 +28,14 @@ class _NotesScreenState extends State<NotesScreen> {
 
   // ambil user login
   Future<void> getUser() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    userId = prefs.getInt("userId");
+    userId = FirebaseService.getCurrentUid();
     loadNotes();
   }
 
   Future<void> loadNotes() async {
     if (userId == null) return;
 
-    final data = await DBHelper.getNotesByUser(userId!);
+    final data = await FirebaseService.getNotesByUser(userId!);
 
     setState(() {
       notes = data;
@@ -55,8 +53,8 @@ class _NotesScreenState extends State<NotesScreen> {
     });
   }
 
-  void deleteNote(int id) async {
-    await DBHelper.deleteNote(id);
+  void deleteNote(String id) async {
+    await FirebaseService.deleteNote(id);
     loadNotes();
   }
 

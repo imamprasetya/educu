@@ -2,8 +2,8 @@ import 'dart:convert';
 
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 class ProgramModel {
-  int? id;
-  int userId;
+  String? id;
+  String userId;
   final String subject;
   final String startDate;
   final String endDate;
@@ -20,7 +20,6 @@ class ProgramModel {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'id': id,
       'userId': userId,
       'subject': subject,
       'startDate': startDate,
@@ -29,10 +28,10 @@ class ProgramModel {
     };
   }
 
-  factory ProgramModel.fromMap(Map<String, dynamic> map) {
+  factory ProgramModel.fromMap(Map<String, dynamic> map, {String? docId}) {
     return ProgramModel(
-      id: map['id'] != null ? map['id'] as int : null,
-      userId: map['userId'] as int,
+      id: docId ?? (map['id'] != null ? map['id'] as String : null),
+      userId: map['userId'] as String,
       subject: map['subject'] as String,
       startDate: map['startDate'] as String,
       endDate: map['endDate'] as String,

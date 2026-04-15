@@ -1,9 +1,10 @@
 import 'package:educu_project/models/user_model.dart';
+import 'package:educu_project/database/preference.dart';
+import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/view/auth/login.dart';
 import 'package:educu_project/view/notes/notes_screen.dart';
 import 'package:flutter/material.dart';
 import '../../constant/app_color.dart';
-import '../../database/sqflite.dart';
 
 class ProfileScreen extends StatefulWidget {
   final UserModel user;
@@ -20,21 +21,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   late String userName;
   late String userEmail;
-
-  /// LOAD USER DATA
-  // Future<void> loadUser() async {
-  //   final db = await DBHelper.db();
-
-  //   final result = await db.query("user", limit: 1);
-
-  //   if (result.isNotEmpty) {
-  //     setState(() {
-  //       userName = result.first["name"]?.toString() ?? "User";
-
-  //       userEmail = result.first["email"]?.toString() ?? "";
-  //     });
-  //   }
-  // }
 
   @override
   void initState() {
@@ -82,6 +68,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// LOGOUT
+  Future<void> _logout() async {
+    await FirebaseService.signOut();
+    await PreferenceHandler().clearAll();
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LoginScreen(),
+      ),
+      (route) => false,
     );
   }
 
@@ -370,17 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     side: const BorderSide(color: Colors.red),
                   ),
 
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-
-                      (route) => false,
-                    );
-                  },
+                  onPressed: _logout,
 
                   icon: const Icon(Icons.logout),
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/services/firebase_service.dart';
 
-Future<void> showDeleteDialogNotes(BuildContext context, int id) async {
+Future<void> showDeleteDialogNotes(BuildContext context, String id) async {
   final confirm = await showDialog(
     context: context,
     builder: (context) {
@@ -27,7 +27,7 @@ Future<void> showDeleteDialogNotes(BuildContext context, int id) async {
   );
 
   if (confirm == true) {
-    await DBHelper.deleteNote(id);
+    await FirebaseService.deleteNote(id);
 
     ScaffoldMessenger.of(
       context,

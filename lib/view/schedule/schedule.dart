@@ -1,8 +1,7 @@
 import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
 import '../../constant/app_color.dart';
-import '../../database/sqflite.dart';
-import '../schedule/pomodoro.dart';
+import '../../services/firebase_service.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -39,30 +38,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }
   }
 
-  // LOAD SESSION FROM DATABASE
+  // LOAD SESSION FROM FIRESTORE
   Future<void> loadSchedule() async {
-    final db = await DBHelper.db();
-
     String date =
         "${selectedDate.year.toString().padLeft(4, '0')}-"
         "${selectedDate.month.toString().padLeft(2, '0')}-"
         "${selectedDate.day.toString().padLeft(2, '0')}";
 
-    final data = await db.rawQuery(
-      '''
-      SELECT
-        session.topic,
-        session.startTime,
-        session.endTime,
-        session.date,
-        program.subject
-      FROM session
-      JOIN program
-      ON session.programId = program.id
-      WHERE session.date = ?
-      ''',
-      [date],
-    );
+    final data = await FirebaseService.getSessionsByDate(date);
 
     setState(() {
       sessions = data;
@@ -151,7 +134,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         children: [
           /// SUBJECT
           Text(
-            data["subject"],
+            data["subject"] ?? "",
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
 
@@ -202,8 +185,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => PomodoroScreen(
-                      subject: data["subject"],
-                      topic: data["topic"],
+                      subject: data["subject"] ?? "",
+                      topic: data["topic"] ?? "",
                     ),
                   ),
                 );

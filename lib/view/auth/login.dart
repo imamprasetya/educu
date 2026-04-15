@@ -1,7 +1,7 @@
 import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/models/user_model.dart';
 import 'package:educu_project/database/preference.dart';
-import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/view/auth/register.dart';
 import 'package:educu_project/view/homescreen.dart';
 import 'package:flutter/material.dart';
@@ -19,16 +19,28 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
 
   bool isPasswordHidden = true;
+  bool isLoading = false;
 
   Future<void> loginUser() async {
-    final UserModel? login = await DBHelper.loginUser(
-      email: emailController.text,
-      password: passwordController.text,
-    );
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please fill in all fields"),
+        ),
+      );
+      return;
+    }
 
-    if (login != null) {
+    setState(() => isLoading = true);
+
+    try {
+      final UserModel user = await FirebaseService.loginUser(
+        email: emailController.text.trim(),
+        password: passwordController.text,
+      );
+
       await PreferenceHandler().storingIsLogin(true);
-      await PreferenceHandler().storingUserId(login.id!);
+      await PreferenceHandler().storingUserId(user.uid!);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -39,13 +51,25 @@ class _LoginScreenState extends State<LoginScreen> {
 
       await Future.delayed(const Duration(seconds: 1));
 
-      context.pushReplacement(HomeScreen(user: login));
-    } else {
+      context.pushReplacement(HomeScreen(user: user));
+    } catch (e) {
+      String message = "Login failed";
+      if (e.toString().contains("user-not-found")) {
+        message = "No account found with this email";
+      } else if (e.toString().contains("wrong-password") ||
+          e.toString().contains("invalid-credential")) {
+        message = "Wrong email or password";
+      } else if (e.toString().contains("invalid-email")) {
+        message = "Invalid email format";
+      } else if (e.toString().contains("too-many-requests")) {
+        message = "Too many attempts. Please try again later";
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Login failed, email or password is not registered"),
-        ),
+        SnackBar(content: Text(message)),
       );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -176,14 +200,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       backgroundColor: const Color.fromARGB(255, 0, 0, 51),
                     ),
-                    onPressed: loginUser,
-                    child: const Text(
-                      "LOGIN",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    onPressed: isLoading ? null : loginUser,
+                    child: isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            "LOGIN",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
 
