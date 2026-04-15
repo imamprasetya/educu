@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:educu_project/models/user_model.dart';
 import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/view/schedule/pomodoro.dart';
@@ -133,11 +134,18 @@ class _HomeContentState extends State<HomeContent> {
                 children: [
                   Row(
                     children: [
-                      const CircleAvatar(
-                        radius: 22,
-                        backgroundColor: Colors.white30,
-                        child: Icon(Icons.person, color: Colors.white),
-                      ),
+                      widget.user.photoBase64 != null
+                          ? CircleAvatar(
+                              radius: 22,
+                              backgroundImage: MemoryImage(
+                                base64Decode(widget.user.photoBase64!),
+                              ),
+                            )
+                          : const CircleAvatar(
+                              radius: 22,
+                              backgroundColor: Colors.white30,
+                              child: Icon(Icons.person, color: Colors.white),
+                            ),
                       const SizedBox(width: 10),
 
                       Column(
@@ -441,8 +449,11 @@ class _HomeContentState extends State<HomeContent> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      PomodoroScreen(subject: subject, topic: topic, sessionId: data["id"]),
+                  builder: (context) => PomodoroScreen(
+                    subject: subject,
+                    topic: topic,
+                    sessionId: data["id"],
+                  ),
                 ),
               );
             },
