@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     _pages = [
-      const HomeContent(),
+      HomeContent(user: widget.user),
       const ScheduleScreen(),
       const ProgramScreen(),
       ProfileScreen(user: widget.user),

@@ -11,7 +11,7 @@ class FirebaseService {
 
   // ==================== AUTH ====================
 
-  /// Register user dengan email & password, simpan profil ke Firestore
+  // Register user dengan email & password, simpan profil ke Firestore
   static Future<UserModel> registerUser({
     required String email,
     required String password,
@@ -23,17 +23,13 @@ class FirebaseService {
     );
 
     final user = cred.user!;
-    final model = UserModel(
-      uid: user.uid,
-      email: email,
-      name: name,
-    );
+    final model = UserModel(uid: user.uid, email: email, name: name);
 
     await _firestore.collection('users').doc(user.uid).set(model.toMap());
     return model;
   }
 
-  /// Login user dengan email & password, ambil profil dari Firestore
+  // Login user dengan email & password, ambil profil dari Firestore
   static Future<UserModel> loginUser({
     required String email,
     required String password,
@@ -54,7 +50,7 @@ class FirebaseService {
     }
   }
 
-  /// Ambil data user yang sedang login dari Firestore
+  // Ambil data user yang sedang login dari Firestore
   static Future<UserModel?> getCurrentUser() async {
     final user = _auth.currentUser;
     if (user == null) return null;
@@ -66,17 +62,17 @@ class FirebaseService {
     return UserModel(uid: user.uid, email: user.email, name: '');
   }
 
-  /// Get current Firebase Auth UID
+  // Get current Firebase Auth UID
   static String? getCurrentUid() {
     return _auth.currentUser?.uid;
   }
 
-  /// Logout
+  // Logout
   static Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  /// Update profil user di Firestore
+  // Update profil user di Firestore
   static Future<void> updateUser(UserModel user) async {
     if (user.uid == null) return;
     await _firestore.collection('users').doc(user.uid).update(user.toMap());
@@ -84,7 +80,7 @@ class FirebaseService {
 
   // ==================== PROGRAMS ====================
 
-  /// Insert program ke Firestore, return document ID
+  // Insert program ke Firestore, return document ID
   static Future<String> insertProgram(Map<String, dynamic> data) async {
     final uid = getCurrentUid();
     if (uid == null) throw Exception('User not logged in');
@@ -94,7 +90,7 @@ class FirebaseService {
     return docRef.id;
   }
 
-  /// Get programs berdasarkan user yang login
+  // Get programs berdasarkan user yang login
   static Future<List<ProgramModel>> getProgramsByUser(String userId) async {
     final snapshot = await _firestore
         .collection('programs')
@@ -107,7 +103,7 @@ class FirebaseService {
     }).toList();
   }
 
-  /// Update program
+  // Update program
   static Future<void> updateProgram(
     String id,
     Map<String, dynamic> data,
@@ -115,7 +111,7 @@ class FirebaseService {
     await _firestore.collection('programs').doc(id).update(data);
   }
 
-  /// Delete program dan sessions-nya
+  // Delete program dan sessions-nya
   static Future<void> deleteProgram(String id) async {
     // hapus semua session milik program ini
     final sessions = await _firestore
@@ -133,14 +129,13 @@ class FirebaseService {
 
   // ==================== SESSIONS ====================
 
-  /// Insert session ke Firestore, return document ID
+  // Insert session ke Firestore, return document ID
   static Future<String> insertSession(SessionModel session) async {
-    final docRef =
-        await _firestore.collection('sessions').add(session.toMap());
+    final docRef = await _firestore.collection('sessions').add(session.toMap());
     return docRef.id;
   }
 
-  /// Get sessions berdasarkan program
+  // Get sessions berdasarkan program
   static Future<List<Map<String, dynamic>>> getSessions(
     String programId,
   ) async {
@@ -156,7 +151,7 @@ class FirebaseService {
     }).toList();
   }
 
-  /// Delete sessions berdasarkan program
+  // Delete sessions berdasarkan program
   static Future<void> deleteSessionsByProgram(String programId) async {
     final snapshot = await _firestore
         .collection('sessions')
@@ -168,7 +163,7 @@ class FirebaseService {
     }
   }
 
-  /// Get sessions berdasarkan tanggal (untuk schedule)
+  // Get sessions berdasarkan tanggal (untuk schedule)
   static Future<List<Map<String, dynamic>>> getSessionsByDate(
     String date,
   ) async {
@@ -219,13 +214,13 @@ class FirebaseService {
 
   // ==================== NOTES ====================
 
-  /// Insert note ke Firestore
+  // Insert note ke Firestore
   static Future<String> insertNote(NotesModel note) async {
     final docRef = await _firestore.collection('notes').add(note.toMap());
     return docRef.id;
   }
 
-  /// Get notes berdasarkan user
+  // Get notes berdasarkan user
   static Future<List<NotesModel>> getNotesByUser(String userId) async {
     final snapshot = await _firestore
         .collection('notes')
@@ -238,13 +233,13 @@ class FirebaseService {
     }).toList();
   }
 
-  /// Update note
+  // Update note
   static Future<void> updateNote(NotesModel note) async {
     if (note.id == null) return;
     await _firestore.collection('notes').doc(note.id).update(note.toMap());
   }
 
-  /// Delete note
+  // Delete note
   static Future<void> deleteNote(String id) async {
     await _firestore.collection('notes').doc(id).delete();
   }

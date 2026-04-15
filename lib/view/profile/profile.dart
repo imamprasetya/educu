@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'package:educu_project/models/user_model.dart';
 import 'package:educu_project/database/preference.dart';
 import 'package:educu_project/services/firebase_service.dart';
+import 'package:educu_project/constant/theme_notifier.dart';
 import 'package:educu_project/view/auth/login.dart';
 import 'package:educu_project/view/notes/notes_screen.dart';
+import 'package:educu_project/view/profile/edit_profile.dart';
 import 'package:flutter/material.dart';
 import '../../constant/app_color.dart';
 
@@ -17,19 +20,42 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool popupNotif = true;
   bool soundNotif = true;
-  bool darkMode = false;
+  bool darkMode = ThemeNotifier().isDark;
 
   late String userName;
   late String userEmail;
+  String? photoBase64;
 
   @override
   void initState() {
     super.initState();
     userName = widget.user.name ?? "User";
     userEmail = widget.user.email ?? "";
+    photoBase64 = widget.user.photoBase64;
   }
 
-  /// CONTACT US
+  // Build avatar with photo
+  Widget _buildAvatar() {
+    ImageProvider? imageProvider;
+    if (photoBase64 != null && photoBase64!.isNotEmpty) {
+      try {
+        imageProvider = MemoryImage(base64Decode(photoBase64!));
+      } catch (_) {
+        imageProvider = null;
+      }
+    }
+
+    return CircleAvatar(
+      radius: 35,
+      backgroundColor: const Color(0xFF6C7AE0),
+      backgroundImage: imageProvider,
+      child: imageProvider == null
+          ? const Icon(Icons.person, color: Colors.white, size: 30)
+          : null,
+    );
+  }
+
+  // CONTACT US
   void contactUs() {
     showDialog(
       context: context,
@@ -50,7 +76,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// ABOUT APP
+  // ABOUT APP
   void aboutApp() {
     showDialog(
       context: context,
@@ -71,16 +97,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// LOGOUT
+  // LOGOUT
   Future<void> _logout() async {
     await FirebaseService.signOut();
     await PreferenceHandler().clearAll();
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (context) => const LoginScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
       (route) => false,
     );
   }
@@ -190,21 +214,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Row(
                     children: [
-                      const CircleAvatar(
-                        radius: 35,
-                        backgroundColor: Color(0xFF6C7AE0),
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                      ),
+                      _buildAvatar(),
 
                       const SizedBox(width: 15),
 
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-
                         children: [
                           Text(
                             userName,
@@ -213,7 +228,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-
                           Text(
                             userEmail,
                             style: const TextStyle(color: Colors.grey),
@@ -227,16 +241,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   SizedBox(
                     width: double.infinity,
-
                     child: OutlinedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Edit profile feature coming soon"),
+                      onPressed: () async {
+                        final updatedUser = await Navigator.push<UserModel>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditProfileScreen(
+                              user: widget.user.copyWith(
+                                name: userName,
+                                email: userEmail,
+                                photoBase64: photoBase64,
+                              ),
+                            ),
                           ),
                         );
-                      },
 
+                        if (updatedUser != null) {
+                          setState(() {
+                            userName = updatedUser.name ?? "User";
+                            userEmail = updatedUser.email ?? "";
+                            photoBase64 = updatedUser.photoBase64;
+                          });
+                        }
+                      },
                       child: const Text("Edit Profile"),
                     ),
                   ),
@@ -312,6 +339,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     trailing: Switch(
                       value: darkMode,
                       onChanged: (value) {
+                        ThemeNotifier().toggleTheme(value);
                         setState(() {
                           darkMode = value;
                         });

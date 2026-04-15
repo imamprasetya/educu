@@ -39,7 +39,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
 
     final note = NotesModel(
       id: widget.note?.id,
-      userId: userId!, // penting untuk multi user
+      userId: userId!, // untuk multi user
       title: titleController.text,
       content: contentController.text,
       date: DateTime.now().toString(),
