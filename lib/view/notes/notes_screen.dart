@@ -61,7 +61,7 @@ class _NotesScreenState extends State<NotesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColor.box1,
+      backgroundColor: AppColor.scaffoldColor(context),
 
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
@@ -128,11 +128,16 @@ class _NotesScreenState extends State<NotesScreen> {
                 TextField(
                   controller: searchController,
                   onChanged: searchNotes,
+                  style: TextStyle(color: AppColor.textPrimary(context)),
                   decoration: InputDecoration(
                     hintText: "Search your notes...",
+                    hintStyle: TextStyle(color: AppColor.textHint(context)),
                     filled: true,
-                    fillColor: AppColor.box,
-                    prefixIcon: const Icon(Icons.search),
+                    fillColor: AppColor.searchBox(context),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: AppColor.iconColor(context),
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20),
                       borderSide: BorderSide.none,
@@ -160,10 +165,13 @@ class _NotesScreenState extends State<NotesScreen> {
                   padding: const EdgeInsets.all(15),
 
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColor.cardColor(context),
                     borderRadius: BorderRadius.circular(15),
-                    boxShadow: const [
-                      BoxShadow(color: Colors.black12, blurRadius: 4),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColor.shadowColor(context),
+                        blurRadius: 4,
+                      ),
                     ],
                   ),
 
@@ -178,9 +186,10 @@ class _NotesScreenState extends State<NotesScreen> {
                           children: [
                             Text(
                               note.title,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
+                                color: AppColor.textPrimary(context),
                               ),
                             ),
 
@@ -188,8 +197,8 @@ class _NotesScreenState extends State<NotesScreen> {
 
                             Text(
                               note.content,
-                              style: const TextStyle(
-                                color: Colors.grey,
+                              style: TextStyle(
+                                color: AppColor.textHint(context),
                                 fontSize: 12,
                               ),
                             ),

@@ -110,7 +110,7 @@ class _HomeContentState extends State<HomeContent> {
     final userName = widget.user.name ?? "User";
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F6),
+      backgroundColor: AppColor.scaffoldColor(context),
 
       body: SingleChildScrollView(
         child: Column(
@@ -235,7 +235,7 @@ class _HomeContentState extends State<HomeContent> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 quotes.length,
-                (index) => dot(index == currentPage),
+                (index) => dot(index == currentPage, context),
               ),
             ),
 
@@ -246,13 +246,13 @@ class _HomeContentState extends State<HomeContent> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.cardColor(context),
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: AppColor.shadowColor(context),
                     blurRadius: 5,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -260,9 +260,13 @@ class _HomeContentState extends State<HomeContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "Study Progress",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: AppColor.textPrimary(context),
+                    ),
                   ),
 
                   const SizedBox(height: 15),
@@ -302,10 +306,14 @@ class _HomeContentState extends State<HomeContent> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Text(
                     "Today's Schedule",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: AppColor.textPrimary(context),
+                    ),
                   ),
                 ],
               ),
@@ -320,11 +328,14 @@ class _HomeContentState extends State<HomeContent> {
                 child: CircularProgressIndicator(),
               )
             else if (todaySessions.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(30),
+              Padding(
+                padding: const EdgeInsets.all(30),
                 child: Text(
                   "No schedule today 📚",
-                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                  style: TextStyle(
+                    color: AppColor.textHint(context),
+                    fontSize: 16,
+                  ),
                 ),
               )
             else
@@ -356,21 +367,28 @@ class _HomeContentState extends State<HomeContent> {
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: AppColor.textPrimary(context),
+          ),
         ),
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        Text(
+          label,
+          style: TextStyle(color: AppColor.textHint(context), fontSize: 12),
+        ),
       ],
     );
   }
 
   // dot indicator
-  static Widget dot(bool active) {
+  static Widget dot(bool active, BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
       height: 6,
       width: active ? 18 : 6,
       decoration: BoxDecoration(
-        color: active ? Colors.blue : Colors.grey.shade400,
+        color: active ? Colors.blue : AppColor.textHint(context),
         borderRadius: BorderRadius.circular(10),
       ),
     );
@@ -388,10 +406,14 @@ class _HomeContentState extends State<HomeContent> {
       padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.cardColor(context),
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.shadowColor(context),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
 
@@ -415,12 +437,18 @@ class _HomeContentState extends State<HomeContent> {
               children: [
                 Text(
                   subject,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.textPrimary(context),
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   topic,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  style: TextStyle(
+                    color: AppColor.textHint(context),
+                    fontSize: 12,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Row(

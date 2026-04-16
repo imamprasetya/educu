@@ -196,9 +196,10 @@ class _AddProgramState extends State<AddProgram> {
             borderRadius: BorderRadius.circular(20),
           ),
           title: const Icon(Icons.check_circle, color: Colors.green, size: 60),
-          content: const Text(
+          content: Text(
             "Program saved successfully!",
             textAlign: TextAlign.center,
+            style: TextStyle(color: AppColor.textPrimary(context)),
           ),
           actions: [
             Center(
@@ -234,6 +235,7 @@ class _AddProgramState extends State<AddProgram> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColor.scaffoldColor(context),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(80),
         child: Container(
@@ -277,11 +279,11 @@ class _AddProgramState extends State<AddProgram> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColor.cardColor(context),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blueGrey.withOpacity(0.5),
+                      color: AppColor.shadowColor(context),
                       spreadRadius: 3,
                       blurRadius: 5,
                     ),
@@ -291,19 +293,24 @@ class _AddProgramState extends State<AddProgram> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       "Subject Name",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.textPrimary(context),
+                      ),
                     ),
 
                     const SizedBox(height: 7),
 
                     TextFormField(
                       controller: subjectController,
+                      style: TextStyle(color: AppColor.textPrimary(context)),
                       decoration: InputDecoration(
                         hintText: "Enter subject name",
+                        hintStyle: TextStyle(color: AppColor.textHint(context)),
                         filled: true,
-                        fillColor: AppColor.box1,
+                        fillColor: AppColor.inputFill(context),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(25),
                           borderSide: BorderSide.none,
@@ -320,11 +327,16 @@ class _AddProgramState extends State<AddProgram> {
                             controller: startController,
                             readOnly: true,
                             onTap: () => _selectDate(context, startController),
+                            style: TextStyle(color: AppColor.textPrimary(context)),
                             decoration: InputDecoration(
                               hintText: "Start Date",
+                              hintStyle: TextStyle(color: AppColor.textHint(context)),
                               filled: true,
-                              fillColor: AppColor.box1,
-                              suffixIcon: const Icon(Icons.calendar_today),
+                              fillColor: AppColor.inputFill(context),
+                              suffixIcon: Icon(
+                                Icons.calendar_today,
+                                color: AppColor.iconColor(context),
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(25),
                                 borderSide: BorderSide.none,
@@ -340,11 +352,16 @@ class _AddProgramState extends State<AddProgram> {
                             controller: endController,
                             readOnly: true,
                             onTap: () => _selectDate(context, endController),
+                            style: TextStyle(color: AppColor.textPrimary(context)),
                             decoration: InputDecoration(
                               hintText: "End Date",
+                              hintStyle: TextStyle(color: AppColor.textHint(context)),
                               filled: true,
-                              fillColor: AppColor.box1,
-                              suffixIcon: const Icon(Icons.calendar_today),
+                              fillColor: AppColor.inputFill(context),
+                              suffixIcon: Icon(
+                                Icons.calendar_today,
+                                color: AppColor.iconColor(context),
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(25),
                                 borderSide: BorderSide.none,
@@ -357,9 +374,12 @@ class _AddProgramState extends State<AddProgram> {
 
                     const SizedBox(height: 15),
 
-                    const Text(
+                    Text(
                       "Description",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.textPrimary(context),
+                      ),
                     ),
 
                     const SizedBox(height: 7),
@@ -367,10 +387,12 @@ class _AddProgramState extends State<AddProgram> {
                     TextFormField(
                       controller: deskController,
                       maxLines: 4,
+                      style: TextStyle(color: AppColor.textPrimary(context)),
                       decoration: InputDecoration(
                         hintText: "Enter program description",
+                        hintStyle: TextStyle(color: AppColor.textHint(context)),
                         filled: true,
-                        fillColor: AppColor.box1,
+                        fillColor: AppColor.inputFill(context),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(25),
                           borderSide: BorderSide.none,
@@ -387,9 +409,13 @@ class _AddProgramState extends State<AddProgram> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     "Sessions",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: AppColor.textPrimary(context),
+                    ),
                   ),
                   IconButton(
                     onPressed: _addSession,
@@ -413,11 +439,11 @@ class _AddProgramState extends State<AddProgram> {
                     padding: const EdgeInsets.all(16),
 
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColor.cardColor(context),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.blueGrey.withOpacity(0.5),
+                          color: AppColor.shadowColor(context),
                           spreadRadius: 3,
                           blurRadius: 5,
                         ),
@@ -450,19 +476,24 @@ class _AddProgramState extends State<AddProgram> {
 
                         const SizedBox(height: 10),
 
-                        const Text(
+                        Text(
                           "Material Topic",
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColor.textPrimary(context),
+                          ),
                         ),
 
                         const SizedBox(height: 7),
 
                         TextFormField(
                           controller: session.topicController,
+                          style: TextStyle(color: AppColor.textPrimary(context)),
                           decoration: InputDecoration(
                             hintText: "Enter topic",
+                            hintStyle: TextStyle(color: AppColor.textHint(context)),
                             filled: true,
-                            fillColor: AppColor.box1,
+                            fillColor: AppColor.inputFill(context),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25),
                               borderSide: BorderSide.none,
@@ -479,11 +510,16 @@ class _AddProgramState extends State<AddProgram> {
                             context,
                             session.dateController,
                           ),
+                          style: TextStyle(color: AppColor.textPrimary(context)),
                           decoration: InputDecoration(
                             hintText: "Select Date",
-                            prefixIcon: const Icon(Icons.calendar_today),
+                            hintStyle: TextStyle(color: AppColor.textHint(context)),
+                            prefixIcon: Icon(
+                              Icons.calendar_today,
+                              color: AppColor.iconColor(context),
+                            ),
                             filled: true,
-                            fillColor: AppColor.box1,
+                            fillColor: AppColor.inputFill(context),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
                               borderSide: BorderSide.none,
@@ -503,11 +539,16 @@ class _AddProgramState extends State<AddProgram> {
                                   context,
                                   session.startTimeController,
                                 ),
+                                style: TextStyle(color: AppColor.textPrimary(context)),
                                 decoration: InputDecoration(
                                   hintText: "Start Time",
-                                  prefixIcon: const Icon(Icons.access_time),
+                                  hintStyle: TextStyle(color: AppColor.textHint(context)),
+                                  prefixIcon: Icon(
+                                    Icons.access_time,
+                                    color: AppColor.iconColor(context),
+                                  ),
                                   filled: true,
-                                  fillColor: AppColor.box1,
+                                  fillColor: AppColor.inputFill(context),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: BorderSide.none,
@@ -526,11 +567,16 @@ class _AddProgramState extends State<AddProgram> {
                                   context,
                                   session.endTimeController,
                                 ),
+                                style: TextStyle(color: AppColor.textPrimary(context)),
                                 decoration: InputDecoration(
                                   hintText: "End Time",
-                                  prefixIcon: const Icon(Icons.access_time),
+                                  hintStyle: TextStyle(color: AppColor.textHint(context)),
+                                  prefixIcon: Icon(
+                                    Icons.access_time,
+                                    color: AppColor.iconColor(context),
+                                  ),
                                   filled: true,
-                                  fillColor: AppColor.box1,
+                                  fillColor: AppColor.inputFill(context),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(20),
                                     borderSide: BorderSide.none,

@@ -124,9 +124,10 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
           borderRadius: BorderRadius.circular(20),
         ),
         title: const Icon(Icons.celebration, size: 50, color: Colors.orange),
-        content: const Text(
+        content: Text(
           "Waktu belajar telah selesai!\nApakah anda ingin menandai session ini sebagai selesai?",
           textAlign: TextAlign.center,
+          style: TextStyle(color: AppColor.textPrimary(context)),
         ),
         actionsAlignment: MainAxisAlignment.center,
         actions: [
@@ -164,7 +165,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F6),
+      backgroundColor: AppColor.scaffoldColor(context),
 
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
@@ -185,13 +186,13 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.cardColor(context),
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: AppColor.shadowColor(context),
                     blurRadius: 4,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -200,15 +201,16 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                 children: [
                   Text(
                     widget.subject,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: AppColor.textPrimary(context),
                     ),
                   ),
                   const SizedBox(height: 5),
                   Text(
                     "Topic : ${widget.topic}",
-                    style: const TextStyle(color: Colors.black54),
+                    style: TextStyle(color: AppColor.textSecondary(context)),
                   ),
                   const SizedBox(height: 5),
                   Text(
@@ -234,7 +236,9 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                     child: CircularProgressIndicator(
                       value: progress,
                       strokeWidth: 10,
-                      backgroundColor: Colors.grey.shade300,
+                      backgroundColor: AppColor.isDark(context)
+                          ? Colors.grey.shade800
+                          : Colors.grey.shade300,
                       valueColor: AlwaysStoppedAnimation(
                         isCompleted ? Colors.green : AppColor.gradien2,
                       ),

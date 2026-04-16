@@ -29,7 +29,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
   String? userId;
 
   // Tab filter
-  int selectedTab = 0; // 0=Semua, 1=Active, 2=Terlewat, 3=Selesai
+  int selectedTab = 1; // 0=Semua, 1=Active, 2=Terlewat, 3=Selesai
   final List<String> tabLabels = ["Semua", "Active", "Terlewat", "Selesai"];
 
   @override
@@ -131,6 +131,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
     final overallPct = (overallProgress * 100).toInt();
 
     return Scaffold(
+      backgroundColor: AppColor.scaffoldColor(context),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(100),
         child: Container(
@@ -180,14 +181,14 @@ class _ProgramScreenState extends State<ProgramScreen> {
               Container(
                 height: 45,
                 decoration: BoxDecoration(
-                  color: AppColor.box,
+                  color: AppColor.searchBox(context),
                   borderRadius: BorderRadius.circular(25),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
-                      color: Colors.blueGrey,
+                      color: AppColor.shadowColor(context),
                       blurRadius: 2,
                       spreadRadius: 1,
-                      offset: Offset(0, 1),
+                      offset: const Offset(0, 1),
                     ),
                   ],
                 ),
@@ -195,9 +196,14 @@ class _ProgramScreenState extends State<ProgramScreen> {
                   controller: searchController,
                   focusNode: searchFocus,
                   onChanged: searchProgram,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search),
+                  style: TextStyle(color: AppColor.textPrimary(context)),
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: AppColor.iconColor(context),
+                    ),
                     hintText: "Search subject...",
+                    hintStyle: TextStyle(color: AppColor.textHint(context)),
                     border: InputBorder.none,
                   ),
                 ),
@@ -211,7 +217,9 @@ class _ProgramScreenState extends State<ProgramScreen> {
                 height: 100,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha: 0.2),
+                  color: AppColor.isDark(context)
+                      ? Colors.blue.withValues(alpha: 0.15)
+                      : Colors.blue.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: Colors.blueAccent),
                 ),
@@ -220,9 +228,19 @@ class _ProgramScreenState extends State<ProgramScreen> {
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text("Total Programs"),
-                        Text("Overall Progress"),
+                      children: [
+                        Text(
+                          "Total Programs",
+                          style: TextStyle(
+                            color: AppColor.textPrimary(context),
+                          ),
+                        ),
+                        Text(
+                          "Overall Progress",
+                          style: TextStyle(
+                            color: AppColor.textPrimary(context),
+                          ),
+                        ),
                       ],
                     ),
                     Row(
@@ -230,9 +248,10 @@ class _ProgramScreenState extends State<ProgramScreen> {
                       children: [
                         Text(
                           programs.length.toString(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 25,
                             fontWeight: FontWeight.bold,
+                            color: AppColor.textPrimary(context),
                           ),
                         ),
                         Text(
@@ -250,7 +269,9 @@ class _ProgramScreenState extends State<ProgramScreen> {
                       child: LinearProgressIndicator(
                         value: overallProgress,
                         minHeight: 8,
-                        backgroundColor: const Color(0xFFDBD8FF),
+                        backgroundColor: AppColor.isDark(context)
+                            ? Colors.grey.shade800
+                            : const Color(0xFFDBD8FF),
                         valueColor: const AlwaysStoppedAnimation(
                           Colors.blueAccent,
                         ),
@@ -276,13 +297,17 @@ class _ProgramScreenState extends State<ProgramScreen> {
                         label: Text(
                           tabLabels[index],
                           style: TextStyle(
-                            color: isActive ? Colors.white : Colors.black87,
+                            color: isActive
+                                ? Colors.white
+                                : AppColor.textPrimary(context),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         selected: isActive,
                         selectedColor: AppColor.gradien2,
-                        backgroundColor: Colors.grey.shade200,
+                        backgroundColor: AppColor.isDark(context)
+                            ? Colors.grey.shade800
+                            : Colors.grey.shade200,
                         onSelected: (val) {
                           setState(() {
                             selectedTab = index;
@@ -299,11 +324,14 @@ class _ProgramScreenState extends State<ProgramScreen> {
 
               // list program
               filteredPrograms.isEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.all(40),
+                  ? Padding(
+                      padding: const EdgeInsets.all(40),
                       child: Text(
                         "No program found",
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppColor.textHint(context),
+                        ),
                       ),
                     )
                   : ListView.builder(
@@ -317,6 +345,8 @@ class _ProgramScreenState extends State<ProgramScreen> {
 
                         return Card(
                           elevation: 3,
+                          color: AppColor.cardColor(context),
+                          shadowColor: AppColor.shadowColor(context),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -332,9 +362,10 @@ class _ProgramScreenState extends State<ProgramScreen> {
                                     Expanded(
                                       child: Text(
                                         items.subject,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
+                                          color: AppColor.textPrimary(context),
                                         ),
                                       ),
                                     ),
@@ -351,8 +382,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) =>
-                                                    EditProgram(
-                                                        program: items),
+                                                    EditProgram(program: items),
                                               ),
                                             );
                                             loadPrograms();
@@ -379,8 +409,8 @@ class _ProgramScreenState extends State<ProgramScreen> {
 
                                 Text(
                                   "${items.startDate} - ${items.endDate}",
-                                  style: const TextStyle(
-                                    color: Colors.grey,
+                                  style: TextStyle(
+                                    color: AppColor.textHint(context),
                                     fontSize: 13,
                                   ),
                                 ),
@@ -391,9 +421,11 @@ class _ProgramScreenState extends State<ProgramScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text(
+                                    Text(
                                       "Progress",
-                                      style: TextStyle(color: Colors.black54),
+                                      style: TextStyle(
+                                        color: AppColor.textSecondary(context),
+                                      ),
                                     ),
                                     Text(
                                       "$pct%",
@@ -414,7 +446,9 @@ class _ProgramScreenState extends State<ProgramScreen> {
                                   child: LinearProgressIndicator(
                                     value: prog,
                                     minHeight: 8,
-                                    backgroundColor: const Color(0xFFDBD8FF),
+                                    backgroundColor: AppColor.isDark(context)
+                                        ? Colors.grey.shade800
+                                        : const Color(0xFFDBD8FF),
                                     valueColor: AlwaysStoppedAnimation(
                                       prog >= 1.0
                                           ? Colors.green
@@ -431,8 +465,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.blueAccent,
                                       shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
                                     onPressed: () async {

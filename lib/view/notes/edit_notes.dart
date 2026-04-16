@@ -57,7 +57,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColor.biru1,
+      backgroundColor: AppColor.scaffoldColor(context),
 
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
@@ -84,7 +84,11 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
           children: [
             TextField(
               controller: titleController,
-              decoration: const InputDecoration(hintText: "Title"),
+              style: TextStyle(color: AppColor.textPrimary(context)),
+              decoration: InputDecoration(
+                hintText: "Title",
+                hintStyle: TextStyle(color: AppColor.textHint(context)),
+              ),
             ),
 
             const SizedBox(height: 20),
@@ -94,9 +98,25 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                 controller: contentController,
                 maxLines: null,
                 expands: true,
-                decoration: const InputDecoration(
+                style: TextStyle(color: AppColor.textPrimary(context)),
+                decoration: InputDecoration(
                   hintText: "Write your note...",
-                  border: OutlineInputBorder(),
+                  hintStyle: TextStyle(color: AppColor.textHint(context)),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: AppColor.borderColor(context),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: AppColor.borderColor(context),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: AppColor.gradien2,
+                    ),
+                  ),
                 ),
               ),
             ),

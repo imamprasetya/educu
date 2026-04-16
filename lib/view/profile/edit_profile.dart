@@ -164,6 +164,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColor.scaffoldColor(context),
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: AppColor.gradien1,
@@ -197,18 +198,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const SizedBox(height: 30),
 
           // NAME
-          const Text(
+          Text(
             "Full Name",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColor.textPrimary(context),
+            ),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: nameController,
+            style: TextStyle(color: AppColor.textPrimary(context)),
             decoration: InputDecoration(
               hintText: "Enter your name",
-              prefixIcon: const Icon(Icons.person_outline),
+              prefixIcon: Icon(
+                Icons.person_outline,
+                color: AppColor.iconColor(context),
+              ),
               filled: true,
-              fillColor: AppColor.box1,
+              fillColor: AppColor.inputFill(context),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
                 borderSide: BorderSide.none,
@@ -219,26 +227,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           const SizedBox(height: 20),
 
           // EMAIL (read-only karena Firebase Auth)
-          const Text(
+          Text(
             "Email",
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColor.textPrimary(context),
+            ),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: emailController,
             readOnly: true,
+            style: TextStyle(color: AppColor.textSecondary(context)),
             decoration: InputDecoration(
               hintText: "Email",
-              prefixIcon: const Icon(Icons.email_outlined),
+              prefixIcon: Icon(
+                Icons.email_outlined,
+                color: AppColor.iconColor(context),
+              ),
               filled: true,
-              fillColor: Colors.grey.shade200,
+              fillColor: AppColor.isDark(context)
+                  ? const Color(0xFF1E1E3A)
+                  : Colors.grey.shade200,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(15),
                 borderSide: BorderSide.none,
               ),
-              suffixIcon: const Tooltip(
+              suffixIcon: Tooltip(
                 message: "Email cannot be changed",
-                child: Icon(Icons.lock_outline, size: 18),
+                child: Icon(
+                  Icons.lock_outline,
+                  size: 18,
+                  color: AppColor.iconColor(context),
+                ),
               ),
             ),
           ),

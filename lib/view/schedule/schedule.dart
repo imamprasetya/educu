@@ -65,7 +65,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         date.day == today.day;
 
     Color bgColor = Colors.transparent;
-    Color textColor = Colors.black;
+    Color textColor = AppColor.textPrimary(context);
 
     if (isSelected) {
       bgColor = const Color(0xFF4D6FFF);
@@ -121,11 +121,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.cardColor(context),
         borderRadius: BorderRadius.circular(20),
 
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.shadowColor(context),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
 
@@ -135,7 +139,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           /// SUBJECT
           Text(
             data["subject"] ?? "",
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColor.textPrimary(context),
+            ),
           ),
 
           const SizedBox(height: 6),
@@ -143,7 +151,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           /// MATERI
           Text(
             "Topic : ${data["topic"]}",
-            style: const TextStyle(color: Colors.black54),
+            style: TextStyle(color: AppColor.textSecondary(context)),
           ),
 
           const SizedBox(height: 6),
@@ -207,7 +215,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F6),
+      backgroundColor: AppColor.scaffoldColor(context),
 
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(120),
@@ -261,14 +269,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             padding: const EdgeInsets.all(12),
 
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColor.cardColor(context),
               borderRadius: BorderRadius.circular(20),
 
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
+                  color: AppColor.shadowColor(context),
                   blurRadius: 4,
-                  offset: Offset(0, 2),
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -283,7 +291,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           /// SESSION LIST
           Expanded(
             child: sessions.isEmpty
-                ? const Center(child: Text("No schedule today"))
+                ? Center(
+                    child: Text(
+                      "No schedule today",
+                      style: TextStyle(color: AppColor.textHint(context)),
+                    ),
+                  )
                 : ListView.builder(
                     itemCount: sessions.length,
 

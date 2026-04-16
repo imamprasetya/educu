@@ -92,6 +92,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
     final completedCount = sessions.where((s) => s.completed).length;
 
     return Scaffold(
+      backgroundColor: AppColor.scaffoldColor(context),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(90),
         child: Container(
@@ -153,7 +154,9 @@ class _ProgramDetailState extends State<ProgramDetail> {
                       padding: const EdgeInsets.all(16),
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
+                        color: AppColor.isDark(context)
+                            ? Colors.blue.withValues(alpha: 0.1)
+                            : Colors.blue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: Colors.blue.withValues(alpha: 0.3),
@@ -162,10 +165,10 @@ class _ProgramDetailState extends State<ProgramDetail> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             "Description",
                             style: TextStyle(
-                              color: Colors.black54,
+                              color: AppColor.textSecondary(context),
                               fontSize: 12,
                             ),
                           ),
@@ -174,7 +177,10 @@ class _ProgramDetailState extends State<ProgramDetail> {
                             program.description.isNotEmpty
                                 ? program.description
                                 : "-",
-                            style: const TextStyle(fontSize: 14),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColor.textPrimary(context),
+                            ),
                           ),
 
                           const SizedBox(height: 16),
@@ -185,33 +191,39 @@ class _ProgramDetailState extends State<ProgramDetail> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     "Timeline",
                                     style: TextStyle(
-                                      color: Colors.black54,
+                                      color: AppColor.textSecondary(context),
                                       fontSize: 12,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     "${program.startDate} - ${program.endDate}",
-                                    style: const TextStyle(fontSize: 13),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColor.textPrimary(context),
+                                    ),
                                   ),
                                 ],
                               ),
                               Column(
                                 children: [
-                                  const Text(
+                                  Text(
                                     "Duration",
                                     style: TextStyle(
-                                      color: Colors.black54,
+                                      color: AppColor.textSecondary(context),
                                       fontSize: 12,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     _getDuration(),
-                                    style: const TextStyle(fontSize: 13),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColor.textPrimary(context),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -226,8 +238,8 @@ class _ProgramDetailState extends State<ProgramDetail> {
                             children: [
                               Text(
                                 "Progress ($completedCount/${sessions.length})",
-                                style: const TextStyle(
-                                  color: Colors.black54,
+                                style: TextStyle(
+                                  color: AppColor.textSecondary(context),
                                   fontSize: 12,
                                 ),
                               ),
@@ -248,7 +260,9 @@ class _ProgramDetailState extends State<ProgramDetail> {
                             child: LinearProgressIndicator(
                               value: progress,
                               minHeight: 8,
-                              backgroundColor: const Color(0xFFDBD8FF),
+                              backgroundColor: AppColor.isDark(context)
+                                  ? Colors.grey.shade800
+                                  : const Color(0xFFDBD8FF),
                               valueColor: AlwaysStoppedAnimation(
                                 progress >= 1.0
                                     ? Colors.green
@@ -266,17 +280,18 @@ class _ProgramDetailState extends State<ProgramDetail> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           "Sessions",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
+                            color: AppColor.textPrimary(context),
                           ),
                         ),
                         Text(
                           "$completedCount/${sessions.length} completed",
-                          style: const TextStyle(
-                            color: Colors.grey,
+                          style: TextStyle(
+                            color: AppColor.textHint(context),
                             fontSize: 13,
                           ),
                         ),
@@ -291,13 +306,15 @@ class _ProgramDetailState extends State<ProgramDetail> {
                         padding: const EdgeInsets.all(30),
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: AppColor.box1,
+                          color: AppColor.cardColor(context),
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
                             "No sessions yet",
-                            style: TextStyle(color: Colors.grey),
+                            style: TextStyle(
+                              color: AppColor.textHint(context),
+                            ),
                           ),
                         ),
                       )
@@ -310,18 +327,18 @@ class _ProgramDetailState extends State<ProgramDetail> {
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColor.cardColor(context),
                             borderRadius: BorderRadius.circular(15),
                             border: Border.all(
                               color: session.completed
                                   ? Colors.green.withValues(alpha: 0.4)
-                                  : Colors.grey.withValues(alpha: 0.2),
+                                  : AppColor.borderColor(context),
                             ),
-                            boxShadow: const [
+                            boxShadow: [
                               BoxShadow(
-                                color: Colors.black12,
+                                color: AppColor.shadowColor(context),
                                 blurRadius: 2,
-                                offset: Offset(0, 1),
+                                offset: const Offset(0, 1),
                               ),
                             ],
                           ),
@@ -335,7 +352,9 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                   shape: BoxShape.circle,
                                   color: session.completed
                                       ? Colors.green
-                                      : Colors.grey.shade300,
+                                      : AppColor.isDark(context)
+                                          ? Colors.grey.shade700
+                                          : Colors.grey.shade300,
                                 ),
                                 child: Center(
                                   child: session.completed
@@ -346,9 +365,11 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                         )
                                       : Text(
                                           "${idx + 1}",
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.black54,
+                                            color: AppColor.textSecondary(
+                                              context,
+                                            ),
                                           ),
                                         ),
                                 ),
@@ -370,8 +391,8 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                             ? TextDecoration.lineThrough
                                             : null,
                                         color: session.completed
-                                            ? Colors.grey
-                                            : Colors.black87,
+                                            ? AppColor.textHint(context)
+                                            : AppColor.textPrimary(context),
                                       ),
                                     ),
                                     const SizedBox(height: 4),
@@ -380,28 +401,28 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                         Icon(
                                           Icons.calendar_today,
                                           size: 12,
-                                          color: Colors.grey.shade500,
+                                          color: AppColor.textHint(context),
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
                                           session.date,
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: Colors.grey.shade600,
+                                            color: AppColor.textHint(context),
                                           ),
                                         ),
                                         const SizedBox(width: 12),
                                         Icon(
                                           Icons.access_time,
                                           size: 12,
-                                          color: Colors.grey.shade500,
+                                          color: AppColor.textHint(context),
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
                                           "${session.startTime} - ${session.endTime}",
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: Colors.grey.shade600,
+                                            color: AppColor.textHint(context),
                                           ),
                                         ),
                                       ],

@@ -236,9 +236,10 @@ class _EditProgramState extends State<EditProgram> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColor.scaffoldColor(context),
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
-        title: Text(
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
           "Edit Study Program",
           style: TextStyle(color: Colors.white),
         ),
@@ -252,11 +253,11 @@ class _EditProgramState extends State<EditProgram> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.cardColor(context),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blueGrey.withOpacity(0.4),
+                    color: AppColor.shadowColor(context),
                     blurRadius: 6,
                   ),
                 ],
@@ -264,17 +265,21 @@ class _EditProgramState extends State<EditProgram> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "Subject Name",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColor.textPrimary(context),
+                    ),
                   ),
                   const SizedBox(height: 7),
 
                   TextFormField(
                     controller: subjectController,
+                    style: TextStyle(color: AppColor.textPrimary(context)),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: AppColor.box1,
+                      fillColor: AppColor.inputFill(context),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(25),
                         borderSide: BorderSide.none,
@@ -292,11 +297,16 @@ class _EditProgramState extends State<EditProgram> {
                           controller: startController,
                           readOnly: true,
                           onTap: () => pickDate(startController),
+                          style: TextStyle(color: AppColor.textPrimary(context)),
                           decoration: InputDecoration(
                             hintText: "Start Date",
-                            suffixIcon: const Icon(Icons.calendar_today),
+                            hintStyle: TextStyle(color: AppColor.textHint(context)),
+                            suffixIcon: Icon(
+                              Icons.calendar_today,
+                              color: AppColor.iconColor(context),
+                            ),
                             filled: true,
-                            fillColor: AppColor.box1,
+                            fillColor: AppColor.inputFill(context),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25),
                               borderSide: BorderSide.none,
@@ -312,11 +322,16 @@ class _EditProgramState extends State<EditProgram> {
                           controller: endController,
                           readOnly: true,
                           onTap: () => pickDate(endController),
+                          style: TextStyle(color: AppColor.textPrimary(context)),
                           decoration: InputDecoration(
                             hintText: "End Date",
-                            suffixIcon: const Icon(Icons.calendar_today),
+                            hintStyle: TextStyle(color: AppColor.textHint(context)),
+                            suffixIcon: Icon(
+                              Icons.calendar_today,
+                              color: AppColor.iconColor(context),
+                            ),
                             filled: true,
-                            fillColor: AppColor.box1,
+                            fillColor: AppColor.inputFill(context),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(25),
                               borderSide: BorderSide.none,
@@ -329,9 +344,12 @@ class _EditProgramState extends State<EditProgram> {
 
                   const SizedBox(height: 15),
 
-                  const Text(
+                  Text(
                     "Description",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColor.textPrimary(context),
+                    ),
                   ),
 
                   const SizedBox(height: 7),
@@ -339,9 +357,10 @@ class _EditProgramState extends State<EditProgram> {
                   TextFormField(
                     controller: deskController,
                     maxLines: 4,
+                    style: TextStyle(color: AppColor.textPrimary(context)),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: AppColor.box1,
+                      fillColor: AppColor.inputFill(context),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(25),
                         borderSide: BorderSide.none,
@@ -358,13 +377,17 @@ class _EditProgramState extends State<EditProgram> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   "Sessions",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: AppColor.textPrimary(context),
+                  ),
                 ),
                 IconButton(
                   onPressed: addSession,
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.add_circle,
                     color: AppColor.gradien2,
                     size: 32,
@@ -385,11 +408,11 @@ class _EditProgramState extends State<EditProgram> {
                   padding: const EdgeInsets.all(16),
 
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColor.cardColor(context),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.blueGrey.withOpacity(0.5),
+                        color: AppColor.shadowColor(context),
                         spreadRadius: 3,
                         blurRadius: 5,
                       ),
@@ -422,10 +445,12 @@ class _EditProgramState extends State<EditProgram> {
                       /// TOPIC
                       TextFormField(
                         controller: session.topicController,
+                        style: TextStyle(color: AppColor.textPrimary(context)),
                         decoration: InputDecoration(
                           hintText: "Topic",
+                          hintStyle: TextStyle(color: AppColor.textHint(context)),
                           filled: true,
-                          fillColor: AppColor.box1,
+                          fillColor: AppColor.inputFill(context),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
                             borderSide: BorderSide.none,
@@ -440,11 +465,16 @@ class _EditProgramState extends State<EditProgram> {
                         controller: session.dateController,
                         readOnly: true,
                         onTap: () => pickDate(session.dateController),
+                        style: TextStyle(color: AppColor.textPrimary(context)),
                         decoration: InputDecoration(
                           hintText: "Date",
-                          suffixIcon: const Icon(Icons.calendar_today),
+                          hintStyle: TextStyle(color: AppColor.textHint(context)),
+                          suffixIcon: Icon(
+                            Icons.calendar_today,
+                            color: AppColor.iconColor(context),
+                          ),
                           filled: true,
-                          fillColor: AppColor.box1,
+                          fillColor: AppColor.inputFill(context),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
                             borderSide: BorderSide.none,
@@ -463,11 +493,16 @@ class _EditProgramState extends State<EditProgram> {
                               readOnly: true,
                               onTap: () =>
                                   pickTime(session.startTimeController),
+                              style: TextStyle(color: AppColor.textPrimary(context)),
                               decoration: InputDecoration(
                                 hintText: "Start Time",
-                                suffixIcon: const Icon(Icons.access_time),
+                                hintStyle: TextStyle(color: AppColor.textHint(context)),
+                                suffixIcon: Icon(
+                                  Icons.access_time,
+                                  color: AppColor.iconColor(context),
+                                ),
                                 filled: true,
-                                fillColor: AppColor.box1,
+                                fillColor: AppColor.inputFill(context),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(20),
                                   borderSide: BorderSide.none,
@@ -483,11 +518,16 @@ class _EditProgramState extends State<EditProgram> {
                               controller: session.endTimeController,
                               readOnly: true,
                               onTap: () => pickTime(session.endTimeController),
+                              style: TextStyle(color: AppColor.textPrimary(context)),
                               decoration: InputDecoration(
                                 hintText: "End Time",
-                                suffixIcon: const Icon(Icons.access_time),
+                                hintStyle: TextStyle(color: AppColor.textHint(context)),
+                                suffixIcon: Icon(
+                                  Icons.access_time,
+                                  color: AppColor.iconColor(context),
+                                ),
                                 filled: true,
-                                fillColor: AppColor.box1,
+                                fillColor: AppColor.inputFill(context),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(20),
                                   borderSide: BorderSide.none,

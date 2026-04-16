@@ -60,10 +60,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Contact Us"),
+        title: Text(
+          "Contact Us",
+          style: TextStyle(color: AppColor.textPrimary(context)),
+        ),
 
-        content: const Text(
+        content: Text(
           "Email : support@educu.com\nWebsite : www.educustudy.com",
+          style: TextStyle(color: AppColor.textSecondary(context)),
         ),
 
         actions: [
@@ -81,10 +85,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("About App"),
+        title: Text(
+          "About App",
+          style: TextStyle(color: AppColor.textPrimary(context)),
+        ),
 
-        content: const Text(
+        content: Text(
           "EduCu Study Planner\n\nVersion 1.0\n\nApplication to manage study schedules and improve productivity.",
+          style: TextStyle(color: AppColor.textSecondary(context)),
         ),
 
         actions: [
@@ -125,13 +133,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: Colors.grey.shade200,
-              child: Icon(icon, color: Colors.grey),
+              backgroundColor: AppColor.isDark(context)
+                  ? Colors.white12
+                  : Colors.grey.shade200,
+              child: Icon(icon, color: AppColor.iconColor(context)),
             ),
 
             const SizedBox(width: 15),
 
-            Expanded(child: Text(title, style: const TextStyle(fontSize: 15))),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: AppColor.textPrimary(context),
+                ),
+              ),
+            ),
 
             if (trailing != null) trailing,
           ],
@@ -143,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F6),
+      backgroundColor: AppColor.scaffoldColor(context),
 
       body: SingleChildScrollView(
         child: Column(
@@ -197,15 +215,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.all(16),
 
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.cardColor(context),
 
                 borderRadius: BorderRadius.circular(20),
 
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: AppColor.shadowColor(context),
                     blurRadius: 4,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -223,14 +241,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           Text(
                             userName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
+                              color: AppColor.textPrimary(context),
                             ),
                           ),
                           Text(
                             userEmail,
-                            style: const TextStyle(color: Colors.grey),
+                            style: TextStyle(
+                              color: AppColor.textHint(context),
+                            ),
                           ),
                         ],
                       ),
@@ -242,6 +263,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColor.gradien2,
+                        side: BorderSide(
+                          color: AppColor.isDark(context)
+                              ? AppColor.gradien2
+                              : AppColor.gradien2,
+                        ),
+                      ),
                       onPressed: () async {
                         final updatedUser = await Navigator.push<UserModel>(
                           context,
@@ -274,13 +303,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 20),
 
             // SETTINGS TITLE
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
                   "Settings",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.textPrimary(context),
+                  ),
                 ),
               ),
             ),
@@ -292,12 +325,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
 
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.cardColor(context),
 
                 borderRadius: BorderRadius.circular(20),
 
-                boxShadow: const [
-                  BoxShadow(color: Colors.black12, blurRadius: 4),
+                boxShadow: [
+                  BoxShadow(color: AppColor.shadowColor(context), blurRadius: 4),
                 ],
               ),
 
@@ -316,7 +349,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
 
-                  const Divider(height: 1),
+                  Divider(height: 1, color: AppColor.borderColor(context)),
 
                   settingItem(
                     icon: Icons.volume_up_outlined,
@@ -331,7 +364,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
 
-                  const Divider(height: 1),
+                  Divider(height: 1, color: AppColor.borderColor(context)),
 
                   settingItem(
                     icon: Icons.dark_mode_outlined,
@@ -347,12 +380,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
 
-                  const Divider(height: 1),
+                  Divider(height: 1, color: AppColor.borderColor(context)),
 
                   settingItem(
                     icon: Icons.notes,
                     title: "Notes",
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: AppColor.iconColor(context),
+                    ),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -362,21 +398,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       );
                     },
                   ),
-                  const Divider(height: 1),
+                  Divider(height: 1, color: AppColor.borderColor(context)),
 
                   settingItem(
                     icon: Icons.mail_outline,
                     title: "Contact us",
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: AppColor.iconColor(context),
+                    ),
                     onTap: contactUs,
                   ),
 
-                  const Divider(height: 1),
+                  Divider(height: 1, color: AppColor.borderColor(context)),
 
                   settingItem(
                     icon: Icons.info_outline,
                     title: "About app",
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: AppColor.iconColor(context),
+                    ),
                     onTap: aboutApp,
                   ),
                 ],
