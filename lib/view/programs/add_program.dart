@@ -1,5 +1,6 @@
 import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/services/firebase_service.dart';
+import 'package:educu_project/services/notification_service.dart';
 import 'package:educu_project/models/session_model.dart';
 import 'package:flutter/material.dart';
 
@@ -186,6 +187,9 @@ class _AddProgramState extends State<AddProgram> {
 
       await FirebaseService.insertSession(session);
     }
+
+    // Reschedule notifications with new sessions
+    NotificationService().scheduleAllNotifications();
 
     // alert berhasil
     showDialog(

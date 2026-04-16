@@ -1,5 +1,6 @@
 import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/services/firebase_service.dart';
+import 'package:educu_project/services/notification_service.dart';
 import 'package:educu_project/models/program_model.dart';
 import 'package:educu_project/models/session_model.dart';
 import 'package:flutter/material.dart';
@@ -211,6 +212,9 @@ class _EditProgramState extends State<EditProgram> {
         await FirebaseService.insertSession(session);
       }
     }
+
+    // Reschedule notifications after update
+    NotificationService().scheduleAllNotifications();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Program updated successfully.")),

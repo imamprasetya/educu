@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:educu_project/services/firebase_service.dart';
+import 'package:educu_project/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import '../../constant/app_color.dart';
 
@@ -96,6 +97,9 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     if (widget.sessionId != null) {
       await FirebaseService.markSessionCompleted(widget.sessionId!);
     }
+
+    // Reschedule notifications (cancel missed notification for this session)
+    NotificationService().scheduleAllNotifications();
 
     timer?.cancel();
 

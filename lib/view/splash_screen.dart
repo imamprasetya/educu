@@ -1,6 +1,7 @@
 import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/database/preference.dart';
 import 'package:educu_project/services/firebase_service.dart';
+import 'package:educu_project/services/notification_service.dart';
 import 'package:educu_project/models/user_model.dart';
 import 'package:educu_project/extension/navigator.dart';
 import 'package:educu_project/view/homescreen.dart';
@@ -54,6 +55,8 @@ class _SplashScreenState extends State<SplashScreen>
       UserModel? user = await FirebaseService.getCurrentUser();
 
       if (user != null) {
+        // Schedule notifications after auto-login
+        NotificationService().scheduleAllNotifications();
         context.pushAndRemoveAll(HomeScreen(user: user));
       } else {
         // user tidak ditemukan, clear preference dan ke login

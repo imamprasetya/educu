@@ -17,6 +17,9 @@ class PreferenceHandler {
   // key
   static const String _isLogin = 'isLogin';
   static const String _userId = 'userId';
+  static const String _popupNotif = 'popupNotif';
+  static const String _soundNotif = 'soundNotif';
+  static const String _reminderMinutes = 'reminderMinutes';
 
   //  LOGIN STATUS
 
@@ -52,6 +55,35 @@ class PreferenceHandler {
   // delete user id
   Future<void> deleteUserId() async {
     await _preferences.remove(_userId);
+  }
+
+  // ==================== NOTIFICATION SETTINGS ====================
+
+  // Popup notifications (default: true)
+  Future<void> setPopupNotif(bool value) async {
+    await _preferences.setBool(_popupNotif, value);
+  }
+
+  bool getPopupNotif() {
+    return _preferences.getBool(_popupNotif) ?? true;
+  }
+
+  // Sound notifications (default: true)
+  Future<void> setSoundNotif(bool value) async {
+    await _preferences.setBool(_soundNotif, value);
+  }
+
+  bool getSoundNotif() {
+    return _preferences.getBool(_soundNotif) ?? true;
+  }
+
+  // Reminder minutes before session (default: 60)
+  Future<void> setReminderMinutes(int minutes) async {
+    await _preferences.setInt(_reminderMinutes, minutes);
+  }
+
+  int getReminderMinutes() {
+    return _preferences.getInt(_reminderMinutes) ?? 60;
   }
 
   // clear all on logout

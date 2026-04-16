@@ -2,6 +2,7 @@ import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/models/user_model.dart';
 import 'package:educu_project/database/preference.dart';
 import 'package:educu_project/services/firebase_service.dart';
+import 'package:educu_project/services/notification_service.dart';
 import 'package:educu_project/view/auth/register.dart';
 import 'package:educu_project/view/homescreen.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +49,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       await Future.delayed(const Duration(seconds: 1));
+
+      // Schedule notifications after login
+      NotificationService().scheduleAllNotifications();
 
       context.pushReplacement(HomeScreen(user: user));
     } catch (e) {

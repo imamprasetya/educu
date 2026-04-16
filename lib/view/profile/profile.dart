@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:educu_project/models/user_model.dart';
 import 'package:educu_project/database/preference.dart';
 import 'package:educu_project/services/firebase_service.dart';
+import 'package:educu_project/services/notification_service.dart';
 import 'package:educu_project/constant/theme_notifier.dart';
 import 'package:educu_project/view/auth/login.dart';
 import 'package:educu_project/view/notes/notes_screen.dart';
@@ -21,6 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool popupNotif = true;
   bool soundNotif = true;
   bool darkMode = ThemeNotifier().isDark;
+  int reminderMinutes = 60;
 
   late String userName;
   late String userEmail;
@@ -32,6 +34,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     userName = widget.user.name ?? "User";
     userEmail = widget.user.email ?? "";
     photoBase64 = widget.user.photoBase64;
+
+    // Load notification settings from preferences
+    final pref = PreferenceHandler();
+    popupNotif = pref.getPopupNotif();
+    soundNotif = pref.getSoundNotif();
+    reminderMinutes = pref.getReminderMinutes();
   }
 
   // Build avatar with photo
@@ -60,16 +68,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           "Contact Us",
           style: TextStyle(color: AppColor.textPrimary(context)),
         ),
-
         content: Text(
           "Email : support@educu.com\nWebsite : www.educustudy.com",
           style: TextStyle(color: AppColor.textSecondary(context)),
         ),
-
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -85,16 +92,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           "About App",
           style: TextStyle(color: AppColor.textPrimary(context)),
         ),
-
         content: Text(
           "EduCu Study Planner\n\nVersion 1.0\n\nApplication to manage study schedules and improve productivity.",
           style: TextStyle(color: AppColor.textSecondary(context)),
         ),
-
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -107,6 +113,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // LOGOUT
   Future<void> _logout() async {
+    // Cancel all notifications on logout
+    await NotificationService().cancelAll();
+
     await FirebaseService.signOut();
     await PreferenceHandler().clearAll();
 
@@ -117,19 +126,100 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // Toggle popup notifications
+  Future<void> _togglePopup(bool value) async {
+    await PreferenceHandler().setPopupNotif(value);
+    setState(() {
+      popupNotif = value;
+    });
+
+    // Reschedule or cancel all notifications
+    if (value) {
+      NotificationService().scheduleAllNotifications();
+    } else {
+      NotificationService().cancelAll();
+    }
+  }
+
+  // Toggle sound notifications
+  Future<void> _toggleSound(bool value) async {
+    await PreferenceHandler().setSoundNotif(value);
+    setState(() {
+      soundNotif = value;
+    });
+
+    // Reschedule notifications with updated sound setting
+    NotificationService().scheduleAllNotifications();
+  }
+
+  // Change reminder time
+  void _showReminderTimePicker() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            "Reminder Time",
+            style: TextStyle(
+              color: AppColor.textPrimary(context),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            "How many minutes before a study session should we remind you?",
+            style: TextStyle(color: AppColor.textSecondary(context)),
+          ),
+          actions: [
+            _reminderOption(15),
+            _reminderOption(30),
+            _reminderOption(60),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _reminderOption(int minutes) {
+    final isSelected = reminderMinutes == minutes;
+    final label = minutes == 60 ? "1 hour" : "$minutes min";
+
+    return TextButton(
+      onPressed: () async {
+        await PreferenceHandler().setReminderMinutes(minutes);
+        setState(() {
+          reminderMinutes = minutes;
+        });
+        Navigator.pop(context);
+
+        // Reschedule with new time
+        NotificationService().scheduleAllNotifications();
+      },
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? AppColor.gradien2 : AppColor.textHint(context),
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          fontSize: isSelected ? 16 : 14,
+        ),
+      ),
+    );
+  }
+
   // SETTINGS ITEM WIDGET
   Widget settingItem({
     required IconData icon,
     required String title,
+    String? subtitle,
     Widget? trailing,
     VoidCallback? onTap,
   }) {
     return InkWell(
       onTap: onTap,
-
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             CircleAvatar(
@@ -142,12 +232,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(width: 15),
 
             Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: AppColor.textPrimary(context),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: AppColor.textPrimary(context),
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColor.textHint(context),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
 
@@ -160,6 +265,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final reminderLabel = reminderMinutes == 60
+        ? "1 hour before"
+        : "$reminderMinutes min before";
+
     return Scaffold(
       backgroundColor: AppColor.scaffoldColor(context),
 
@@ -169,23 +278,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // HEADER
             Container(
               padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
-
               width: double.infinity,
-
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [AppColor.gradien1, AppColor.gradien2],
                 ),
-
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(25),
                   bottomRight: Radius.circular(25),
                 ),
               ),
-
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-
                 children: [
                   Text(
                     "Profile",
@@ -195,9 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: Colors.white,
                     ),
                   ),
-
                   SizedBox(height: 5),
-
                   Text(
                     "Manage your account settings",
                     style: TextStyle(color: Colors.white70),
@@ -211,14 +313,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // PROFILE CARD
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
-
               padding: const EdgeInsets.all(16),
-
               decoration: BoxDecoration(
                 color: AppColor.cardColor(context),
-
                 borderRadius: BorderRadius.circular(20),
-
                 boxShadow: [
                   BoxShadow(
                     color: AppColor.shadowColor(context),
@@ -227,15 +325,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
-
               child: Column(
                 children: [
                   Row(
                     children: [
                       _buildAvatar(),
-
                       const SizedBox(width: 15),
-
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -257,19 +352,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 15),
-
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColor.gradien2,
-                        side: BorderSide(
-                          color: AppColor.isDark(context)
-                              ? AppColor.gradien2
-                              : AppColor.gradien2,
-                        ),
+                        side: const BorderSide(color: AppColor.gradien2),
                       ),
                       onPressed: () async {
                         final updatedUser = await Navigator.push<UserModel>(
@@ -302,13 +391,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 20),
 
-            // SETTINGS TITLE
+            // NOTIFICATION SETTINGS TITLE
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "Settings",
+                  "Notifications",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -320,32 +409,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 10),
 
-            // SETTINGS CARD
+            // NOTIFICATION SETTINGS CARD
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
-
               decoration: BoxDecoration(
                 color: AppColor.cardColor(context),
-
                 borderRadius: BorderRadius.circular(20),
-
                 boxShadow: [
-                  BoxShadow(color: AppColor.shadowColor(context), blurRadius: 4),
+                  BoxShadow(
+                    color: AppColor.shadowColor(context),
+                    blurRadius: 4,
+                  ),
                 ],
               ),
-
               child: Column(
                 children: [
                   settingItem(
                     icon: Icons.notifications_none,
                     title: "Popup notifications",
+                    subtitle: popupNotif ? "Enabled" : "Disabled",
                     trailing: Switch(
                       value: popupNotif,
-                      onChanged: (value) {
-                        setState(() {
-                          popupNotif = value;
-                        });
-                      },
+                      onChanged: _togglePopup,
                     ),
                   ),
 
@@ -354,18 +439,64 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   settingItem(
                     icon: Icons.volume_up_outlined,
                     title: "Sound notifications",
+                    subtitle: soundNotif ? "On" : "Muted",
                     trailing: Switch(
                       value: soundNotif,
-                      onChanged: (value) {
-                        setState(() {
-                          soundNotif = value;
-                        });
-                      },
+                      onChanged: _toggleSound,
                     ),
                   ),
 
                   Divider(height: 1, color: AppColor.borderColor(context)),
 
+                  settingItem(
+                    icon: Icons.timer_outlined,
+                    title: "Reminder time",
+                    subtitle: reminderLabel,
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: AppColor.iconColor(context),
+                    ),
+                    onTap: _showReminderTimePicker,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // GENERAL SETTINGS TITLE
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "General",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.textPrimary(context),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // GENERAL SETTINGS CARD
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppColor.cardColor(context),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColor.shadowColor(context),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
                   settingItem(
                     icon: Icons.dark_mode_outlined,
                     title: "Dark mode",
@@ -398,6 +529,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       );
                     },
                   ),
+
                   Divider(height: 1, color: AppColor.borderColor(context)),
 
                   settingItem(
@@ -430,20 +562,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // LOGOUT
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-
               child: SizedBox(
                 width: double.infinity,
-
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
                     side: const BorderSide(color: Colors.red),
                   ),
-
                   onPressed: _logout,
-
                   icon: const Icon(Icons.logout),
-
                   label: const Text("Logout"),
                 ),
               ),
