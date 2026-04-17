@@ -28,7 +28,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
   Future<void> loadSessions() async {
     final dataMaps = await DBHelper.getSessions(widget.program.id!);
     final data = dataMaps.map((e) => SessionModel.fromMap(e)).toList();
-    
+
     double prog = 0.0;
     if (data.isNotEmpty) {
       int completedCount = data.where((s) => s.completed).length;
@@ -318,9 +318,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
                         child: Center(
                           child: Text(
                             "No sessions yet",
-                            style: TextStyle(
-                              color: AppColor.textHint(context),
-                            ),
+                            style: TextStyle(color: AppColor.textHint(context)),
                           ),
                         ),
                       )
@@ -359,8 +357,8 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                   color: session.completed
                                       ? Colors.green
                                       : AppColor.isDark(context)
-                                          ? Colors.grey.shade700
-                                          : Colors.grey.shade300,
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade300,
                                 ),
                                 child: Center(
                                   child: session.completed
