@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:educu_project/constant/theme_notifier.dart';
 import 'package:educu_project/database/preference.dart';
 import 'package:educu_project/firebase_options.dart';
 import 'package:educu_project/services/notification_service.dart';
+import 'package:educu_project/services/one_signal_service.dart';
 import 'package:educu_project/view/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +15,12 @@ void main() async {
   await PreferenceHandler().init();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  //push notifikasi dari server
+  try {
+    setupOneSignal();
+  } catch (e) {
+    debugPrint('Error setup OneSignal : $e');
+  }
 
   // load dark mode preference
   await ThemeNotifier().loadFromPrefs();
