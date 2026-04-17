@@ -1,9 +1,13 @@
+import 'dart:convert';
 import 'package:educu_project/models/user_model.dart';
+import 'package:educu_project/database/preference.dart';
+import 'package:educu_project/services/notification_service.dart';
+import 'package:educu_project/constant/theme_notifier.dart';
 import 'package:educu_project/view/auth/login.dart';
 import 'package:educu_project/view/notes/notes_screen.dart';
+import 'package:educu_project/view/profile/edit_profile.dart';
 import 'package:flutter/material.dart';
 import '../../constant/app_color.dart';
-import '../../database/sqflite.dart';
 
 class ProfileScreen extends StatefulWidget {
   final UserModel user;
@@ -16,44 +20,62 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   bool popupNotif = true;
   bool soundNotif = true;
-  bool darkMode = false;
+  bool darkMode = ThemeNotifier().isDark;
+  int reminderMinutes = 60;
 
   late String userName;
   late String userEmail;
-
-  /// LOAD USER DATA
-  // Future<void> loadUser() async {
-  //   final db = await DBHelper.db();
-
-  //   final result = await db.query("user", limit: 1);
-
-  //   if (result.isNotEmpty) {
-  //     setState(() {
-  //       userName = result.first["name"]?.toString() ?? "User";
-
-  //       userEmail = result.first["email"]?.toString() ?? "";
-  //     });
-  //   }
-  // }
+  String? photoBase64;
 
   @override
   void initState() {
     super.initState();
     userName = widget.user.name ?? "User";
     userEmail = widget.user.email ?? "";
+    photoBase64 = widget.user.photoBase64;
+
+    // Load notification settings from preferences
+    final pref = PreferenceHandler();
+    popupNotif = pref.getPopupNotif();
+    soundNotif = pref.getSoundNotif();
+    reminderMinutes = pref.getReminderMinutes();
   }
 
-  /// CONTACT US
+  // Build avatar with photo
+  Widget _buildAvatar() {
+    ImageProvider? imageProvider;
+    if (photoBase64 != null && photoBase64!.isNotEmpty) {
+      try {
+        imageProvider = MemoryImage(base64Decode(photoBase64!));
+      } catch (_) {
+        imageProvider = null;
+      }
+    }
+
+    return CircleAvatar(
+      radius: 35,
+      backgroundColor: const Color(0xFF6C7AE0),
+      backgroundImage: imageProvider,
+      child: imageProvider == null
+          ? const Icon(Icons.person, color: Colors.white, size: 30)
+          : null,
+    );
+  }
+
+  // CONTACT US
   void contactUs() {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Contact Us"),
-
-        content: const Text(
-          "Email : support@educu.com\nWebsite : www.educustudy.com",
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "Contact Us",
+          style: TextStyle(color: AppColor.textPrimary(context)),
         ),
-
+        content: Text(
+          "Email : support@educu.com\nWebsite : www.educustudy.com",
+          style: TextStyle(color: AppColor.textSecondary(context)),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -64,23 +86,122 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// ABOUT APP
+  // ABOUT APP
   void aboutApp() {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("About App"),
-
-        content: const Text(
-          "EduCu Study Planner\n\nVersion 1.0\n\nApplication to manage study schedules and improve productivity.",
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "About App",
+          style: TextStyle(color: AppColor.textPrimary(context)),
         ),
-
+        content: Text(
+          "EduCu Study Planner\n\nVersion 1.0\n\nApplication to manage study schedules and improve productivity.",
+          style: TextStyle(color: AppColor.textSecondary(context)),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text("Close"),
           ),
         ],
+      ),
+    );
+  }
+
+  // LOGOUT
+  Future<void> _logout() async {
+    // Cancel all notifications on logout
+    await NotificationService().cancelAll();
+
+    await PreferenceHandler().clearAll();
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
+  // Toggle popup notifications
+  Future<void> _togglePopup(bool value) async {
+    await PreferenceHandler().setPopupNotif(value);
+    setState(() {
+      popupNotif = value;
+    });
+
+    // Reschedule or cancel all notifications
+    if (value) {
+      NotificationService().scheduleAllNotifications();
+    } else {
+      NotificationService().cancelAll();
+    }
+  }
+
+  // Toggle sound notifications
+  Future<void> _toggleSound(bool value) async {
+    await PreferenceHandler().setSoundNotif(value);
+    setState(() {
+      soundNotif = value;
+    });
+
+    // Reschedule notifications with updated sound setting
+    NotificationService().scheduleAllNotifications();
+  }
+
+  // Change reminder time
+  void _showReminderTimePicker() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            "Reminder Time",
+            style: TextStyle(
+              color: AppColor.textPrimary(context),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            "How many minutes before a study session should we remind you?",
+            style: TextStyle(color: AppColor.textSecondary(context)),
+          ),
+          actions: [
+            _reminderOption(15),
+            _reminderOption(30),
+            _reminderOption(60),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _reminderOption(int minutes) {
+    final isSelected = reminderMinutes == minutes;
+    final label = minutes == 60 ? "1 hour" : "$minutes min";
+
+    return TextButton(
+      onPressed: () async {
+        await PreferenceHandler().setReminderMinutes(minutes);
+        setState(() {
+          reminderMinutes = minutes;
+        });
+        Navigator.pop(context);
+
+        // Reschedule with new time
+        NotificationService().scheduleAllNotifications();
+      },
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? AppColor.gradien2 : AppColor.textHint(context),
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          fontSize: isSelected ? 16 : 14,
+        ),
       ),
     );
   }
@@ -89,25 +210,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget settingItem({
     required IconData icon,
     required String title,
+    String? subtitle,
     Widget? trailing,
     VoidCallback? onTap,
   }) {
     return InkWell(
       onTap: onTap,
-
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             CircleAvatar(
-              backgroundColor: Colors.grey.shade200,
-              child: Icon(icon, color: Colors.grey),
+              backgroundColor: AppColor.isDark(context)
+                  ? Colors.white12
+                  : Colors.grey.shade200,
+              child: Icon(icon, color: AppColor.iconColor(context)),
             ),
 
             const SizedBox(width: 15),
 
-            Expanded(child: Text(title, style: const TextStyle(fontSize: 15))),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: AppColor.textPrimary(context),
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColor.textHint(context),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
 
             if (trailing != null) trailing,
           ],
@@ -118,8 +263,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final reminderLabel = reminderMinutes == 60
+        ? "1 hour before"
+        : "$reminderMinutes min before";
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F6),
+      backgroundColor: AppColor.scaffoldColor(context),
 
       body: SingleChildScrollView(
         child: Column(
@@ -127,23 +276,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // HEADER
             Container(
               padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
-
               width: double.infinity,
-
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [AppColor.gradien1, AppColor.gradien2],
                 ),
-
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(25),
                   bottomRight: Radius.circular(25),
                 ),
               ),
-
               child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-
                 children: [
                   Text(
                     "Profile",
@@ -153,9 +297,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: Colors.white,
                     ),
                   ),
-
                   SizedBox(height: 5),
-
                   Text(
                     "Manage your account settings",
                     style: TextStyle(color: Colors.white70),
@@ -169,74 +311,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // PROFILE CARD
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
-
               padding: const EdgeInsets.all(16),
-
               decoration: BoxDecoration(
-                color: Colors.white,
-
+                color: AppColor.cardColor(context),
                 borderRadius: BorderRadius.circular(20),
-
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: AppColor.shadowColor(context),
                     blurRadius: 4,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-
               child: Column(
                 children: [
                   Row(
                     children: [
-                      const CircleAvatar(
-                        radius: 35,
-                        backgroundColor: Color(0xFF6C7AE0),
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 30,
-                        ),
-                      ),
-
+                      _buildAvatar(),
                       const SizedBox(width: 15),
-
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-
                         children: [
                           Text(
                             userName,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
+                              color: AppColor.textPrimary(context),
                             ),
                           ),
-
                           Text(
                             userEmail,
-                            style: const TextStyle(color: Colors.grey),
+                            style: TextStyle(
+                              color: AppColor.textHint(context),
+                            ),
                           ),
                         ],
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 15),
-
                   SizedBox(
                     width: double.infinity,
-
                     child: OutlinedButton(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Edit profile feature coming soon"),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColor.gradien2,
+                        side: const BorderSide(color: AppColor.gradien2),
+                      ),
+                      onPressed: () async {
+                        final updatedUser = await Navigator.push<UserModel>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditProfileScreen(
+                              user: widget.user.copyWith(
+                                name: userName,
+                                email: userEmail,
+                                photoBase64: photoBase64,
+                              ),
+                            ),
                           ),
                         );
-                      },
 
+                        if (updatedUser != null) {
+                          setState(() {
+                            userName = updatedUser.name ?? "User";
+                            userEmail = updatedUser.email ?? "";
+                            photoBase64 = updatedUser.photoBase64;
+                          });
+                        }
+                      },
                       child: const Text("Edit Profile"),
                     ),
                   ),
@@ -246,72 +389,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 20),
 
-            // SETTINGS TITLE
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+            // NOTIFICATION SETTINGS TITLE
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "Settings",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  "Notifications",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.textPrimary(context),
+                  ),
                 ),
               ),
             ),
 
             const SizedBox(height: 10),
 
-            // SETTINGS CARD
+            // NOTIFICATION SETTINGS CARD
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
-
               decoration: BoxDecoration(
-                color: Colors.white,
-
+                color: AppColor.cardColor(context),
                 borderRadius: BorderRadius.circular(20),
-
-                boxShadow: const [
-                  BoxShadow(color: Colors.black12, blurRadius: 4),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColor.shadowColor(context),
+                    blurRadius: 4,
+                  ),
                 ],
               ),
-
               child: Column(
                 children: [
                   settingItem(
                     icon: Icons.notifications_none,
                     title: "Popup notifications",
+                    subtitle: popupNotif ? "Enabled" : "Disabled",
                     trailing: Switch(
                       value: popupNotif,
-                      onChanged: (value) {
-                        setState(() {
-                          popupNotif = value;
-                        });
-                      },
+                      onChanged: _togglePopup,
                     ),
                   ),
 
-                  const Divider(height: 1),
+                  Divider(height: 1, color: AppColor.borderColor(context)),
 
                   settingItem(
                     icon: Icons.volume_up_outlined,
                     title: "Sound notifications",
+                    subtitle: soundNotif ? "On" : "Muted",
                     trailing: Switch(
                       value: soundNotif,
-                      onChanged: (value) {
-                        setState(() {
-                          soundNotif = value;
-                        });
-                      },
+                      onChanged: _toggleSound,
                     ),
                   ),
 
-                  const Divider(height: 1),
+                  Divider(height: 1, color: AppColor.borderColor(context)),
 
+                  settingItem(
+                    icon: Icons.timer_outlined,
+                    title: "Reminder time",
+                    subtitle: reminderLabel,
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: AppColor.iconColor(context),
+                    ),
+                    onTap: _showReminderTimePicker,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // GENERAL SETTINGS TITLE
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "General",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.textPrimary(context),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // GENERAL SETTINGS CARD
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppColor.cardColor(context),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColor.shadowColor(context),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
                   settingItem(
                     icon: Icons.dark_mode_outlined,
                     title: "Dark mode",
                     trailing: Switch(
                       value: darkMode,
                       onChanged: (value) {
+                        ThemeNotifier().toggleTheme(value);
                         setState(() {
                           darkMode = value;
                         });
@@ -319,12 +509,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
 
-                  const Divider(height: 1),
+                  Divider(height: 1, color: AppColor.borderColor(context)),
 
                   settingItem(
                     icon: Icons.notes,
                     title: "Notes",
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: AppColor.iconColor(context),
+                    ),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -334,21 +527,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       );
                     },
                   ),
-                  const Divider(height: 1),
+
+                  Divider(height: 1, color: AppColor.borderColor(context)),
 
                   settingItem(
                     icon: Icons.mail_outline,
                     title: "Contact us",
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: AppColor.iconColor(context),
+                    ),
                     onTap: contactUs,
                   ),
 
-                  const Divider(height: 1),
+                  Divider(height: 1, color: AppColor.borderColor(context)),
 
                   settingItem(
                     icon: Icons.info_outline,
                     title: "About app",
-                    trailing: const Icon(Icons.chevron_right),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: AppColor.iconColor(context),
+                    ),
                     onTap: aboutApp,
                   ),
                 ],
@@ -360,30 +560,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             // LOGOUT
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-
               child: SizedBox(
                 width: double.infinity,
-
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
                     side: const BorderSide(color: Colors.red),
                   ),
-
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-
-                      (route) => false,
-                    );
-                  },
-
+                  onPressed: _logout,
                   icon: const Icon(Icons.logout),
-
                   label: const Text("Logout"),
                 ),
               ),

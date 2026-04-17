@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     _pages = [
-      const HomeContent(),
+      HomeContent(user: widget.user),
       const ScheduleScreen(),
       const ProgramScreen(),
       ProfileScreen(user: widget.user),
@@ -41,20 +41,18 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 214, 237, 255),
+      backgroundColor: AppColor.scaffoldColor(context),
 
       body: _pages[_selectedIndex],
 
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-
+        backgroundColor: AppColor.cardColor(context),
         currentIndex: _selectedIndex,
-
         onTap: _onItemTapped,
-
-        selectedIconTheme: IconThemeData(color: AppColor.gradien2),
-
-        unselectedItemColor: Colors.grey,
+        selectedIconTheme: const IconThemeData(color: AppColor.gradien2),
+        selectedItemColor: AppColor.gradien2,
+        unselectedItemColor: AppColor.textHint(context),
 
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Beranda"),

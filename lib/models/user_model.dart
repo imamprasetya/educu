@@ -6,7 +6,15 @@ class UserModel {
   final String? name;
   final String? email;
   final String? password;
-  UserModel({this.id, this.name, this.email, this.password});
+  final String? photoBase64;
+
+  UserModel({
+    this.id,
+    this.name,
+    this.email,
+    this.password,
+    this.photoBase64,
+  });
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -14,6 +22,7 @@ class UserModel {
       'name': name,
       'email': email,
       'password': password,
+      'photoBase64': photoBase64,
     };
   }
 
@@ -23,6 +32,7 @@ class UserModel {
       name: map['name'] != null ? map['name'] as String : null,
       email: map['email'] != null ? map['email'] as String : null,
       password: map['password'] != null ? map['password'] as String : null,
+      photoBase64: map['photoBase64'] != null ? map['photoBase64'] as String : null,
     );
   }
 
@@ -30,4 +40,21 @@ class UserModel {
 
   factory UserModel.fromJson(String source) =>
       UserModel.fromMap(json.decode(source) as Map<String, dynamic>);
+
+  UserModel copyWith({
+    int? id,
+    String? name,
+    String? email,
+    String? password,
+    String? photoBase64,
+    bool clearPhoto = false,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      photoBase64: clearPhoto ? null : (photoBase64 ?? this.photoBase64),
+    );
+  }
 }

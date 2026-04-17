@@ -1,8 +1,8 @@
 import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
 import '../../constant/app_color.dart';
-import '../../database/sqflite.dart';
-import '../schedule/pomodoro.dart';
+import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/database/preference.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -39,33 +39,36 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }
   }
 
-  // LOAD SESSION FROM DATABASE
+  // LOAD SESSION FROM FIRESTORE
   Future<void> loadSchedule() async {
-    final db = await DBHelper.db();
-
     String date =
         "${selectedDate.year.toString().padLeft(4, '0')}-"
         "${selectedDate.month.toString().padLeft(2, '0')}-"
         "${selectedDate.day.toString().padLeft(2, '0')}";
 
-    final data = await db.rawQuery(
-      '''
-      SELECT
-        session.topic,
-        session.startTime,
-        session.endTime,
-        session.date,
-        program.subject
-      FROM session
-      JOIN program
-      ON session.programId = program.id
-      WHERE session.date = ?
-      ''',
-      [date],
-    );
+    final userIdStr = await PreferenceHandler.getUserId();
+    if (userIdStr == null) return;
+    int userId = int.parse(userIdStr);
+
+    final dbPrograms = await DBHelper.getProgramsByUser(userId);
+    
+    List<Map<String, dynamic>> filteredSessions = [];
+
+    for (var program in dbPrograms) {
+      if (program['id'] != null) {
+        final pSessions = await DBHelper.getSessions(program['id']);
+        for (var s in pSessions) {
+          if (s['date'] == date) {
+            final sessionData = Map<String, dynamic>.from(s);
+            sessionData['subject'] = program['subject'];
+            filteredSessions.add(sessionData);
+          }
+        }
+      }
+    }
 
     setState(() {
-      sessions = data;
+      sessions = filteredSessions;
     });
   }
 
@@ -82,7 +85,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         date.day == today.day;
 
     Color bgColor = Colors.transparent;
-    Color textColor = Colors.black;
+    Color textColor = AppColor.textPrimary(context);
 
     if (isSelected) {
       bgColor = const Color(0xFF4D6FFF);
@@ -138,11 +141,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.cardColor(context),
         borderRadius: BorderRadius.circular(20),
 
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.shadowColor(context),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
 
@@ -151,8 +158,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         children: [
           /// SUBJECT
           Text(
-            data["subject"],
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            data["subject"] ?? "",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColor.textPrimary(context),
+            ),
           ),
 
           const SizedBox(height: 6),
@@ -160,7 +171,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           /// MATERI
           Text(
             "Topic : ${data["topic"]}",
-            style: const TextStyle(color: Colors.black54),
+            style: TextStyle(color: AppColor.textSecondary(context)),
           ),
 
           const SizedBox(height: 6),
@@ -202,8 +213,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => PomodoroScreen(
-                      subject: data["subject"],
-                      topic: data["topic"],
+                      subject: data["subject"] ?? "",
+                      topic: data["topic"] ?? "",
+                      sessionId: data["id"],
                     ),
                   ),
                 );
@@ -223,7 +235,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F6),
+      backgroundColor: AppColor.scaffoldColor(context),
 
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(120),
@@ -277,14 +289,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             padding: const EdgeInsets.all(12),
 
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColor.cardColor(context),
               borderRadius: BorderRadius.circular(20),
 
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
+                  color: AppColor.shadowColor(context),
                   blurRadius: 4,
-                  offset: Offset(0, 2),
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -299,7 +311,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           /// SESSION LIST
           Expanded(
             child: sessions.isEmpty
-                ? const Center(child: Text("No schedule today"))
+                ? Center(
+                    child: Text(
+                      "No schedule today",
+                      style: TextStyle(color: AppColor.textHint(context)),
+                    ),
+                  )
                 : ListView.builder(
                     itemCount: sessions.length,
 

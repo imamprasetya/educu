@@ -10,7 +10,7 @@ class DBHelper {
 
     return openDatabase(
       join(dbPath, 'educu.db'),
-      version: 3,
+      version: 4,
 
       onCreate: (db, version) async {
         // user table
@@ -19,7 +19,8 @@ class DBHelper {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT,
           email TEXT,
-          password TEXT
+          password TEXT,
+          photoBase64 TEXT
         )
         ''');
 
@@ -43,7 +44,8 @@ class DBHelper {
           topic TEXT,
           date TEXT,
           startTime TEXT,
-          endTime TEXT
+          endTime TEXT,
+          completed INTEGER DEFAULT 0
         )
         ''');
 
@@ -77,6 +79,11 @@ class DBHelper {
         if (oldVersion < 3) {
           await db.execute("ALTER TABLE program ADD COLUMN userId INTEGER");
         }
+
+        if (oldVersion < 4) {
+          await db.execute("ALTER TABLE user ADD COLUMN photoBase64 TEXT");
+          await db.execute("ALTER TABLE session ADD COLUMN completed INTEGER DEFAULT 0");
+        }
       },
     );
   }
@@ -105,6 +112,12 @@ class DBHelper {
     }
 
     return null;
+  }
+
+  // update user
+  static Future<void> updateUser(int id, Map<String, dynamic> data) async {
+    final dbs = await db();
+    await dbs.update("user", data, where: "id = ?", whereArgs: [id]);
   }
 
   // insert program
@@ -151,6 +164,12 @@ class DBHelper {
     return await dbs.insert("session", session.toMap());
   }
 
+  // update session
+  static Future<void> updateSession(int id, Map<String, dynamic> data) async {
+    final dbs = await db();
+    await dbs.update("session", data, where: "id = ?", whereArgs: [id]);
+  }
+
   // get session berdasarkan program
   static Future<List<Map<String, dynamic>>> getSessions(int programId) async {
     final dbs = await db();
@@ -167,6 +186,12 @@ class DBHelper {
     final dbs = await db();
 
     await dbs.delete("session", where: "programId = ?", whereArgs: [programId]);
+  }
+
+  // delete satu session
+  static Future<void> deleteSession(int id) async {
+    final dbs = await db();
+    await dbs.delete("session", where: "id = ?", whereArgs: [id]);
   }
 
   // insert notes

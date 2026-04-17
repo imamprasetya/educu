@@ -1,9 +1,15 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:educu_project/models/user_model.dart';
+import 'package:educu_project/database/sqflite.dart';
+import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
 import '../constant/app_color.dart';
 
 class HomeContent extends StatefulWidget {
-  const HomeContent({super.key});
+  final UserModel user;
+
+  const HomeContent({super.key, required this.user});
 
   @override
   State<HomeContent> createState() => _HomeContentState();
@@ -12,6 +18,12 @@ class HomeContent extends StatefulWidget {
 class _HomeContentState extends State<HomeContent> {
   final PageController _pageController = PageController();
   int currentPage = 0;
+
+  // data dari Firebase
+  List<Map<String, dynamic>> todaySessions = [];
+  int totalPrograms = 0;
+  int totalSessions = 0;
+  bool isLoading = true;
 
   final List<String> quotes = [
     "Study a little every day for big results.",
@@ -25,6 +37,11 @@ class _HomeContentState extends State<HomeContent> {
     super.initState();
 
     Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
       if (currentPage < quotes.length - 1) {
         currentPage++;
       } else {
@@ -39,12 +56,63 @@ class _HomeContentState extends State<HomeContent> {
 
       setState(() {});
     });
+
+    loadData();
+  }
+  /// Load data dari SQLite
+  Future<void> loadData() async {
+    // load today's sessions
+    final now = DateTime.now();
+    final dateStr =
+        "${now.year.toString().padLeft(4, '0')}-"
+        "${now.month.toString().padLeft(2, '0')}-"
+        "${now.day.toString().padLeft(2, '0')}";
+
+    final dbSessions = await DBHelper.getProgramsByUser(widget.user.id!);
+    List<Map<String, dynamic>> sessions = [];
+    int sessionCount = 0;
+
+    for (var program in dbSessions) {
+      if (program['id'] != null) {
+        final pSessions = await DBHelper.getSessions(program['id']);
+        sessionCount += pSessions.length;
+        
+        // Filter those matching today's date
+        for (var s in pSessions) {
+          if (s['date'] == dateStr) {
+            final sessionWithProgram = Map<String, dynamic>.from(s);
+            sessionWithProgram['subject'] = program['subject']; // include subject name
+            sessions.add(sessionWithProgram);
+          }
+        }
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        todaySessions = sessions;
+        totalPrograms = dbSessions.length;
+        totalSessions = sessionCount;
+        isLoading = false;
+      });
+    }
+  }
+
+  /// Get greeting berdasarkan waktu
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    if (hour < 21) return "Good evening";
+    return "Good night";
   }
 
   @override
   Widget build(BuildContext context) {
+    final userName = widget.user.name ?? "User";
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F3F6),
+      backgroundColor: AppColor.scaffoldColor(context),
 
       body: SingleChildScrollView(
         child: Column(
@@ -63,28 +131,35 @@ class _HomeContentState extends State<HomeContent> {
                   bottomRight: Radius.circular(25),
                 ),
               ),
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: Colors.white30,
-                        child: Icon(Icons.person, color: Colors.white),
-                      ),
-                      SizedBox(width: 10),
+                      widget.user.photoBase64 != null
+                          ? CircleAvatar(
+                              radius: 22,
+                              backgroundImage: MemoryImage(
+                                base64Decode(widget.user.photoBase64!),
+                              ),
+                            )
+                          : const CircleAvatar(
+                              radius: 22,
+                              backgroundColor: Colors.white30,
+                              child: Icon(Icons.person, color: Colors.white),
+                            ),
+                      const SizedBox(width: 10),
 
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             "Welcome back",
                             style: TextStyle(color: Colors.white70),
                           ),
                           Text(
-                            "User",
-                            style: TextStyle(
+                            userName,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -95,20 +170,20 @@ class _HomeContentState extends State<HomeContent> {
                     ],
                   ),
 
-                  SizedBox(height: 15),
+                  const SizedBox(height: 15),
 
                   Text(
-                    "Good afternoon User 👋",
-                    style: TextStyle(
+                    "${_getGreeting()}, $userName 👋",
+                    style: const TextStyle(
                       fontSize: 20,
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
 
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
 
-                  Text(
+                  const Text(
                     "Ready to study today?",
                     style: TextStyle(color: Colors.white70),
                   ),
@@ -162,7 +237,7 @@ class _HomeContentState extends State<HomeContent> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 quotes.length,
-                (index) => dot(index == currentPage),
+                (index) => dot(index == currentPage, context),
               ),
             ),
 
@@ -173,13 +248,13 @@ class _HomeContentState extends State<HomeContent> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColor.cardColor(context),
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: AppColor.shadowColor(context),
                     blurRadius: 5,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
@@ -187,63 +262,38 @@ class _HomeContentState extends State<HomeContent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     "Study Progress",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  // chart placeholder
-                  Container(
-                    height: 150,
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(10),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: AppColor.textPrimary(context),
                     ),
-                    child: const Center(child: Text("Chart Progress")),
                   ),
 
                   const SizedBox(height: 15),
 
                   // stats
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Row(
-                        children: const [
-                          Icon(Icons.local_fire_department, color: Colors.red),
-                          SizedBox(width: 6),
-
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Streak"),
-                              Text(
-                                "7 days",
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ],
+                      _statItem(
+                        Icons.menu_book,
+                        Colors.blue,
+                        "Programs",
+                        isLoading ? "..." : totalPrograms.toString(),
                       ),
-
-                      Row(
-                        children: const [
-                          Icon(Icons.access_time, color: Colors.blue),
-                          SizedBox(width: 6),
-
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("Total Time"),
-                              Text(
-                                "24 hours",
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ],
+                      _statItem(
+                        Icons.calendar_today,
+                        Colors.orange,
+                        "Sessions",
+                        isLoading ? "..." : totalSessions.toString(),
+                      ),
+                      _statItem(
+                        Icons.today,
+                        Colors.green,
+                        "Today",
+                        isLoading ? "..." : todaySessions.length.toString(),
                       ),
                     ],
                   ),
@@ -258,23 +308,47 @@ class _HomeContentState extends State<HomeContent> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
+                children: [
                   Text(
                     "Today's Schedule",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: AppColor.textPrimary(context),
+                    ),
                   ),
-
-                  Text("View all", style: TextStyle(color: Colors.blue)),
                 ],
               ),
             ),
 
             const SizedBox(height: 10),
 
-            // schedule card
-            scheduleCard("Mathematics", "14:00 - 16:00"),
-            scheduleCard("Physics", "16:30 - 18:00"),
-            scheduleCard("Chemistry", "19:00 - 20:30"),
+            // schedule from Firebase
+            if (isLoading)
+              const Padding(
+                padding: EdgeInsets.all(30),
+                child: CircularProgressIndicator(),
+              )
+            else if (todaySessions.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(30),
+                child: Text(
+                  "No schedule today 📚",
+                  style: TextStyle(
+                    color: AppColor.textHint(context),
+                    fontSize: 16,
+                  ),
+                ),
+              )
+            else
+              ...todaySessions.map((session) {
+                return scheduleCard(
+                  session["subject"] ?? "",
+                  session["topic"] ?? "",
+                  "${session["startTime"]} - ${session["endTime"]}",
+                  session,
+                );
+              }),
 
             const SizedBox(height: 30),
           ],
@@ -283,46 +357,114 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
+  // stat item widget
+  Widget _statItem(IconData icon, Color color, String label, String value) {
+    return Column(
+      children: [
+        CircleAvatar(
+          radius: 22,
+          backgroundColor: color.withValues(alpha: 0.15),
+          child: Icon(icon, color: color, size: 22),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: AppColor.textPrimary(context),
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(color: AppColor.textHint(context), fontSize: 12),
+        ),
+      ],
+    );
+  }
+
   // dot indicator
-  static Widget dot(bool active) {
+  static Widget dot(bool active, BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
       height: 6,
       width: active ? 18 : 6,
       decoration: BoxDecoration(
-        color: active ? Colors.blue : Colors.grey.shade400,
+        color: active ? Colors.blue : AppColor.textHint(context),
         borderRadius: BorderRadius.circular(10),
       ),
     );
   }
 
-  // schedule card
-  static Widget scheduleCard(String subject, String time) {
+  // schedule card (from Firebase data)
+  Widget scheduleCard(
+    String subject,
+    String topic,
+    String time,
+    Map<String, dynamic> data,
+  ) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
 
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColor.cardColor(context),
         borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColor.shadowColor(context),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
 
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                subject,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(time, style: const TextStyle(color: Colors.black54)),
-            ],
+          // color indicator
+          Container(
+            width: 4,
+            height: 50,
+            decoration: BoxDecoration(
+              color: AppColor.gradien2,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  subject,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColor.textPrimary(context),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  topic,
+                  style: TextStyle(
+                    color: AppColor.textHint(context),
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.access_time, size: 14, color: Colors.blue),
+                    const SizedBox(width: 4),
+                    Text(
+                      time,
+                      style: const TextStyle(color: Colors.blue, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
 
           ElevatedButton(
@@ -333,7 +475,18 @@ class _HomeContentState extends State<HomeContent> {
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PomodoroScreen(
+                    subject: subject,
+                    topic: topic,
+                    sessionId: data["id"],
+                  ),
+                ),
+              );
+            },
             child: const Text("Start", style: TextStyle(color: Colors.white)),
           ),
         ],

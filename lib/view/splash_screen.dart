@@ -27,14 +27,14 @@ class _SplashScreenState extends State<SplashScreen> {
     bool? isLogin = await PreferenceHandler.getIsLogin();
 
     if (isLogin == true) {
-      int? userId = await PreferenceHandler.getUserId();
+      String? userId = await PreferenceHandler.getUserId();
 
       final db = await DBHelper.db();
 
       final result = await db.query(
         "user",
         where: "id = ?",
-        whereArgs: [userId],
+        whereArgs: [int.tryParse(userId ?? '')],
       );
 
       if (result.isNotEmpty) {
