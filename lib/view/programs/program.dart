@@ -135,9 +135,11 @@ class _ProgramScreenState extends State<ProgramScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(100),
         child: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColor.gradien2, AppColor.gradien1],
+              colors: AppColor.isDark(context)
+                  ? [AppColor.darkSurface, AppColor.darkCard]
+                  : [AppColor.gradien2, AppColor.gradien1],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

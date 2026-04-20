@@ -281,7 +281,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColor.gradien1, AppColor.gradien2],
+                  colors: AppColor.isDark(context)
+                      ? [AppColor.darkSurface, AppColor.darkCard]
+                      : [AppColor.gradien1, AppColor.gradien2],
                 ),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(25),

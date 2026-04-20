@@ -90,7 +90,9 @@ class _NotesScreenState extends State<NotesScreen> {
             ),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [AppColor.gradien2, AppColor.gradien1],
+                colors: AppColor.isDark(context)
+                    ? [AppColor.darkSurface, AppColor.darkCard]
+                    : [AppColor.gradien2, AppColor.gradien1],
               ),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(30),

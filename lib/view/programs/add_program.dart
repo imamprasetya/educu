@@ -244,9 +244,11 @@ class _AddProgramState extends State<AddProgram> {
         preferredSize: const Size.fromHeight(80),
         child: Container(
           padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColor.gradien2, AppColor.gradien1],
+              colors: AppColor.isDark(context)
+                  ? [AppColor.darkSurface, AppColor.darkCard]
+                  : [AppColor.gradien2, AppColor.gradien1],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

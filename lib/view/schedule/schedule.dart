@@ -114,7 +114,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  /// CARD JADWAL
+  // CARD JADWAL
   Widget scheduleCard(Map<String, dynamic> data) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -136,7 +136,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          /// SUBJECT
+          // SUBJECT
           Text(
             data["subject"] ?? "",
             style: TextStyle(
@@ -148,7 +148,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
           const SizedBox(height: 6),
 
-          /// MATERI
+          // MATERI
           Text(
             "Topik : ${data["topic"]}",
             style: TextStyle(color: AppColor.textSecondary(context)),
@@ -156,7 +156,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
           const SizedBox(height: 6),
 
-          /// JAM BELAJAR
+          // JAM BELAJAR
           Row(
             children: [
               const Icon(Icons.access_time, size: 16, color: Colors.blue),
@@ -175,7 +175,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
           const SizedBox(height: 15),
 
-          /// BUTTON START STUDY
+          // BUTTON START STUDY
           SizedBox(
             width: double.infinity,
 
@@ -225,7 +225,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColor.gradien1, AppColor.gradien2],
+              colors: AppColor.isDark(context)
+                  ? [AppColor.darkSurface, AppColor.darkCard]
+                  : [AppColor.gradien1, AppColor.gradien2],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -263,7 +265,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         children: [
           const SizedBox(height: 15),
 
-          /// DATE SELECTOR
+          // DATE SELECTOR
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16),
             padding: const EdgeInsets.all(12),
@@ -288,7 +290,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
           const SizedBox(height: 20),
 
-          /// SESSION LIST
+          // SESSION LIST
           Expanded(
             child: sessions.isEmpty
                 ? Center(

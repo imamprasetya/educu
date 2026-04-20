@@ -62,7 +62,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
 
-        backgroundColor: AppColor.gradien1,
+        backgroundColor: AppColor.isDark(context) ? AppColor.darkSurface : AppColor.gradien1,
 
         title: Text(
           widget.note == null ? "Tambah Catatan" : "Edit Catatan",

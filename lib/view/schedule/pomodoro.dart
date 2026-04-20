@@ -171,13 +171,29 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     return Scaffold(
       backgroundColor: AppColor.scaffoldColor(context),
 
-      appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          "Timer Belajar",
-          style: TextStyle(color: Colors.white),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(80),
+        child: Container(
+          padding: const EdgeInsets.only(top: 10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: AppColor.isDark(context)
+                  ? [AppColor.darkSurface, AppColor.darkCard]
+                  : [AppColor.gradien1, AppColor.gradien2],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            iconTheme: const IconThemeData(color: Colors.white),
+            title: const Text(
+              "Timer Belajar",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
         ),
-        backgroundColor: AppColor.gradien1,
       ),
 
       body: Padding(

@@ -120,7 +120,9 @@ class _HomeContentState extends State<HomeContent> {
               padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColor.gradien1, AppColor.gradien2],
+                  colors: AppColor.isDark(context)
+                      ? [AppColor.darkSurface, AppColor.darkCard]
+                      : [AppColor.gradien1, AppColor.gradien2],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -197,7 +199,9 @@ class _HomeContentState extends State<HomeContent> {
               height: 80,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColor.gradien2, AppColor.gradien1],
+                  colors: AppColor.isDark(context)
+                      ? [AppColor.darkCard, AppColor.darkSurface]
+                      : [AppColor.gradien2, AppColor.gradien1],
                 ),
                 borderRadius: BorderRadius.circular(20),
               ),

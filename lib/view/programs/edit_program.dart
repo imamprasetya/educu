@@ -247,7 +247,7 @@ class _EditProgramState extends State<EditProgram> {
           "Edit Program Belajar",
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: AppColor.gradien1,
+        backgroundColor: AppColor.isDark(context) ? AppColor.darkSurface : AppColor.gradien1,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
