@@ -187,28 +187,33 @@ class _ProgramDetailState extends State<ProgramDetail> {
 
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Rentang Waktu",
-                                    style: TextStyle(
-                                      color: AppColor.textSecondary(context),
-                                      fontSize: 12,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Rentang Waktu",
+                                      style: TextStyle(
+                                        color: AppColor.textSecondary(context),
+                                        fontSize: 12,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    "${program.startDate} - ${program.endDate}",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: AppColor.textPrimary(context),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      "${program.startDate} - ${program.endDate}",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: AppColor.textPrimary(context),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
+                              const SizedBox(width: 10),
                               Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
                                     "Durasi",
@@ -396,7 +401,8 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                       ),
                                     ),
                                     const SizedBox(height: 4),
-                                    Row(
+                                    Wrap(
+                                      crossAxisAlignment: WrapCrossAlignment.center,
                                       children: [
                                         Icon(
                                           Icons.calendar_today,
