@@ -70,17 +70,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          "Contact Us",
+          "Hubungi Kami",
           style: TextStyle(color: AppColor.textPrimary(context)),
         ),
         content: Text(
-          "Email : support@educu.com\nWebsite : www.educustudy.com",
+          "Email : support@educu.com\nSitus Web : www.educustudy.com",
           style: TextStyle(color: AppColor.textSecondary(context)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
+            child: const Text("Tutup"),
           ),
         ],
       ),
@@ -94,17 +94,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          "About App",
+          "Tentang Aplikasi",
           style: TextStyle(color: AppColor.textPrimary(context)),
         ),
         content: Text(
-          "EduCu Study Planner\n\nVersion 1.0\n\nApplication to manage study schedules and improve productivity.",
+          "EduCu Study Planner\n\nVersi 1.0\n\nAplikasi untuk mengelola jadwal belajar dan meningkatkan produktivitas.",
           style: TextStyle(color: AppColor.textSecondary(context)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
+            child: const Text("Tutup"),
           ),
         ],
       ),
@@ -162,14 +162,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(20),
           ),
           title: Text(
-            "Reminder Time",
+            "Waktu Pengingat",
             style: TextStyle(
               color: AppColor.textPrimary(context),
               fontWeight: FontWeight.bold,
             ),
           ),
           content: Text(
-            "How many minutes before a study session should we remind you?",
+            "Berapa menit sebelum sesi belajar kami harus mengingatkan Anda?",
             style: TextStyle(color: AppColor.textSecondary(context)),
           ),
           actions: [
@@ -184,7 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _reminderOption(int minutes) {
     final isSelected = reminderMinutes == minutes;
-    final label = minutes == 60 ? "1 hour" : "$minutes min";
+    final label = minutes == 60 ? "1 jam" : "$minutes mnt";
 
     return TextButton(
       onPressed: () async {
@@ -266,8 +266,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final reminderLabel = reminderMinutes == 60
-        ? "1 hour before"
-        : "$reminderMinutes min before";
+        ? "1 jam sebelumnya"
+        : "$reminderMinutes mnt sebelumnya";
 
     return Scaffold(
       backgroundColor: AppColor.scaffoldColor(context),
@@ -292,7 +292,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Profile",
+                    "Profil",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -301,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   SizedBox(height: 5),
                   Text(
-                    "Manage your account settings",
+                    "Kelola pengaturan akun Anda",
                     style: TextStyle(color: Colors.white70),
                   ),
                 ],
@@ -382,7 +382,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           });
                         }
                       },
-                      child: const Text("Edit Profile"),
+                      child: const Text("Edit Profil"),
                     ),
                   ),
                 ],
@@ -397,7 +397,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "Notifications",
+                  "Notifikasi",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -426,8 +426,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   settingItem(
                     icon: Icons.notifications_none,
-                    title: "Popup notifications",
-                    subtitle: popupNotif ? "Enabled" : "Disabled",
+                    title: "Notifikasi popup",
+                    subtitle: popupNotif ? "Aktif" : "Nonaktif",
                     trailing: Switch(
                       value: popupNotif,
                       onChanged: _togglePopup,
@@ -438,8 +438,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   settingItem(
                     icon: Icons.volume_up_outlined,
-                    title: "Sound notifications",
-                    subtitle: soundNotif ? "On" : "Muted",
+                    title: "Notifikasi suara",
+                    subtitle: soundNotif ? "Aktif" : "Bisukan",
                     trailing: Switch(
                       value: soundNotif,
                       onChanged: _toggleSound,
@@ -450,7 +450,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   settingItem(
                     icon: Icons.timer_outlined,
-                    title: "Reminder time",
+                    title: "Waktu pengingat",
                     subtitle: reminderLabel,
                     trailing: Icon(
                       Icons.chevron_right,
@@ -470,7 +470,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  "General",
+                  "Umum",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -499,7 +499,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   settingItem(
                     icon: Icons.dark_mode_outlined,
-                    title: "Dark mode",
+                    title: "Mode gelap",
                     trailing: Switch(
                       value: darkMode,
                       onChanged: (value) {
@@ -515,7 +515,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   settingItem(
                     icon: Icons.notes,
-                    title: "Notes",
+                    title: "Catatan",
                     trailing: Icon(
                       Icons.chevron_right,
                       color: AppColor.iconColor(context),
@@ -534,7 +534,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   settingItem(
                     icon: Icons.mail_outline,
-                    title: "Contact us",
+                    title: "Hubungi kami",
                     trailing: Icon(
                       Icons.chevron_right,
                       color: AppColor.iconColor(context),
@@ -546,7 +546,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   settingItem(
                     icon: Icons.info_outline,
-                    title: "About app",
+                    title: "Tentang aplikasi",
                     trailing: Icon(
                       Icons.chevron_right,
                       color: AppColor.iconColor(context),
@@ -571,7 +571,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   onPressed: _logout,
                   icon: const Icon(Icons.logout),
-                  label: const Text("Logout"),
+                  label: const Text("Keluar"),
                 ),
               ),
             ),

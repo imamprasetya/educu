@@ -64,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 16),
 
                   const Text(
-                    'Create Account',
+                    'Buat Akun',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -75,7 +75,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 6),
 
                   Text(
-                    "Join EduCu and start your learning journey",
+                    "Bergabunglah dengan EduCu dan mulai perjalanan belajar Anda",
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 14,
@@ -95,7 +95,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     // FULL NAME
                     Text(
-                      "Full Name",
+                      "Nama Lengkap",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppColor.textPrimary(context),
@@ -108,7 +108,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: namaController,
                       style: TextStyle(color: AppColor.textPrimary(context)),
                       decoration: InputDecoration(
-                        hintText: "Enter your full name",
+                        hintText: "Masukkan nama lengkap Anda",
                         hintStyle: TextStyle(color: AppColor.textHint(context)),
                         prefixIcon: Icon(
                           Icons.person_outline,
@@ -123,7 +123,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return "Full name is required";
+                          return "Nama lengkap harus diisi";
                         }
                         return null;
                       },
@@ -146,7 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: emailController,
                       style: TextStyle(color: AppColor.textPrimary(context)),
                       decoration: InputDecoration(
-                        hintText: "Enter your email",
+                        hintText: "Masukkan email Anda",
                         hintStyle: TextStyle(color: AppColor.textHint(context)),
                         prefixIcon: Icon(
                           Icons.email_outlined,
@@ -161,10 +161,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return "Email is required";
+                          return "Email harus diisi";
                         }
                         if (!value.contains("@")) {
-                          return "Email must contain @";
+                          return "Email harus mengandung @";
                         }
                         return null;
                       },
@@ -188,7 +188,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       obscureText: isPasswordHidden,
                       style: TextStyle(color: AppColor.textPrimary(context)),
                       decoration: InputDecoration(
-                        hintText: "Enter your password",
+                        hintText: "Masukkan password Anda",
                         hintStyle: TextStyle(color: AppColor.textHint(context)),
                         prefixIcon: Icon(
                           Icons.lock_outline,
@@ -216,10 +216,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return "Password is required";
+                          return "Password harus diisi";
                         }
                         if (value.length < 6) {
-                          return "Password must be at least 6 characters";
+                          return "Password minimal 6 karakter";
                         }
                         return null;
                       },
@@ -229,7 +229,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                     // CONFIRM PASSWORD
                     Text(
-                      "Confirm Password",
+                      "Konfirmasi Password",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppColor.textPrimary(context),
@@ -243,7 +243,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       obscureText: isConfirmPasswordHidden,
                       style: TextStyle(color: AppColor.textPrimary(context)),
                       decoration: InputDecoration(
-                        hintText: "Re-enter your password",
+                        hintText: "Masukkan kembali password Anda",
                         hintStyle: TextStyle(color: AppColor.textHint(context)),
                         prefixIcon: Icon(
                           Icons.lock_outline,
@@ -272,7 +272,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       validator: (value) {
                         if (value != passwordController.text) {
-                          return "Passwords do not match";
+                          return "Password tidak cocok";
                         }
                         return null;
                       },
@@ -324,7 +324,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
-                                          "Registration Successful! Please login.",
+                                          "Registrasi Berhasil! Silakan login.",
                                         ),
                                         backgroundColor: Colors.green,
                                       ),
@@ -341,21 +341,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     );
                                   } catch (e) {
-                                    String message = "Registration failed";
+                                    String message = "Registrasi gagal";
 
                                     if (e.toString().contains(
                                       "email-already-in-use",
                                     )) {
-                                      message = "Email is already registered";
+                                      message = "Email sudah terdaftar";
                                     } else if (e.toString().contains(
                                       "weak-password",
                                     )) {
                                       message =
-                                          "Password is too weak (min 6 characters)";
+                                          "Password terlalu lemah (minimal 6 karakter)";
                                     } else if (e.toString().contains(
                                       "invalid-email",
                                     )) {
-                                      message = "Invalid email format";
+                                      message = "Format email tidak valid";
                                     }
 
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -378,7 +378,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                               )
                             : const Text(
-                                "REGISTER",
+                                "DAFTAR",
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -396,7 +396,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Already have an account? ",
+                          "Sudah punya akun? ",
                           style: TextStyle(color: AppColor.textHint(context)),
                         ),
                         GestureDetector(
@@ -409,7 +409,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             );
                           },
                           child: const Text(
-                            "Sign In",
+                            "Masuk",
                             style: TextStyle(
                               color: AppColor.gradien2,
                               fontWeight: FontWeight.bold,

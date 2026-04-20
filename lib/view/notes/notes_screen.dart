@@ -113,7 +113,7 @@ class _NotesScreenState extends State<NotesScreen> {
                     const SizedBox(width: 15),
 
                     const Text(
-                      "My Notes",
+                      "Catatan Saya",
                       style: TextStyle(
                         fontSize: 26,
                         color: Colors.white,
@@ -130,7 +130,7 @@ class _NotesScreenState extends State<NotesScreen> {
                   onChanged: searchNotes,
                   style: TextStyle(color: AppColor.textPrimary(context)),
                   decoration: InputDecoration(
-                    hintText: "Search your notes...",
+                    hintText: "Cari catatan Anda...",
                     hintStyle: TextStyle(color: AppColor.textHint(context)),
                     filled: true,
                     fillColor: AppColor.searchBox(context),

@@ -111,7 +111,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Session completed! Great job! 🎉"),
+          content: Text("Sesi selesai! Kerja bagus! 🎉"),
           backgroundColor: Colors.green,
         ),
       );
@@ -174,7 +174,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
-          "Study Timer",
+          "Timer Belajar",
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: AppColor.gradien1,
@@ -213,12 +213,12 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    "Topic : ${widget.topic}",
+                    "Topik : ${widget.topic}",
                     style: TextStyle(color: AppColor.textSecondary(context)),
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    "Duration : ${widget.durationMinutes} minutes",
+                    "Durasi : ${widget.durationMinutes} menit",
                     style: const TextStyle(color: Colors.blue, fontSize: 12),
                   ),
                 ],
@@ -298,7 +298,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                   onPressed: isCompleted ? null : startTimer,
                   icon: const Icon(Icons.play_arrow, color: Colors.white),
                   label: const Text(
-                    "Start",
+                    "Mulai",
                     style: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -315,7 +315,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                   onPressed: pauseTimer,
                   icon: const Icon(Icons.pause, color: Colors.white),
                   label: const Text(
-                    "Pause",
+                    "Jeda",
                     style: TextStyle(color: Colors.white),
                   ),
                 ),

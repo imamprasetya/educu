@@ -79,7 +79,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
       final start = DateTime.parse(widget.program.startDate);
       final end = DateTime.parse(widget.program.endDate);
       final diff = end.difference(start).inDays;
-      return "$diff days";
+      return "$diff hari";
     } catch (_) {
       return "-";
     }
@@ -166,7 +166,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "Description",
+                            "Deskripsi",
                             style: TextStyle(
                               color: AppColor.textSecondary(context),
                               fontSize: 12,
@@ -192,7 +192,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Timeline",
+                                    "Rentang Waktu",
                                     style: TextStyle(
                                       color: AppColor.textSecondary(context),
                                       fontSize: 12,
@@ -211,7 +211,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
                               Column(
                                 children: [
                                   Text(
-                                    "Duration",
+                                    "Durasi",
                                     style: TextStyle(
                                       color: AppColor.textSecondary(context),
                                       fontSize: 12,
@@ -237,7 +237,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "Progress ($completedCount/${sessions.length})",
+                                "Progres ($completedCount/${sessions.length})",
                                 style: TextStyle(
                                   color: AppColor.textSecondary(context),
                                   fontSize: 12,
@@ -281,7 +281,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Sessions",
+                          "Sesi",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
@@ -289,7 +289,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
                           ),
                         ),
                         Text(
-                          "$completedCount/${sessions.length} completed",
+                          "$completedCount/${sessions.length} selesai",
                           style: TextStyle(
                             color: AppColor.textHint(context),
                             fontSize: 13,
@@ -311,7 +311,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
                         ),
                         child: Center(
                           child: Text(
-                            "No sessions yet",
+                            "Belum ada sesi",
                             style: TextStyle(
                               color: AppColor.textHint(context),
                             ),

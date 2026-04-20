@@ -12,11 +12,11 @@ Future<void> showDeleteDialog(BuildContext context, String id) async {
           children: const [
             Icon(Icons.warning_amber_rounded, color: Colors.red, size: 50),
             SizedBox(height: 10),
-            Text("Delete Confirmation", textAlign: TextAlign.center),
+            Text("Konfirmasi Hapus", textAlign: TextAlign.center),
           ],
         ),
         content: const Text(
-          "Are you sure you want to delete this program?",
+          "Apakah Anda yakin ingin menghapus program ini?",
           textAlign: TextAlign.center,
         ),
         actionsAlignment: MainAxisAlignment.center,
@@ -25,7 +25,7 @@ Future<void> showDeleteDialog(BuildContext context, String id) async {
             onPressed: () {
               Navigator.pop(context, false);
             },
-            child: const Text("Cancel"),
+            child: const Text("Batal"),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -37,7 +37,7 @@ Future<void> showDeleteDialog(BuildContext context, String id) async {
             onPressed: () {
               Navigator.pop(context, true);
             },
-            child: const Text("Delete", style: TextStyle(color: Colors.white)),
+            child: const Text("Hapus", style: TextStyle(color: Colors.white)),
           ),
         ],
       );
@@ -48,7 +48,7 @@ Future<void> showDeleteDialog(BuildContext context, String id) async {
     await FirebaseService.deleteProgram(id);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Program deleted successfully")),
+      const SnackBar(content: Text("Program berhasil dihapus")),
     );
   }
 }

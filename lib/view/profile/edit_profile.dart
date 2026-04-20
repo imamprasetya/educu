@@ -53,7 +53,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to pick image: $e")),
+          SnackBar(content: Text("Gagal memilih gambar: $e")),
         );
       }
     }
@@ -73,7 +73,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _saveProfile() async {
     if (nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Name cannot be empty")),
+        const SnackBar(content: Text("Nama tidak boleh kosong")),
       );
       return;
     }
@@ -93,7 +93,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text("Profile updated successfully!"),
+            content: Text("Profil berhasil diperbarui!"),
             backgroundColor: Colors.green,
           ),
         );
@@ -102,7 +102,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to update: $e")),
+          SnackBar(content: Text("Gagal memperbarui: $e")),
         );
       }
     } finally {
@@ -169,7 +169,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         backgroundColor: AppColor.gradien1,
         title: const Text(
-          "Edit Profile",
+          "Edit Profil",
           style: TextStyle(color: Colors.white),
         ),
       ),
@@ -187,7 +187,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     onPressed: _removePhoto,
                     icon: const Icon(Icons.delete, color: Colors.red, size: 18),
                     label: const Text(
-                      "Remove Photo",
+                      "Hapus Foto",
                       style: TextStyle(color: Colors.red),
                     ),
                   ),
@@ -199,7 +199,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
           // NAME
           Text(
-            "Full Name",
+            "Nama Lengkap",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: AppColor.textPrimary(context),
@@ -210,7 +210,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             controller: nameController,
             style: TextStyle(color: AppColor.textPrimary(context)),
             decoration: InputDecoration(
-              hintText: "Enter your name",
+              hintText: "Masukkan nama Anda",
               prefixIcon: Icon(
                 Icons.person_outline,
                 color: AppColor.iconColor(context),
@@ -254,7 +254,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 borderSide: BorderSide.none,
               ),
               suffixIcon: Tooltip(
-                message: "Email cannot be changed",
+                message: "Email tidak dapat diubah",
                 child: Icon(
                   Icons.lock_outline,
                   size: 18,
@@ -287,7 +287,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     )
                   : const Text(
-                      "Save Changes",
+                      "Simpan Perubahan",
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.white,

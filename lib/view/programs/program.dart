@@ -153,7 +153,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Learning Programs",
+                    "Program Belajar",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,
@@ -162,7 +162,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    "Track your study progress",
+                    "Pantau progres belajar Anda",
                     style: TextStyle(color: Colors.white, fontSize: 15),
                   ),
                 ],
@@ -202,7 +202,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
                       Icons.search,
                       color: AppColor.iconColor(context),
                     ),
-                    hintText: "Search subject...",
+                    hintText: "Cari subjek...",
                     hintStyle: TextStyle(color: AppColor.textHint(context)),
                     border: InputBorder.none,
                   ),
@@ -230,13 +230,13 @@ class _ProgramScreenState extends State<ProgramScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Total Programs",
+                          "Total Program",
                           style: TextStyle(
                             color: AppColor.textPrimary(context),
                           ),
                         ),
                         Text(
-                          "Overall Progress",
+                          "Progres Keseluruhan",
                           style: TextStyle(
                             color: AppColor.textPrimary(context),
                           ),
@@ -327,7 +327,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
                   ? Padding(
                       padding: const EdgeInsets.all(40),
                       child: Text(
-                        "No program found",
+                        "Program tidak ditemukan",
                         style: TextStyle(
                           fontSize: 16,
                           color: AppColor.textHint(context),
@@ -422,7 +422,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "Progress",
+                                      "Progres",
                                       style: TextStyle(
                                         color: AppColor.textSecondary(context),
                                       ),
@@ -479,7 +479,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
                                       loadPrograms();
                                     },
                                     child: const Text(
-                                      "View Detail",
+                                      "Lihat Detail",
                                       style: TextStyle(color: Colors.white),
                                     ),
                                   ),

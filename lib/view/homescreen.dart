@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: "Program",
           ),
 
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
         ],
       ),
     );

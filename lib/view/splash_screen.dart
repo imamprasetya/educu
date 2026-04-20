@@ -125,7 +125,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                 // Tagline
                 Text(
-                  "Plan  •  Study  •  Succeed",
+                  "Rencanakan  •  Belajar  •  Sukses",
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.white.withValues(alpha: 0.8),

@@ -26,10 +26,10 @@ class _HomeContentState extends State<HomeContent> {
   bool isLoading = true;
 
   final List<String> quotes = [
-    "Study a little every day for big results.",
-    "Small progress is still progress.",
-    "Consistency beats motivation.",
-    "Your future is created by what you do today.",
+    "Belajar sedikit setiap hari untuk hasil yang besar.",
+    "Kemajuan kecil tetaplah kemajuan.",
+    "Konsistensi mengalahkan motivasi.",
+    "Masa depanmu diciptakan oleh apa yang kamu lakukan hari ini.",
   ];
 
   @override
@@ -99,10 +99,10 @@ class _HomeContentState extends State<HomeContent> {
   /// Get greeting berdasarkan waktu
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    if (hour < 21) return "Good evening";
-    return "Good night";
+    if (hour < 12) return "Selamat pagi";
+    if (hour < 15) return "Selamat siang";
+    if (hour < 18) return "Selamat sore";
+    return "Selamat malam";
   }
 
   @override
@@ -152,7 +152,7 @@ class _HomeContentState extends State<HomeContent> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            "Welcome back",
+                            "Selamat datang kembali",
                             style: TextStyle(color: Colors.white70),
                           ),
                           Text(
@@ -182,7 +182,7 @@ class _HomeContentState extends State<HomeContent> {
                   const SizedBox(height: 5),
 
                   const Text(
-                    "Ready to study today?",
+                    "Siap untuk belajar hari ini?",
                     style: TextStyle(color: Colors.white70),
                   ),
                 ],
@@ -261,7 +261,7 @@ class _HomeContentState extends State<HomeContent> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Study Progress",
+                    "Progres Belajar",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -278,19 +278,19 @@ class _HomeContentState extends State<HomeContent> {
                       _statItem(
                         Icons.menu_book,
                         Colors.blue,
-                        "Programs",
+                        "Program",
                         isLoading ? "..." : totalPrograms.toString(),
                       ),
                       _statItem(
                         Icons.calendar_today,
                         Colors.orange,
-                        "Sessions",
+                        "Sesi",
                         isLoading ? "..." : totalSessions.toString(),
                       ),
                       _statItem(
                         Icons.today,
                         Colors.green,
-                        "Today",
+                        "Hari ini",
                         isLoading ? "..." : todaySessions.length.toString(),
                       ),
                     ],
@@ -308,7 +308,7 @@ class _HomeContentState extends State<HomeContent> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Today's Schedule",
+                    "Jadwal Hari Ini",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -331,7 +331,7 @@ class _HomeContentState extends State<HomeContent> {
               Padding(
                 padding: const EdgeInsets.all(30),
                 child: Text(
-                  "No schedule today 📚",
+                  "Tidak ada jadwal hari ini 📚",
                   style: TextStyle(
                     color: AppColor.textHint(context),
                     fontSize: 16,
@@ -485,7 +485,7 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               );
             },
-            child: const Text("Start", style: TextStyle(color: Colors.white)),
+            child: const Text("Mulai", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

@@ -163,7 +163,7 @@ class _EditProgramState extends State<EditProgram> {
     if (_hasConflictingSessions()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Session times cannot overlap on the same date."),
+          content: Text("Waktu sesi tidak boleh tumpang tindih pada tanggal yang sama."),
         ),
       );
       return;
@@ -217,7 +217,7 @@ class _EditProgramState extends State<EditProgram> {
     NotificationService().scheduleAllNotifications();
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Program updated successfully.")),
+      const SnackBar(content: Text("Program berhasil diperbarui.")),
     );
 
     Navigator.pop(context, true);
@@ -244,7 +244,7 @@ class _EditProgramState extends State<EditProgram> {
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
-          "Edit Study Program",
+          "Edit Program Belajar",
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: AppColor.gradien1,
@@ -270,7 +270,7 @@ class _EditProgramState extends State<EditProgram> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Subject Name",
+                    "Nama Subjek",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: AppColor.textPrimary(context),
@@ -303,7 +303,7 @@ class _EditProgramState extends State<EditProgram> {
                           onTap: () => pickDate(startController),
                           style: TextStyle(color: AppColor.textPrimary(context)),
                           decoration: InputDecoration(
-                            hintText: "Start Date",
+                            hintText: "Tanggal Mulai",
                             hintStyle: TextStyle(color: AppColor.textHint(context)),
                             suffixIcon: Icon(
                               Icons.calendar_today,
@@ -328,7 +328,7 @@ class _EditProgramState extends State<EditProgram> {
                           onTap: () => pickDate(endController),
                           style: TextStyle(color: AppColor.textPrimary(context)),
                           decoration: InputDecoration(
-                            hintText: "End Date",
+                            hintText: "Tanggal Selesai",
                             hintStyle: TextStyle(color: AppColor.textHint(context)),
                             suffixIcon: Icon(
                               Icons.calendar_today,
@@ -349,7 +349,7 @@ class _EditProgramState extends State<EditProgram> {
                   const SizedBox(height: 15),
 
                   Text(
-                    "Description",
+                    "Deskripsi",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: AppColor.textPrimary(context),
@@ -382,7 +382,7 @@ class _EditProgramState extends State<EditProgram> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Sessions",
+                  "Sesi",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
@@ -431,7 +431,7 @@ class _EditProgramState extends State<EditProgram> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Session ${index + 1}",
+                            "Sesi ${index + 1}",
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.blueAccent,
@@ -451,7 +451,7 @@ class _EditProgramState extends State<EditProgram> {
                         controller: session.topicController,
                         style: TextStyle(color: AppColor.textPrimary(context)),
                         decoration: InputDecoration(
-                          hintText: "Topic",
+                          hintText: "Topik",
                           hintStyle: TextStyle(color: AppColor.textHint(context)),
                           filled: true,
                           fillColor: AppColor.inputFill(context),
@@ -471,7 +471,7 @@ class _EditProgramState extends State<EditProgram> {
                         onTap: () => pickDate(session.dateController),
                         style: TextStyle(color: AppColor.textPrimary(context)),
                         decoration: InputDecoration(
-                          hintText: "Date",
+                          hintText: "Tanggal",
                           hintStyle: TextStyle(color: AppColor.textHint(context)),
                           suffixIcon: Icon(
                             Icons.calendar_today,
@@ -499,7 +499,7 @@ class _EditProgramState extends State<EditProgram> {
                                   pickTime(session.startTimeController),
                               style: TextStyle(color: AppColor.textPrimary(context)),
                               decoration: InputDecoration(
-                                hintText: "Start Time",
+                                hintText: "Waktu Mulai",
                                 hintStyle: TextStyle(color: AppColor.textHint(context)),
                                 suffixIcon: Icon(
                                   Icons.access_time,
@@ -524,7 +524,7 @@ class _EditProgramState extends State<EditProgram> {
                               onTap: () => pickTime(session.endTimeController),
                               style: TextStyle(color: AppColor.textPrimary(context)),
                               decoration: InputDecoration(
-                                hintText: "End Time",
+                                hintText: "Waktu Selesai",
                                 hintStyle: TextStyle(color: AppColor.textHint(context)),
                                 suffixIcon: Icon(
                                   Icons.access_time,
@@ -564,7 +564,7 @@ class _EditProgramState extends State<EditProgram> {
                 onPressed: updateProgram,
 
                 child: const Text(
-                  "Update Program",
+                  "Perbarui Program",
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,

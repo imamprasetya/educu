@@ -65,14 +65,14 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
         backgroundColor: AppColor.gradien1,
 
         title: Text(
-          widget.note == null ? "Add Note" : "Edit Note",
+          widget.note == null ? "Tambah Catatan" : "Edit Catatan",
           style: const TextStyle(color: Colors.white),
         ),
 
         actions: [
           TextButton(
             onPressed: saveNote,
-            child: const Text("Done", style: TextStyle(color: Colors.white)),
+            child: const Text("Selesai", style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -86,7 +86,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
               controller: titleController,
               style: TextStyle(color: AppColor.textPrimary(context)),
               decoration: InputDecoration(
-                hintText: "Title",
+                hintText: "Judul",
                 hintStyle: TextStyle(color: AppColor.textHint(context)),
               ),
             ),
@@ -100,7 +100,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                 expands: true,
                 style: TextStyle(color: AppColor.textPrimary(context)),
                 decoration: InputDecoration(
-                  hintText: "Write your note...",
+                  hintText: "Tulis catatan Anda...",
                   hintStyle: TextStyle(color: AppColor.textHint(context)),
                   border: OutlineInputBorder(
                     borderSide: BorderSide(

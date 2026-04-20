@@ -96,7 +96,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           child: Column(
             children: [
               Text(
-                ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][date.weekday -
+                ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"][date.weekday -
                     1],
                 style: TextStyle(fontSize: 12, color: textColor),
               ),
@@ -150,7 +150,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
           /// MATERI
           Text(
-            "Topic : ${data["topic"]}",
+            "Topik : ${data["topic"]}",
             style: TextStyle(color: AppColor.textSecondary(context)),
           ),
 
@@ -240,7 +240,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Study Schedule",
+                "Jadwal Belajar",
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -251,7 +251,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               SizedBox(height: 5),
 
               Text(
-                "Plan today, succeed tomorrow.",
+                "Rencanakan hari ini, sukses esok hari.",
                 style: TextStyle(color: Colors.white70),
               ),
             ],
@@ -293,7 +293,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             child: sessions.isEmpty
                 ? Center(
                     child: Text(
-                      "No schedule today",
+                      "Tidak ada jadwal hari ini",
                       style: TextStyle(color: AppColor.textHint(context)),
                     ),
                   )

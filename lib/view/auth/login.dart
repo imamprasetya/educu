@@ -25,7 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> loginUser() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill in all fields")),
+        const SnackBar(content: Text("Harap isi semua kolom")),
       );
       return;
     }
@@ -43,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Login Successful"),
+          content: Text("Login Berhasil"),
           backgroundColor: Colors.green,
         ),
       );
@@ -55,16 +55,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
       context.pushReplacement(HomeScreen(user: user));
     } catch (e) {
-      String message = "Login failed";
+      String message = "Login gagal";
       if (e.toString().contains("user-not-found")) {
-        message = "No account found with this email";
+        message = "Tidak ada akun dengan email ini";
       } else if (e.toString().contains("wrong-password") ||
           e.toString().contains("invalid-credential")) {
-        message = "Wrong email or password";
+        message = "Email atau password salah";
       } else if (e.toString().contains("invalid-email")) {
-        message = "Invalid email format";
+        message = "Format email tidak valid";
       } else if (e.toString().contains("too-many-requests")) {
-        message = "Too many attempts. Please try again later";
+        message = "Terlalu banyak percobaan. Silakan coba lagi nanti";
       }
 
       ScaffoldMessenger.of(
@@ -82,11 +82,11 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          "Feature Coming Soon",
+          "Fitur Akan Datang",
           style: TextStyle(color: AppColor.textPrimary(context)),
         ),
         content: Text(
-          "This login method is currently under development. Please use email and password to sign in.",
+          "Metode login ini sedang dalam pengembangan. Silakan gunakan email dan password untuk masuk.",
           style: TextStyle(color: AppColor.textSecondary(context)),
         ),
         actions: [
@@ -152,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 6),
 
                   Text(
-                    "Welcome back! Sign in to continue",
+                    "Selamat datang kembali! Masuk untuk melanjutkan",
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 14,
@@ -170,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   // Title
                   Text(
-                    "Sign In",
+                    "Masuk",
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -181,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 6),
 
                   Text(
-                    "Enter your credentials to access your account",
+                    "Masukkan kredensial Anda untuk mengakses akun",
                     style: TextStyle(
                       color: AppColor.textHint(context),
                       fontSize: 13,
@@ -209,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Icons.email_outlined,
                         color: AppColor.iconColor(context),
                       ),
-                      hintText: 'Enter your email',
+                      hintText: 'Masukkan email Anda',
                       hintStyle: TextStyle(color: AppColor.textHint(context)),
                       filled: true,
                       fillColor: AppColor.inputFill(context),
@@ -242,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Icons.lock_outline,
                         color: AppColor.iconColor(context),
                       ),
-                      hintText: 'Enter your password',
+                      hintText: 'Masukkan password Anda',
                       hintStyle: TextStyle(color: AppColor.textHint(context)),
                       filled: true,
                       fillColor: AppColor.inputFill(context),
@@ -304,7 +304,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             )
                           : const Text(
-                              "LOGIN",
+                              "MASUK",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -329,7 +329,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Text(
-                          "Or sign in with",
+                          "Atau masuk dengan",
                           style: TextStyle(
                             color: AppColor.textHint(context),
                             fontSize: 13,
@@ -373,7 +373,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Don't have an account? ",
+                        "Belum punya akun? ",
                         style: TextStyle(color: AppColor.textHint(context)),
                       ),
                       GestureDetector(
@@ -386,7 +386,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                         },
                         child: const Text(
-                          "Sign Up",
+                          "Daftar",
                           style: TextStyle(
                             color: AppColor.gradien2,
                             fontWeight: FontWeight.bold,

@@ -60,7 +60,7 @@ class _AddProgramState extends State<AddProgram> {
     if (startController.text.isEmpty || endController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Please select Start Date and End Date first!"),
+          content: Text("Silakan pilih Tanggal Mulai dan Tanggal Selesai terlebih dahulu!"),
         ),
       );
       return;
@@ -156,7 +156,7 @@ class _AddProgramState extends State<AddProgram> {
     if (_hasConflictingSessions()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Session times cannot overlap on the same date."),
+          content: Text("Waktu sesi tidak boleh tumpang tindih pada tanggal yang sama."),
         ),
       );
       return;
@@ -201,7 +201,7 @@ class _AddProgramState extends State<AddProgram> {
           ),
           title: const Icon(Icons.check_circle, color: Colors.green, size: 60),
           content: Text(
-            "Program saved successfully!",
+            "Program berhasil disimpan!",
             textAlign: TextAlign.center,
             style: TextStyle(color: AppColor.textPrimary(context)),
           ),
@@ -260,7 +260,7 @@ class _AddProgramState extends State<AddProgram> {
               children: [
                 BackButton(color: Colors.white),
                 Text(
-                  "Add Study Program",
+                  "Tambah Program Belajar",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -298,7 +298,7 @@ class _AddProgramState extends State<AddProgram> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Subject Name",
+                      "Nama Subjek",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppColor.textPrimary(context),
@@ -311,7 +311,7 @@ class _AddProgramState extends State<AddProgram> {
                       controller: subjectController,
                       style: TextStyle(color: AppColor.textPrimary(context)),
                       decoration: InputDecoration(
-                        hintText: "Enter subject name",
+                        hintText: "Masukkan nama subjek",
                         hintStyle: TextStyle(color: AppColor.textHint(context)),
                         filled: true,
                         fillColor: AppColor.inputFill(context),
@@ -333,7 +333,7 @@ class _AddProgramState extends State<AddProgram> {
                             onTap: () => _selectDate(context, startController),
                             style: TextStyle(color: AppColor.textPrimary(context)),
                             decoration: InputDecoration(
-                              hintText: "Start Date",
+                              hintText: "Tanggal Mulai",
                               hintStyle: TextStyle(color: AppColor.textHint(context)),
                               filled: true,
                               fillColor: AppColor.inputFill(context),
@@ -358,7 +358,7 @@ class _AddProgramState extends State<AddProgram> {
                             onTap: () => _selectDate(context, endController),
                             style: TextStyle(color: AppColor.textPrimary(context)),
                             decoration: InputDecoration(
-                              hintText: "End Date",
+                              hintText: "Tanggal Selesai",
                               hintStyle: TextStyle(color: AppColor.textHint(context)),
                               filled: true,
                               fillColor: AppColor.inputFill(context),
@@ -379,7 +379,7 @@ class _AddProgramState extends State<AddProgram> {
                     const SizedBox(height: 15),
 
                     Text(
-                      "Description",
+                      "Deskripsi",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppColor.textPrimary(context),
@@ -393,7 +393,7 @@ class _AddProgramState extends State<AddProgram> {
                       maxLines: 4,
                       style: TextStyle(color: AppColor.textPrimary(context)),
                       decoration: InputDecoration(
-                        hintText: "Enter program description",
+                        hintText: "Masukkan deskripsi program",
                         hintStyle: TextStyle(color: AppColor.textHint(context)),
                         filled: true,
                         fillColor: AppColor.inputFill(context),
@@ -414,7 +414,7 @@ class _AddProgramState extends State<AddProgram> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Sessions",
+                    "Sesi",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
@@ -461,7 +461,7 @@ class _AddProgramState extends State<AddProgram> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Session ${index + 1}",
+                              "Sesi ${index + 1}",
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.blueAccent,
@@ -481,7 +481,7 @@ class _AddProgramState extends State<AddProgram> {
                         const SizedBox(height: 10),
 
                         Text(
-                          "Material Topic",
+                          "Topik Materi",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: AppColor.textPrimary(context),
@@ -494,7 +494,7 @@ class _AddProgramState extends State<AddProgram> {
                           controller: session.topicController,
                           style: TextStyle(color: AppColor.textPrimary(context)),
                           decoration: InputDecoration(
-                            hintText: "Enter topic",
+                            hintText: "Masukkan topik",
                             hintStyle: TextStyle(color: AppColor.textHint(context)),
                             filled: true,
                             fillColor: AppColor.inputFill(context),
@@ -516,7 +516,7 @@ class _AddProgramState extends State<AddProgram> {
                           ),
                           style: TextStyle(color: AppColor.textPrimary(context)),
                           decoration: InputDecoration(
-                            hintText: "Select Date",
+                            hintText: "Pilih Tanggal",
                             hintStyle: TextStyle(color: AppColor.textHint(context)),
                             prefixIcon: Icon(
                               Icons.calendar_today,
@@ -545,7 +545,7 @@ class _AddProgramState extends State<AddProgram> {
                                 ),
                                 style: TextStyle(color: AppColor.textPrimary(context)),
                                 decoration: InputDecoration(
-                                  hintText: "Start Time",
+                                  hintText: "Waktu Mulai",
                                   hintStyle: TextStyle(color: AppColor.textHint(context)),
                                   prefixIcon: Icon(
                                     Icons.access_time,
@@ -573,7 +573,7 @@ class _AddProgramState extends State<AddProgram> {
                                 ),
                                 style: TextStyle(color: AppColor.textPrimary(context)),
                                 decoration: InputDecoration(
-                                  hintText: "End Time",
+                                  hintText: "Waktu Selesai",
                                   hintStyle: TextStyle(color: AppColor.textHint(context)),
                                   prefixIcon: Icon(
                                     Icons.access_time,
@@ -610,7 +610,7 @@ class _AddProgramState extends State<AddProgram> {
                   ),
                   onPressed: _submitAndExit,
                   child: const Text(
-                    "Save Program",
+                    "Simpan Program",
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
