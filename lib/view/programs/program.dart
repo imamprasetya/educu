@@ -32,6 +32,16 @@ class _ProgramScreenState extends State<ProgramScreen> {
   int selectedTab = 1; // 0=Semua, 1=Active, 2=Terlewat, 3=Selesai
   final List<String> tabLabels = ["Semua", "Active", "Terlewat", "Selesai"];
 
+  // Format ISO (yyyy-MM-dd) ke Indonesia (dd/MM/yyyy)
+  String _isoToIndo(String isoDate) {
+    try {
+      final dt = DateTime.parse(isoDate);
+      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    } catch (_) {
+      return isoDate;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -410,7 +420,7 @@ class _ProgramScreenState extends State<ProgramScreen> {
                                 ),
 
                                 Text(
-                                  "${items.startDate} - ${items.endDate}",
+                                  "${_isoToIndo(items.startDate)} - ${_isoToIndo(items.endDate)}",
                                   style: TextStyle(
                                     color: AppColor.textHint(context),
                                     fontSize: 13,

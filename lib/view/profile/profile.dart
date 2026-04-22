@@ -74,7 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(color: AppColor.textPrimary(context)),
         ),
         content: Text(
-          "Email : support@educu.com\nSitus Web : www.educustudy.com",
+          "Email : educuproject@gmail.com",
           style: TextStyle(color: AppColor.textSecondary(context)),
         ),
         actions: [
@@ -138,10 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Navigator.pop(context);
               _logout();
             },
-            child: const Text(
-              "Keluar",
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text("Keluar", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -383,9 +380,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           Text(
                             userEmail,
-                            style: TextStyle(
-                              color: AppColor.textHint(context),
-                            ),
+                            style: TextStyle(color: AppColor.textHint(context)),
                           ),
                         ],
                       ),

@@ -19,6 +19,16 @@ class _ProgramDetailState extends State<ProgramDetail> {
   bool isLoading = true;
   double progress = 0;
 
+  // Format ISO (yyyy-MM-dd) ke Indonesia (dd/MM/yyyy)
+  String _isoToIndo(String isoDate) {
+    try {
+      final dt = DateTime.parse(isoDate);
+      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+    } catch (_) {
+      return isoDate;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -58,15 +68,10 @@ class _ProgramDetailState extends State<ProgramDetail> {
 
   DateTime? _parseTime(String time) {
     try {
-      final lower = time.toLowerCase().trim();
-      final isPM = lower.contains('pm');
-      final isAM = lower.contains('am');
-      final cleaned = lower.replaceAll(RegExp(r'[ap]m'), '').trim();
+      final cleaned = time.trim();
       final parts = cleaned.split(':');
       int hour = int.parse(parts[0]);
       final minute = int.parse(parts[1].trim());
-      if (isPM && hour != 12) hour += 12;
-      if (isAM && hour == 12) hour = 0;
       return DateTime(2000, 1, 1, hour, minute);
     } catch (_) {
       return null;
@@ -204,7 +209,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      "${program.startDate} - ${program.endDate}",
+                                      "${_isoToIndo(program.startDate)} - ${_isoToIndo(program.endDate)}",
                                       style: TextStyle(
                                         fontSize: 13,
                                         color: AppColor.textPrimary(context),
@@ -413,7 +418,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          session.date,
+                                          _isoToIndo(session.date),
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: AppColor.textHint(context),

@@ -23,13 +23,41 @@ class _EditProgramState extends State<EditProgram> {
   List<SessionData> sessions = [];
   List<String> originalSessionIds = [];
 
+  // Format tanggal ke format Indonesia (dd/MM/yyyy)
+  String _formatDateIndo(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
+
+  // Parse tanggal Indonesia (dd/MM/yyyy) ke DateTime
+  DateTime _parseDateIndo(String dateStr) {
+    final parts = dateStr.split('/');
+    return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+  }
+
+  // Convert ISO (yyyy-MM-dd) ke format Indonesia (dd/MM/yyyy)
+  String _isoToIndo(String isoDate) {
+    final dt = DateTime.parse(isoDate);
+    return _formatDateIndo(dt);
+  }
+
+  // Convert tanggal Indonesia ke ISO (yyyy-MM-dd) untuk storage
+  String _indoToIso(String dateStr) {
+    final dt = _parseDateIndo(dateStr);
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+  }
+
+  // Format waktu ke 24 jam (HH:mm)
+  String _formatTime24(TimeOfDay time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
   @override
   void initState() {
     super.initState();
 
     subjectController.text = widget.program.subject;
-    startController.text = widget.program.startDate;
-    endController.text = widget.program.endDate;
+    startController.text = _isoToIndo(widget.program.startDate);
+    endController.text = _isoToIndo(widget.program.endDate);
     deskController.text = widget.program.description;
 
     loadSessions();
@@ -37,8 +65,8 @@ class _EditProgramState extends State<EditProgram> {
 
   // DATE PICKER
   Future<void> pickDate(TextEditingController controller) async {
-    DateTime startDate = DateTime.parse(startController.text);
-    DateTime endDate = DateTime.parse(endController.text);
+    DateTime startDate = _parseDateIndo(startController.text);
+    DateTime endDate = _parseDateIndo(endController.text);
 
     DateTime? pickedDate = await showDatePicker(
       context: context,
@@ -48,8 +76,7 @@ class _EditProgramState extends State<EditProgram> {
     );
 
     if (pickedDate != null) {
-      controller.text =
-          "${pickedDate.year}-${pickedDate.month}-${pickedDate.day}";
+      controller.text = _formatDateIndo(pickedDate);
     }
   }
 
@@ -58,24 +85,25 @@ class _EditProgramState extends State<EditProgram> {
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
     );
 
     if (pickedTime != null) {
-      controller.text = pickedTime.format(context);
+      controller.text = _formatTime24(pickedTime);
     }
   }
 
   DateTime? _parseTime(String time) {
     try {
-      final lower = time.toLowerCase().trim();
-      final isPM = lower.contains('pm');
-      final isAM = lower.contains('am');
-      final cleaned = lower.replaceAll(RegExp(r'[ap]m'), '').trim();
+      final cleaned = time.trim();
       final parts = cleaned.split(':');
       int hour = int.parse(parts[0]);
       final minute = int.parse(parts[1].trim());
-      if (isPM && hour != 12) hour += 12;
-      if (isAM && hour == 12) hour = 0;
       return DateTime(2000, 1, 1, hour, minute);
     } catch (_) {
       return null;
@@ -133,7 +161,7 @@ class _EditProgramState extends State<EditProgram> {
       session.id = s['id'] as String?;
       session.completed = s['completed'] == true;
       session.topicController.text = s["topic"];
-      session.dateController.text = s["date"];
+      session.dateController.text = _isoToIndo(s["date"]);
       session.startTimeController.text = s["startTime"];
       session.endTimeController.text = s["endTime"];
 
@@ -173,8 +201,8 @@ class _EditProgramState extends State<EditProgram> {
 
     await FirebaseService.updateProgram(programId, {
       "subject": subjectController.text,
-      "startDate": startController.text,
-      "endDate": endController.text,
+      "startDate": _indoToIso(startController.text),
+      "endDate": _indoToIso(endController.text),
       "description": deskController.text,
     });
 
@@ -195,7 +223,7 @@ class _EditProgramState extends State<EditProgram> {
       if (s.id != null) {
         await FirebaseService.updateSession(s.id!, {
           "topic": s.topicController.text,
-          "date": s.dateController.text,
+          "date": _indoToIso(s.dateController.text),
           "startTime": s.startTimeController.text,
           "endTime": s.endTimeController.text,
           "completed": s.completed,
@@ -204,7 +232,7 @@ class _EditProgramState extends State<EditProgram> {
         SessionModel session = SessionModel(
           programId: programId,
           topic: s.topicController.text,
-          date: s.dateController.text,
+          date: _indoToIso(s.dateController.text),
           startTime: s.startTimeController.text,
           endTime: s.endTimeController.text,
         );

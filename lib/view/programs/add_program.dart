@@ -19,6 +19,28 @@ class _AddProgramState extends State<AddProgram> {
 
   List<SessionData> sessions = [SessionData()];
 
+  // Format tanggal ke format Indonesia (dd/MM/yyyy)
+  String _formatDateIndo(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
+
+  // Parse tanggal Indonesia (dd/MM/yyyy) ke DateTime
+  DateTime _parseDateIndo(String dateStr) {
+    final parts = dateStr.split('/');
+    return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+  }
+
+  // Convert tanggal Indonesia ke ISO (yyyy-MM-dd) untuk storage
+  String _indoToIso(String dateStr) {
+    final dt = _parseDateIndo(dateStr);
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+  }
+
+  // Format waktu ke 24 jam (HH:mm)
+  String _formatTime24(TimeOfDay time) {
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
+
   void _addSession() {
     setState(() {
       sessions.add(SessionData());
@@ -47,7 +69,7 @@ class _AddProgramState extends State<AddProgram> {
     );
 
     if (picked != null) {
-      controller.text = picked.toString().split(' ')[0];
+      controller.text = _formatDateIndo(picked);
       setState(() {});
     }
   }
@@ -66,8 +88,8 @@ class _AddProgramState extends State<AddProgram> {
       return;
     }
 
-    DateTime firstAllowed = DateTime.parse(startController.text);
-    DateTime lastAllowed = DateTime.parse(endController.text);
+    DateTime firstAllowed = _parseDateIndo(startController.text);
+    DateTime lastAllowed = _parseDateIndo(endController.text);
 
     DateTime? picked = await showDatePicker(
       context: context,
@@ -77,7 +99,7 @@ class _AddProgramState extends State<AddProgram> {
     );
 
     if (picked != null) {
-      controller.text = picked.toString().split(' ')[0];
+      controller.text = _formatDateIndo(picked);
       setState(() {});
     }
   }
@@ -90,25 +112,26 @@ class _AddProgramState extends State<AddProgram> {
     TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
     );
 
     if (picked != null) {
-      controller.text = picked.format(context);
+      controller.text = _formatTime24(picked);
       setState(() {});
     }
   }
 
   DateTime? _parseTime(String time) {
     try {
-      final lower = time.toLowerCase().trim();
-      final isPM = lower.contains('pm');
-      final isAM = lower.contains('am');
-      final cleaned = lower.replaceAll(RegExp(r'[ap]m'), '').trim();
+      final cleaned = time.trim();
       final parts = cleaned.split(':');
       int hour = int.parse(parts[0]);
       final minute = int.parse(parts[1].trim());
-      if (isPM && hour != 12) hour += 12;
-      if (isAM && hour == 12) hour = 0;
       return DateTime(2000, 1, 1, hour, minute);
     } catch (_) {
       return null;
@@ -170,8 +193,8 @@ class _AddProgramState extends State<AddProgram> {
     String programId = await FirebaseService.insertProgram({
       "userId": userId,
       "subject": subjectController.text,
-      "startDate": startController.text,
-      "endDate": endController.text,
+      "startDate": _indoToIso(startController.text),
+      "endDate": _indoToIso(endController.text),
       "description": deskController.text,
     });
 
@@ -180,7 +203,7 @@ class _AddProgramState extends State<AddProgram> {
       SessionModel session = SessionModel(
         programId: programId,
         topic: s.topicController.text,
-        date: s.dateController.text,
+        date: _indoToIso(s.dateController.text),
         startTime: s.startTimeController.text,
         endTime: s.endTimeController.text,
       );
