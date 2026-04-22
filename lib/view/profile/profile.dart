@@ -111,6 +111,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // LOGOUT CONFIRMATION DIALOG
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "Konfirmasi Keluar",
+          style: TextStyle(color: AppColor.textPrimary(context)),
+        ),
+        content: Text(
+          "Apakah Anda yakin ingin keluar dari akun ini?",
+          style: TextStyle(color: AppColor.textSecondary(context)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              "Batal",
+              style: TextStyle(color: AppColor.textHint(context)),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _logout();
+            },
+            child: const Text(
+              "Keluar",
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // LOGOUT
   Future<void> _logout() async {
     // Cancel all notifications on logout
@@ -571,7 +608,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     foregroundColor: Colors.red,
                     side: const BorderSide(color: Colors.red),
                   ),
-                  onPressed: _logout,
+                  onPressed: _showLogoutDialog,
                   icon: const Icon(Icons.logout),
                   label: const Text("Keluar"),
                 ),

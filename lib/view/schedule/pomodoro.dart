@@ -92,6 +92,15 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     });
   }
 
+  // TOGGLE START/PAUSE
+  void toggleTimer() {
+    if (isRunning) {
+      pauseTimer();
+    } else {
+      startTimer();
+    }
+  }
+
   // SELESAI - mark session as completed
   Future<void> _markComplete() async {
     if (widget.sessionId != null) {
@@ -117,6 +126,63 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
       );
       Navigator.pop(context, true);
     }
+  }
+
+  // HANDLE SELESAI BUTTON - show dialog if timer not finished
+  void _handleFinish() {
+    if (timeLeft > 0 && !isCompleted) {
+      _showEarlyFinishDialog();
+    } else {
+      _markComplete();
+    }
+  }
+
+  // EARLY FINISH CONFIRMATION DIALOG
+  void _showEarlyFinishDialog() {
+    // Pause timer while dialog is shown
+    final wasRunning = isRunning;
+    if (wasRunning) pauseTimer();
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Icon(
+          Icons.timer_off_outlined,
+          size: 50,
+          color: Colors.orange.shade400,
+        ),
+        content: Text(
+          "Waktu belajar masih tersisa ${formatTime(timeLeft)}.\nApakah Anda yakin ingin menyelesaikan sesi ini sekarang?",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: AppColor.textPrimary(context)),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              if (wasRunning) startTimer();
+            },
+            child: Text(
+              "Lanjutkan",
+              style: TextStyle(color: AppColor.textHint(context)),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColor.gradien1),
+            onPressed: () {
+              Navigator.pop(context);
+              _markComplete();
+            },
+            child: const Text(
+              "Selesai Sekarang",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showCompletedDialog() {
@@ -300,56 +366,50 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
 
             // CONTROL BUTTONS
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // START
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
+                // START / PAUSE TOGGLE
+                SizedBox(
+                  width: 140,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isRunning ? Colors.orange : Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
                     ),
-                  ),
-                  onPressed: isCompleted ? null : startTimer,
-                  icon: const Icon(Icons.play_arrow, color: Colors.white),
-                  label: const Text(
-                    "Mulai",
-                    style: TextStyle(color: Colors.white),
+                    onPressed: isCompleted ? null : toggleTimer,
+                    icon: Icon(
+                      isRunning ? Icons.pause : Icons.play_arrow,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      isRunning ? "Jeda" : "Mulai",
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                    ),
                   ),
                 ),
 
-                // PAUSE
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                  onPressed: pauseTimer,
-                  icon: const Icon(Icons.pause, color: Colors.white),
-                  label: const Text(
-                    "Jeda",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
+                const SizedBox(width: 20),
 
                 // RESET
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
+                SizedBox(
+                  width: 140,
+                  height: 48,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
                     ),
-                  ),
-                  onPressed: resetTimer,
-                  icon: const Icon(Icons.refresh, color: Colors.white),
-                  label: const Text(
-                    "Reset",
-                    style: TextStyle(color: Colors.white),
+                    onPressed: isCompleted ? null : resetTimer,
+                    icon: const Icon(Icons.refresh, color: Colors.white),
+                    label: const Text(
+                      "Reset",
+                      style: TextStyle(color: Colors.white, fontSize: 15),
+                    ),
                   ),
                 ),
               ],
@@ -368,7 +428,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
-                onPressed: isCompleted ? null : _markComplete,
+                onPressed: isCompleted ? null : _handleFinish,
                 icon: const Icon(Icons.check_circle, color: Colors.white),
                 label: Text(
                   isCompleted ? "Sudah Selesai" : "Selesai",

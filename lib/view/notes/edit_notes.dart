@@ -17,6 +17,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
   final contentController = TextEditingController();
 
   String? userId;
+  bool _isFormValid = false;
 
   @override
   void initState() {
@@ -26,6 +27,28 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
     if (widget.note != null) {
       titleController.text = widget.note!.title;
       contentController.text = widget.note!.content;
+    }
+
+    // Listen for changes to validate form
+    titleController.addListener(_validateForm);
+    contentController.addListener(_validateForm);
+    _validateForm();
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    contentController.dispose();
+    super.dispose();
+  }
+
+  void _validateForm() {
+    final isValid = titleController.text.trim().isNotEmpty &&
+        contentController.text.trim().isNotEmpty;
+    if (isValid != _isFormValid) {
+      setState(() {
+        _isFormValid = isValid;
+      });
     }
   }
 
@@ -71,8 +94,13 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
 
         actions: [
           TextButton(
-            onPressed: saveNote,
-            child: const Text("Selesai", style: TextStyle(color: Colors.white)),
+            onPressed: _isFormValid ? saveNote : null,
+            child: Text(
+              "Selesai",
+              style: TextStyle(
+                color: _isFormValid ? Colors.white : Colors.white38,
+              ),
+            ),
           ),
         ],
       ),
@@ -98,6 +126,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
                 controller: contentController,
                 maxLines: null,
                 expands: true,
+                textAlignVertical: TextAlignVertical.top,
                 style: TextStyle(color: AppColor.textPrimary(context)),
                 decoration: InputDecoration(
                   hintText: "Tulis catatan Anda...",
