@@ -208,15 +208,21 @@ class _ProgramScreenState extends State<ProgramScreen> {
                   controller: searchController,
                   focusNode: searchFocus,
                   onChanged: searchProgram,
+                  textAlignVertical: TextAlignVertical.center,
                   style: TextStyle(color: AppColor.textPrimary(context)),
                   decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
                     prefixIcon: Icon(
                       Icons.search,
                       color: AppColor.iconColor(context),
                     ),
                     hintText: "Cari subjek...",
                     hintStyle: TextStyle(color: AppColor.textHint(context)),
-                    border: InputBorder.none,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
               ),

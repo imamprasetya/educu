@@ -158,7 +158,18 @@ class _NotesScreenState extends State<NotesScreen> {
               itemBuilder: (context, index) {
                 final note = filteredNotes[index];
 
-                return Container(
+                return InkWell(
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditNoteScreen(note: note),
+                      ),
+                    );
+                    loadNotes();
+                  },
+                  borderRadius: BorderRadius.circular(15),
+                  child: Container(
                   margin: const EdgeInsets.symmetric(
                     horizontal: 15,
                     vertical: 8,
@@ -194,14 +205,23 @@ class _NotesScreenState extends State<NotesScreen> {
                                 color: AppColor.textPrimary(context),
                               ),
                             ),
-
                             const SizedBox(height: 5),
-
                             Text(
                               note.content,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: AppColor.textHint(context),
                                 fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              note.date,
+                              style: TextStyle(
+                                color: AppColor.textHint(context).withOpacity(0.6),
+                                fontSize: 10,
+                                fontStyle: FontStyle.italic,
                               ),
                             ),
                           ],
@@ -210,42 +230,25 @@ class _NotesScreenState extends State<NotesScreen> {
 
                       Row(
                         children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.edit,
-                              size: 20,
-                              color: AppColor.gradien2,
-                            ),
-                            onPressed: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      EditNoteScreen(note: note),
-                                ),
-                              );
-                              loadNotes();
-                            },
-                          ),
-
-                          IconButton(
-                            onPressed: () async {
-                              if (note.id != null) {
-                                await showDeleteDialogNotes(context, note.id!);
-                                await loadNotes();
-                              }
-                            },
-                            icon: const Icon(
-                              Icons.delete,
-                              size: 20,
-                              color: Colors.red,
-                            ),
-                          ),
+                      IconButton(
+                        onPressed: () async {
+                          if (note.id != null) {
+                            await showDeleteDialogNotes(context, note.id!);
+                            await loadNotes();
+                          }
+                        },
+                        icon: const Icon(
+                          Icons.delete,
+                          size: 20,
+                          color: Colors.red,
+                        ),
+                      ),
                         ],
                       ),
                     ],
                   ),
-                );
+                ),
+              );
               },
             ),
           ),

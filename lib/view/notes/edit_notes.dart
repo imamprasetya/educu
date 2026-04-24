@@ -2,6 +2,7 @@ import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/models/notes_model.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class EditNoteScreen extends StatefulWidget {
   final NotesModel? note;
@@ -65,7 +66,7 @@ class _EditNoteScreenState extends State<EditNoteScreen> {
       userId: userId!, // untuk multi user
       title: titleController.text,
       content: contentController.text,
-      date: DateTime.now().toString(),
+      date: DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now()),
     );
 
     if (widget.note == null) {
