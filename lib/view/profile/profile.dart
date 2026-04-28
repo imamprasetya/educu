@@ -98,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(color: AppColor.textPrimary(context)),
         ),
         content: Text(
-          "EduCu Study Planner\n\nVersi 1.0\n\nAplikasi untuk mengelola jadwal belajar dan meningkatkan produktivitas.",
+          "Educu\n\nVersi 1.0\n\nAplikasi untuk mengelola jadwal belajar dan meningkatkan produktivitas.",
           style: TextStyle(color: AppColor.textSecondary(context)),
         ),
         actions: [

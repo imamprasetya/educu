@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/services/notification_service.dart';
+import 'package:educu_project/services/pomodoro_task_handler.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../../constant/app_color.dart';
 
 class PomodoroScreen extends StatefulWidget {
@@ -24,47 +26,72 @@ class PomodoroScreen extends StatefulWidget {
   State<PomodoroScreen> createState() => _PomodoroScreenState();
 }
 
-class _PomodoroScreenState extends State<PomodoroScreen>
-    with SingleTickerProviderStateMixin {
-  // Pomodoro constants
-  static const int studyDuration = 25 * 60; // 25 menit
-  static const int shortBreakDuration = 5 * 60; // 5 menit
-  static const int longBreakDuration = 20 * 60; // 20 menit
+class _PomodoroScreenState extends State<PomodoroScreen> {
+  // Pomodoro constants (for display only, logic is in TaskHandler)
   static const int cyclesBeforeLongBreak = 4;
 
-  // State
-  late int totalDurationSeconds; // total durasi dari jadwal
-  int totalElapsed = 0; // total detik yang sudah berlalu
-  int phaseTimeLeft = 0; // sisa waktu fase saat ini
-  int phaseTotalTime = 0; // total waktu fase saat ini
-  int currentCycle = 1; // siklus ke berapa (1-4)
-  bool isBreak = false; // sedang istirahat?
-  bool isLongBreak = false; // istirahat panjang?
-  bool isRunning = false;
-  bool isAllCompleted = false; // semua waktu jadwal habis
-  bool hasStarted = false; // sudah pernah klik mulai
+  // UI state — updated from foreground service
+  int phaseTimeLeft = 0;
+  int phaseTotalTime = 0;
+  int totalElapsed = 0;
+  int totalDurationSeconds = 3600;
+  int currentCycle = 1;
+  bool isBreak = false;
+  bool isLongBreak = false;
+  bool isPaused = true;
+  bool isAllCompleted = false;
+  bool hasStarted = false;
 
-  Timer? timer;
-  late AnimationController _pulseController;
+  // Track previous break state for notification triggering
+  bool _prevIsBreak = false;
+  bool _prevIsAllCompleted = false;
 
   @override
   void initState() {
     super.initState();
     totalDurationSeconds = _calcTotalDuration();
-    _setupPhase(study: true);
+    phaseTimeLeft = totalDurationSeconds < 25 * 60
+        ? totalDurationSeconds
+        : 25 * 60;
+    phaseTotalTime = phaseTimeLeft;
 
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
+    FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initForegroundService();
+    });
+  }
+
+  /// Initialize the foreground service configuration
+  void _initForegroundService() {
+    FlutterForegroundTask.init(
+      androidNotificationOptions: AndroidNotificationOptions(
+        channelId: 'educu_pomodoro_service',
+        channelName: 'Pomodoro Timer',
+        channelDescription: 'Timer Pomodoro berjalan di background',
+        onlyAlertOnce: true,
+        playSound: false,
+        enableVibration: false,
+      ),
+      iosNotificationOptions: const IOSNotificationOptions(
+        showNotification: false,
+        playSound: false,
+      ),
+      foregroundTaskOptions: ForegroundTaskOptions(
+        eventAction: ForegroundTaskEventAction.nothing(),
+        autoRunOnBoot: false,
+        allowWakeLock: true,
+        allowWifiLock: false,
+      ),
     );
   }
 
-  /// Hitung total durasi jadwal dalam detik dari startTime - endTime
+  /// Calculate total duration from startTime - endTime
   int _calcTotalDuration() {
     try {
       final start = _parseTime(widget.startTime);
       final end = _parseTime(widget.endTime);
-      if (start == null || end == null) return 60 * 60; // fallback 1 jam
+      if (start == null || end == null) return 60 * 60;
       int diff = end.difference(start).inSeconds;
       return diff > 0 ? diff : 60 * 60;
     } catch (_) {
@@ -94,35 +121,101 @@ class _PomodoroScreenState extends State<PomodoroScreen>
     }
   }
 
-  /// Setup fase baru (belajar atau istirahat)
-  void _setupPhase({required bool study}) {
-    if (study) {
-      isBreak = false;
-      isLongBreak = false;
-      // Cek sisa waktu jadwal
-      int remaining = totalDurationSeconds - totalElapsed;
-      if (remaining <= 0) {
-        _allDone();
-        return;
+  /// Callback receiving state from the foreground TaskHandler
+  void _onReceiveTaskData(Object data) {
+    if (data is Map<String, dynamic>) {
+      if (!mounted) return;
+
+      final newIsBreak = data['isBreak'] as bool? ?? false;
+      final newIsLongBreak = data['isLongBreak'] as bool? ?? false;
+      final newIsAllCompleted = data['isAllCompleted'] as bool? ?? false;
+
+      // Trigger notifications on phase transitions
+      if (hasStarted) {
+        // Went from study → break
+        if (newIsBreak && !_prevIsBreak) {
+          NotificationService().showPomodoroBreak(
+            subject: widget.subject,
+            isLongBreak: newIsLongBreak,
+          );
+        }
+        // Went from break → study
+        if (!newIsBreak && _prevIsBreak && !newIsAllCompleted) {
+          NotificationService().showPomodoroStudy(subject: widget.subject);
+        }
+        // All completed
+        if (newIsAllCompleted && !_prevIsAllCompleted) {
+          _showCompletedDialog();
+        }
       }
-      phaseTotalTime = remaining < studyDuration ? remaining : studyDuration;
-      phaseTimeLeft = phaseTotalTime;
+
+      setState(() {
+        phaseTimeLeft = data['phaseTimeLeft'] as int? ?? 0;
+        phaseTotalTime = data['phaseTotalTime'] as int? ?? 0;
+        totalElapsed = data['totalElapsed'] as int? ?? 0;
+        totalDurationSeconds = data['totalDurationSeconds'] as int? ?? 3600;
+        currentCycle = data['currentCycle'] as int? ?? 1;
+        isBreak = newIsBreak;
+        isLongBreak = newIsLongBreak;
+        isPaused = data['isPaused'] as bool? ?? true;
+        isAllCompleted = newIsAllCompleted;
+
+        _prevIsBreak = newIsBreak;
+        _prevIsAllCompleted = newIsAllCompleted;
+      });
+    }
+  }
+
+  /// Start the foreground service
+  Future<void> _startService() async {
+    // Save config for the task handler
+    await FlutterForegroundTask.saveData(
+        key: 'totalDurationSeconds', value: totalDurationSeconds);
+    await FlutterForegroundTask.saveData(
+        key: 'subject', value: widget.subject);
+    await FlutterForegroundTask.saveData(
+        key: 'totalElapsed', value: totalElapsed);
+    await FlutterForegroundTask.saveData(
+        key: 'currentCycle', value: currentCycle);
+    await FlutterForegroundTask.saveData(
+        key: 'phaseTimeLeft', value: phaseTimeLeft);
+    await FlutterForegroundTask.saveData(
+        key: 'phaseTotalTime', value: phaseTotalTime);
+    await FlutterForegroundTask.saveData(key: 'isBreak', value: isBreak);
+    await FlutterForegroundTask.saveData(
+        key: 'isLongBreak', value: isLongBreak);
+    await FlutterForegroundTask.saveData(key: 'isPaused', value: false);
+
+    // Save session params for cold-start recovery
+    await FlutterForegroundTask.saveData(
+        key: 'topic', value: widget.topic);
+    await FlutterForegroundTask.saveData(
+        key: 'sessionId', value: widget.sessionId ?? '');
+    await FlutterForegroundTask.saveData(
+        key: 'startTime', value: widget.startTime);
+    await FlutterForegroundTask.saveData(
+        key: 'endTime', value: widget.endTime);
+
+    if (await FlutterForegroundTask.isRunningService) {
+      await FlutterForegroundTask.restartService();
     } else {
-      isBreak = true;
-      if (currentCycle >= cyclesBeforeLongBreak) {
-        isLongBreak = true;
-        phaseTotalTime = longBreakDuration;
-      } else {
-        isLongBreak = false;
-        phaseTotalTime = shortBreakDuration;
-      }
-      // Istirahat tidak mengurangi durasi jadwal, tapi cek dulu
-      int remaining = totalDurationSeconds - totalElapsed;
-      if (remaining <= 0) {
-        _allDone();
-        return;
-      }
-      phaseTimeLeft = phaseTotalTime;
+      await FlutterForegroundTask.startService(
+        serviceId: 888,
+        notificationTitle: '📖 ${widget.subject} — Belajar',
+        notificationText: 'Memulai timer Pomodoro...',
+        notificationButtons: [
+          const NotificationButton(id: 'btn_pause_resume', text: 'Jeda/Lanjut'),
+        ],
+        notificationInitialRoute: '/pomodoro',
+        callback: startPomodoroCallback,
+      );
+    }
+  }
+
+  /// Stop the foreground service
+  Future<void> _stopService() async {
+    if (await FlutterForegroundTask.isRunningService) {
+      await FlutterForegroundTask.stopService();
     }
   }
 
@@ -147,8 +240,8 @@ class _PomodoroScreenState extends State<PomodoroScreen>
 
   Color get phaseColor {
     if (isAllCompleted) return Colors.green;
-    if (isBreak) return const Color(0xFF43A047); // hijau
-    return AppColor.gradien2; // biru/ungu
+    if (isBreak) return const Color(0xFF43A047);
+    return AppColor.gradien2;
   }
 
   List<Color> get phaseGradient {
@@ -170,208 +263,53 @@ class _PomodoroScreenState extends State<PomodoroScreen>
     return Icons.menu_book;
   }
 
-  // START TIMER
-  void startTimer() {
-    if (isRunning || isAllCompleted) return;
-
+  // START / RESUME
+  void _onStart() async {
     hasStarted = true;
-    _pulseController.repeat(reverse: true);
-
-    timer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (phaseTimeLeft > 0) {
-        setState(() {
-          phaseTimeLeft--;
-          if (!isBreak) {
-            totalElapsed++;
-          }
-        });
-
-        // Cek apakah total durasi jadwal sudah habis (hanya saat belajar)
-        if (!isBreak && totalElapsed >= totalDurationSeconds) {
-          t.cancel();
-          _pulseController.stop();
-          _pulseController.reset();
-          setState(() {
-            isRunning = false;
-            phaseTimeLeft = 0;
-          });
-          _allDone();
-          return;
-        }
-      } else {
-        t.cancel();
-        _pulseController.stop();
-        _pulseController.reset();
-        setState(() {
-          isRunning = false;
-        });
-        _onPhaseEnd();
-      }
-    });
-
+    if (await FlutterForegroundTask.isRunningService) {
+      FlutterForegroundTask.sendDataToTask({'action': 'resume'});
+    } else {
+      await _startService();
+    }
     setState(() {
-      isRunning = true;
+      isPaused = false;
     });
   }
 
-  /// Saat sebuah fase berakhir
-  void _onPhaseEnd() {
-    if (isBreak) {
-      // Istirahat selesai → mulai belajar
-      if (isLongBreak) {
-        currentCycle = 1; // reset siklus setelah long break
-      } else {
-        currentCycle++;
-      }
+  // PAUSE
+  void _onPause() {
+    FlutterForegroundTask.sendDataToTask({'action': 'pause'});
+    setState(() {
+      isPaused = true;
+    });
+  }
 
-      // Kirim notifikasi mulai belajar
-      NotificationService().showPomodoroStudy(subject: widget.subject);
-
-      setState(() {
-        _setupPhase(study: true);
-      });
-
-      if (!isAllCompleted) {
-        _showPhaseDialog(
-          icon: Icons.menu_book,
-          color: AppColor.gradien2,
-          title: "Waktunya Belajar! 📖",
-          message: "Istirahat selesai. Ayo lanjutkan belajar!\nSiklus ke-$currentCycle",
-          buttonText: "Mulai Belajar",
-        );
-      }
+  // TOGGLE
+  void toggleTimer() {
+    if (isPaused) {
+      _onStart();
     } else {
-      // Belajar selesai → mulai istirahat
-      // Cek apakah masih ada sisa waktu
-      int remaining = totalDurationSeconds - totalElapsed;
-      if (remaining <= 0) {
-        _allDone();
-        return;
-      }
-
-      final willBeLongBreak = currentCycle >= cyclesBeforeLongBreak;
-
-      // Kirim notifikasi istirahat
-      NotificationService().showPomodoroBreak(
-        subject: widget.subject,
-        isLongBreak: willBeLongBreak,
-      );
-
-      setState(() {
-        _setupPhase(study: false);
-      });
-
-      _showPhaseDialog(
-        icon: willBeLongBreak ? Icons.local_cafe : Icons.self_improvement,
-        color: willBeLongBreak ? const Color(0xFF2E7D32) : const Color(0xFF43A047),
-        title: willBeLongBreak
-            ? "Istirahat Panjang! ☕"
-            : "Saatnya Istirahat! 😌",
-        message: willBeLongBreak
-            ? "Kamu sudah menyelesaikan 4 siklus!\nIstirahat 20 menit."
-            : "Siklus ke-$currentCycle selesai.\nIstirahat 5 menit.",
-        buttonText: "OK",
-      );
+      _onPause();
     }
   }
 
-  void _showPhaseDialog({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String message,
-    required String buttonText,
-  }) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Icon(icon, size: 50, color: color),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: AppColor.textPrimary(context),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppColor.textSecondary(context)),
-            ),
-          ],
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: color,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-              startTimer(); // auto start fase berikutnya
-            },
-            child: Text(
-              buttonText,
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Semua waktu jadwal habis
-  void _allDone() {
-    setState(() {
-      isAllCompleted = true;
-      isRunning = false;
-      phaseTimeLeft = 0;
-    });
-    _showCompletedDialog();
-  }
-
-  // PAUSE TIMER
-  void pauseTimer() {
-    timer?.cancel();
-    _pulseController.stop();
-    setState(() {
-      isRunning = false;
-    });
-  }
-
-  // RESET TIMER
+  // RESET
   void resetTimer() {
-    timer?.cancel();
-    _pulseController.stop();
-    _pulseController.reset();
+    FlutterForegroundTask.sendDataToTask({'action': 'reset'});
     setState(() {
       totalElapsed = 0;
       currentCycle = 1;
-      isRunning = false;
+      isPaused = true;
       isAllCompleted = false;
       hasStarted = false;
-      _setupPhase(study: true);
+      isBreak = false;
+      isLongBreak = false;
+      int initial = totalDurationSeconds < 25 * 60
+          ? totalDurationSeconds
+          : 25 * 60;
+      phaseTimeLeft = initial;
+      phaseTotalTime = initial;
     });
-  }
-
-  // TOGGLE START/PAUSE
-  void toggleTimer() {
-    if (isRunning) {
-      pauseTimer();
-    } else {
-      startTimer();
-    }
   }
 
   // SELESAI - mark session as completed
@@ -380,13 +318,12 @@ class _PomodoroScreenState extends State<PomodoroScreen>
       await FirebaseService.markSessionCompleted(widget.sessionId!);
     }
 
-    // Reschedule notifications (cancel missed notification for this session)
     NotificationService().scheduleAllNotifications();
 
-    timer?.cancel();
+    await _stopService();
 
     setState(() {
-      isRunning = false;
+      isPaused = true;
       isAllCompleted = true;
     });
 
@@ -401,7 +338,7 @@ class _PomodoroScreenState extends State<PomodoroScreen>
     }
   }
 
-  // HANDLE SELESAI BUTTON - show dialog if timer not finished
+  // HANDLE SELESAI BUTTON
   void _handleFinish() {
     if (totalElapsed < totalDurationSeconds && !isAllCompleted) {
       _showEarlyFinishDialog();
@@ -410,11 +347,10 @@ class _PomodoroScreenState extends State<PomodoroScreen>
     }
   }
 
-  // EARLY FINISH CONFIRMATION DIALOG
+  // EARLY FINISH DIALOG
   void _showEarlyFinishDialog() {
-    // Pause timer while dialog is shown
-    final wasRunning = isRunning;
-    if (wasRunning) pauseTimer();
+    final wasRunning = !isPaused;
+    if (wasRunning) _onPause();
 
     final remaining = totalDurationSeconds - totalElapsed;
 
@@ -437,7 +373,7 @@ class _PomodoroScreenState extends State<PomodoroScreen>
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              if (wasRunning) startTimer();
+              if (wasRunning) _onStart();
             },
             child: Text(
               "Lanjutkan",
@@ -498,8 +434,8 @@ class _PomodoroScreenState extends State<PomodoroScreen>
 
   @override
   void dispose() {
-    timer?.cancel();
-    _pulseController.dispose();
+    FlutterForegroundTask.removeTaskDataCallback(_onReceiveTaskData);
+    // NOTE: We do NOT stop the service here — it keeps running in background
     super.dispose();
   }
 
@@ -584,14 +520,14 @@ class _PomodoroScreenState extends State<PomodoroScreen>
                   const SizedBox(height: 5),
                   Row(
                     children: [
-                      Icon(Icons.access_time, size: 14, color: Colors.blue),
+                      const Icon(Icons.access_time, size: 14, color: Colors.blue),
                       const SizedBox(width: 4),
                       Text(
                         "${widget.startTime} - ${widget.endTime}",
                         style: const TextStyle(color: Colors.blue, fontSize: 12),
                       ),
                       const SizedBox(width: 12),
-                      Icon(Icons.timer, size: 14, color: Colors.orange),
+                      const Icon(Icons.timer, size: 14, color: Colors.orange),
                       const SizedBox(width: 4),
                       Text(
                         "Total: ${formatTime(totalDurationSeconds)}",
@@ -676,61 +612,48 @@ class _PomodoroScreenState extends State<PomodoroScreen>
                       ),
                     ),
                   ),
-                  AnimatedBuilder(
-                    animation: _pulseController,
-                    builder: (context, child) {
-                      double scale = 1.0;
-                      if (isRunning && isBreak) {
-                        scale = 1.0 + (_pulseController.value * 0.03);
-                      }
-                      return Transform.scale(
-                        scale: scale,
-                        child: child,
-                      );
-                    },
-                    child: Container(
-                      height: 190,
-                      width: 190,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(colors: phaseGradient),
-                        boxShadow: [
-                          BoxShadow(
-                            color: phaseColor.withValues(alpha: 0.3),
-                            blurRadius: 15,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: isAllCompleted
-                            ? const Icon(
-                                Icons.check,
-                                size: 60,
-                                color: Colors.white,
-                              )
-                            : Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    formatTime(phaseTimeLeft),
-                                    style: const TextStyle(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
+                  Container(
+                    height: 190,
+                    width: 190,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(colors: phaseGradient),
+                      boxShadow: [
+                        BoxShadow(
+                          color: phaseColor.withValues(alpha: 0.3),
+                          blurRadius: 15,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: isAllCompleted
+                          ? const Icon(
+                              Icons.check,
+                              size: 60,
+                              color: Colors.white,
+                            )
+                          : Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  formatTime(phaseTimeLeft),
+                                  style: const TextStyle(
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    phaseLabel,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.white.withValues(alpha: 0.8),
-                                    ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  phaseLabel,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.white.withValues(alpha: 0.8),
                                   ),
-                                ],
-                              ),
-                      ),
+                                ),
+                              ],
+                            ),
                     ),
                   ),
                 ],
@@ -804,18 +727,18 @@ class _PomodoroScreenState extends State<PomodoroScreen>
                   height: 48,
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isRunning ? Colors.orange : Colors.green,
+                      backgroundColor: isPaused ? Colors.green : Colors.orange,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
                     ),
                     onPressed: isAllCompleted ? null : toggleTimer,
                     icon: Icon(
-                      isRunning ? Icons.pause : Icons.play_arrow,
+                      isPaused ? Icons.play_arrow : Icons.pause,
                       color: Colors.white,
                     ),
                     label: Text(
-                      isRunning ? "Jeda" : "Mulai",
+                      isPaused ? "Mulai" : "Jeda",
                       style: const TextStyle(color: Colors.white, fontSize: 15),
                     ),
                   ),

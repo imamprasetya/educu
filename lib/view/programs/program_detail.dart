@@ -3,6 +3,7 @@ import 'package:educu_project/models/session_model.dart';
 import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../../models/program_model.dart';
 
 class ProgramDetail extends StatefulWidget {
@@ -88,6 +89,35 @@ class _ProgramDetailState extends State<ProgramDetail> {
     } catch (_) {
       return "-";
     }
+  }
+
+  // DIALOG: Pomodoro sedang berjalan
+  void _showPomodoroRunningDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Icon(Icons.timer, size: 50, color: Colors.orange),
+        content: Text(
+          "Timer Pomodoro sedang berjalan!\nSelesaikan atau hentikan timer yang aktif terlebih dahulu.",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: AppColor.textPrimary(context)),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColor.gradien2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -478,6 +508,15 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                       ),
                                     ),
                                     onPressed: () async {
+                                      // Check if pomodoro is already running for a DIFFERENT session
+                                      if (await FlutterForegroundTask.isRunningService) {
+                                        final runningId = await FlutterForegroundTask.getData<String>(key: 'sessionId');
+                                        if (runningId != null && runningId != session.id) {
+                                          _showPomodoroRunningDialog();
+                                          return;
+                                        }
+                                      }
+
                                       final result = await Navigator.push(
                                         context,
                                         MaterialPageRoute(

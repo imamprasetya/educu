@@ -4,6 +4,7 @@ import 'package:educu_project/models/user_model.dart';
 import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../constant/app_color.dart';
 
 class HomeContent extends StatefulWidget {
@@ -398,6 +399,35 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
+  // DIALOG: Pomodoro sedang berjalan
+  void _showPomodoroRunningDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Icon(Icons.timer, size: 50, color: Colors.orange),
+        content: Text(
+          "Timer Pomodoro sedang berjalan!\nSelesaikan atau hentikan timer yang aktif terlebih dahulu.",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: AppColor.textPrimary(context)),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   // schedule card (from Firebase data)
   Widget scheduleCard(
     String subject,
@@ -405,6 +435,8 @@ class _HomeContentState extends State<HomeContent> {
     String time,
     Map<String, dynamic> data,
   ) {
+    final bool isCompleted = data["completed"] == true;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(16),
@@ -412,6 +444,9 @@ class _HomeContentState extends State<HomeContent> {
       decoration: BoxDecoration(
         color: AppColor.cardColor(context),
         borderRadius: BorderRadius.circular(18),
+        border: isCompleted
+            ? Border.all(color: Colors.green.withValues(alpha: 0.4))
+            : null,
         boxShadow: [
           BoxShadow(
             color: AppColor.shadowColor(context),
@@ -428,7 +463,7 @@ class _HomeContentState extends State<HomeContent> {
             width: 4,
             height: 50,
             decoration: BoxDecoration(
-              color: AppColor.gradien2,
+              color: isCompleted ? Colors.green : AppColor.gradien2,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -443,7 +478,9 @@ class _HomeContentState extends State<HomeContent> {
                   subject,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: AppColor.textPrimary(context),
+                    color: isCompleted
+                        ? AppColor.textHint(context)
+                        : AppColor.textPrimary(context),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -469,30 +506,67 @@ class _HomeContentState extends State<HomeContent> {
             ),
           ),
 
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
+          if (isCompleted)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(20),
               ),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PomodoroScreen(
-                    subject: subject,
-                    topic: topic,
-                    sessionId: data["id"],
-                    startTime: data["startTime"] ?? "08:00",
-                    endTime: data["endTime"] ?? "09:00",
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green, size: 16),
+                  SizedBox(width: 4),
+                  Text(
+                    "Selesai",
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                ],
+              ),
+            )
+          else
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
                 ),
-              );
-            },
-            child: const Text("Mulai", style: TextStyle(color: Colors.white)),
-          ),
+              ),
+              onPressed: () async {
+                // Check if pomodoro is already running for a DIFFERENT session
+                if (await FlutterForegroundTask.isRunningService) {
+                  final runningId = await FlutterForegroundTask.getData<String>(key: 'sessionId');
+                  if (runningId != null && runningId != data["id"]) {
+                    _showPomodoroRunningDialog();
+                    return;
+                  }
+                }
+
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PomodoroScreen(
+                      subject: subject,
+                      topic: topic,
+                      sessionId: data["id"],
+                      startTime: data["startTime"] ?? "08:00",
+                      endTime: data["endTime"] ?? "09:00",
+                    ),
+                  ),
+                );
+
+                if (result == true) {
+                  loadData();
+                }
+              },
+              child: const Text("Mulai", style: TextStyle(color: Colors.white)),
+            ),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../../constant/app_color.dart';
 import '../../services/firebase_service.dart';
 
@@ -114,8 +115,39 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
+  // DIALOG: Pomodoro sedang berjalan
+  void _showPomodoroRunningDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Icon(Icons.timer, size: 50, color: Colors.orange),
+        content: Text(
+          "Timer Pomodoro sedang berjalan!\nSelesaikan atau hentikan timer yang aktif terlebih dahulu.",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: AppColor.textPrimary(context)),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4D6FFF),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   // CARD JADWAL
   Widget scheduleCard(Map<String, dynamic> data) {
+    final bool isCompleted = data["completed"] == true;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
@@ -123,6 +155,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       decoration: BoxDecoration(
         color: AppColor.cardColor(context),
         borderRadius: BorderRadius.circular(20),
+        border: isCompleted
+            ? Border.all(color: Colors.green.withValues(alpha: 0.4))
+            : null,
 
         boxShadow: [
           BoxShadow(
@@ -142,7 +177,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppColor.textPrimary(context),
+              color: isCompleted
+                  ? AppColor.textHint(context)
+                  : AppColor.textPrimary(context),
             ),
           ),
 
@@ -175,40 +212,77 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
           const SizedBox(height: 15),
 
-          // BUTTON START STUDY
-          SizedBox(
-            width: double.infinity,
-
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4D6FFF),
-
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
+          // BUTTON or SELESAI badge
+          if (isCompleted)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(15),
               ),
-
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PomodoroScreen(
-                      subject: data["subject"] ?? "",
-                      topic: data["topic"] ?? "",
-                      sessionId: data["id"],
-                      startTime: data["startTime"] ?? "08:00",
-                      endTime: data["endTime"] ?? "09:00",
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    "Selesai",
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                );
-              },
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              width: double.infinity,
 
-              child: const Text(
-                "Mulai Belajar",
-                style: TextStyle(color: Colors.white),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4D6FFF),
+
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                ),
+
+                onPressed: () async {
+                  // Check if pomodoro is already running for a DIFFERENT session
+                  if (await FlutterForegroundTask.isRunningService) {
+                    final runningId = await FlutterForegroundTask.getData<String>(key: 'sessionId');
+                    if (runningId != null && runningId != data["id"]) {
+                      _showPomodoroRunningDialog();
+                      return;
+                    }
+                  }
+
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PomodoroScreen(
+                        subject: data["subject"] ?? "",
+                        topic: data["topic"] ?? "",
+                        sessionId: data["id"],
+                        startTime: data["startTime"] ?? "08:00",
+                        endTime: data["endTime"] ?? "09:00",
+                      ),
+                    ),
+                  );
+
+                  if (result == true) {
+                    loadSchedule();
+                  }
+                },
+
+                child: const Text(
+                  "Mulai Belajar",
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
