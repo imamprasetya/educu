@@ -196,6 +196,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       subject: data["subject"] ?? "",
                       topic: data["topic"] ?? "",
                       sessionId: data["id"],
+                      startTime: data["startTime"] ?? "08:00",
+                      endTime: data["endTime"] ?? "09:00",
                     ),
                   ),
                 );

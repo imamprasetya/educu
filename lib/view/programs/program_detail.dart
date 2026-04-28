@@ -485,8 +485,8 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                             subject: program.subject,
                                             topic: session.topic,
                                             sessionId: session.id,
-                                            durationMinutes:
-                                                session.durationMinutes,
+                                            startTime: session.startTime,
+                                            endTime: session.endTime,
                                           ),
                                         ),
                                       );

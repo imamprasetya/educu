@@ -29,6 +29,29 @@ class NotificationService {
   static const int _beforeSessionBase = 20000;
   static const int _startSessionBase = 30000;
   static const int _missedSessionBase = 40000;
+  static const int _pomodoroBreakId = 50000;
+  static const int _pomodoroStudyId = 50001;
+
+  /// Show pomodoro break notification
+  Future<void> showPomodoroBreak({
+    required String subject,
+    required bool isLongBreak,
+  }) async {
+    final title = isLongBreak ? "☕ Istirahat Panjang!" : "😌 Saatnya Istirahat!";
+    final body = isLongBreak
+        ? "$subject — Kamu sudah 4 siklus! Istirahat 20 menit."
+        : "$subject — Istirahat 5 menit, lalu lanjutkan belajar.";
+    await showNow(id: _pomodoroBreakId, title: title, body: body);
+  }
+
+  /// Show pomodoro study resume notification
+  Future<void> showPomodoroStudy({required String subject}) async {
+    await showNow(
+      id: _pomodoroStudyId,
+      title: "📖 Waktunya Belajar Kembali!",
+      body: "$subject — Istirahat selesai, ayo lanjutkan belajar!",
+    );
+  }
 
   /// Initialize the notification plugin and timezone
   Future<void> init() async {

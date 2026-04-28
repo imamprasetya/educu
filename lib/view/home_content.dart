@@ -485,6 +485,8 @@ class _HomeContentState extends State<HomeContent> {
                     subject: subject,
                     topic: topic,
                     sessionId: data["id"],
+                    startTime: data["startTime"] ?? "08:00",
+                    endTime: data["endTime"] ?? "09:00",
                   ),
                 ),
               );
