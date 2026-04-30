@@ -34,13 +34,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 60, 20, 40),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColor.gradien1, AppColor.gradien2],
+                  colors: AppColor.gradientColors(context),
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
                 ),
@@ -75,7 +75,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(height: 6),
 
                   Text(
-                    "Bergabunglah dengan EduCu dan mulai perjalanan belajar Anda",
+                    "Bergabunglah dengan Educu dan mulai perjalanan belajar Anda",
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 14,
@@ -280,112 +280,110 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                     const SizedBox(height: 28),
 
-                    // REGISTER BUTTON — gradient style (same as login)
-                    Container(
-                      width: double.infinity,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColor.gradien1, AppColor.gradien2],
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColor.gradien2.withValues(alpha: 0.35),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        onPressed: isLoading
-                            ? null
-                            : () async {
-                                if (_formKey.currentState!.validate()) {
-                                  setState(() => isLoading = true);
+                    // REGISTER BUTTON
+                    GestureDetector(
+                      onTap: isLoading
+                          ? null
+                          : () async {
+                              if (_formKey.currentState!.validate()) {
+                                setState(() => isLoading = true);
 
-                                  try {
-                                    await FirebaseService.registerUser(
-                                      name: namaController.text.trim(),
-                                      email: emailController.text.trim(),
-                                      password: passwordController.text,
-                                    );
+                                try {
+                                  await FirebaseService.registerUser(
+                                    name: namaController.text.trim(),
+                                    email: emailController.text.trim(),
+                                    password: passwordController.text,
+                                  );
 
-                                    // logout setelah register agar user login sendiri
-                                    await FirebaseService.signOut();
+                                  // logout setelah register agar user login sendiri
+                                  await FirebaseService.signOut();
 
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          "Registrasi Berhasil! Silakan login.",
-                                        ),
-                                        backgroundColor: Colors.green,
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        "Registrasi Berhasil! Silakan login.",
                                       ),
-                                    );
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
 
-                                    clearForm();
+                                  clearForm();
 
-                                    // navigate ke login
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const LoginScreen(),
-                                      ),
-                                    );
-                                  } catch (e) {
-                                    String message = "Registrasi gagal";
+                                  // navigate ke login
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const LoginScreen(),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  String message = "Registrasi gagal";
 
-                                    if (e.toString().contains(
-                                      "email-already-in-use",
-                                    )) {
-                                      message = "Email sudah terdaftar";
-                                    } else if (e.toString().contains(
-                                      "weak-password",
-                                    )) {
-                                      message =
-                                          "Password terlalu lemah (minimal 6 karakter)";
-                                    } else if (e.toString().contains(
-                                      "invalid-email",
-                                    )) {
-                                      message = "Format email tidak valid";
-                                    }
+                                  if (e.toString().contains(
+                                    "email-already-in-use",
+                                  )) {
+                                    message = "Email sudah terdaftar";
+                                  } else if (e.toString().contains(
+                                    "weak-password",
+                                  )) {
+                                    message =
+                                        "Password terlalu lemah (minimal 6 karakter)";
+                                  } else if (e.toString().contains(
+                                    "invalid-email",
+                                  )) {
+                                    message = "Format email tidak valid";
+                                  }
 
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(message)),
-                                    );
-                                  } finally {
-                                    if (mounted) {
-                                      setState(() => isLoading = false);
-                                    }
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(message)),
+                                  );
+                                } finally {
+                                  if (mounted) {
+                                    setState(() => isLoading = false);
                                   }
                                 }
-                              },
-                        child: isLoading
-                            ? const SizedBox(
-                                height: 22,
-                                width: 22,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.5,
+                              }
+                            },
+                      child: Container(
+                        width: double.infinity,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppColor.gradien1, AppColor.gradien2],
+                          ),
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: AppColor.isDark(context)
+                              ? []
+                              : [
+                                  BoxShadow(
+                                    color: AppColor.gradien2.withValues(
+                                      alpha: 0.35,
+                                    ),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                        ),
+                        child: Center(
+                          child: isLoading
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.5,
+                                  ),
+                                )
+                              : const Text(
+                                  "DAFTAR",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 1.5,
+                                  ),
                                 ),
-                              )
-                            : const Text(
-                                "DAFTAR",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  letterSpacing: 1.5,
-                                ),
-                              ),
+                        ),
                       ),
                     ),
 
@@ -408,10 +406,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             );
                           },
-                          child: const Text(
+                          child: Text(
                             "Masuk",
                             style: TextStyle(
-                              color: AppColor.gradien2,
+                              color: AppColor.accentColor(context),
                               fontWeight: FontWeight.bold,
                             ),
                           ),

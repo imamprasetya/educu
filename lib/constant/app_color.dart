@@ -12,6 +12,24 @@ class AppColor {
   static const Color gradien1 = Color(0xFF6554FF);
   static const Color gradien2 = Color(0xFF4388FF);
 
+  // Dark mode gradient (more muted, darker tones)
+  static const Color darkGradien1 = Color(0xFF2A2356);
+  static const Color darkGradien2 = Color(0xFF1E3A5F);
+
+  /// Theme-aware gradient colors (for header & buttons)
+  static List<Color> gradientColors(BuildContext context) {
+    return isDark(context)
+        ? [darkGradien1, darkGradien2]
+        : [gradien1, gradien2];
+  }
+
+  /// Theme-aware accent color for text links ("Daftar", "Masuk")
+  static Color accentColor(BuildContext context) {
+    return isDark(context)
+        ? const Color(0xFF7B9FCC)
+        : gradien2;
+  }
+
   //darkmode
   static const Color gelap = Color(0xFF000031);
   static const Color black = Color(0xFF000020);

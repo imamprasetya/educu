@@ -24,9 +24,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> loginUser() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Harap isi semua kolom")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Harap isi semua kolom")));
       return;
     }
 
@@ -110,13 +110,13 @@ class _LoginScreenState extends State<LoginScreen> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 60, 20, 40),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [AppColor.gradien1, AppColor.gradien2],
+                  colors: AppColor.gradientColors(context),
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(30),
                   bottomRight: Radius.circular(30),
                 ),
@@ -268,50 +268,49 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 28),
 
-                  // LOGIN BUTTON — gradient style
-                  Container(
-                    width: double.infinity,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppColor.gradien1, AppColor.gradien2],
-                      ),
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColor.gradien2.withValues(alpha: 0.35),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
+                  // LOGIN BUTTON
+                  GestureDetector(
+                    onTap: isLoading ? null : loginUser,
+                    child: Container(
+                      width: double.infinity,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColor.gradien1, AppColor.gradien2],
                         ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: AppColor.isDark(context)
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: AppColor.gradien2.withValues(
+                                    alpha: 0.35,
+                                  ),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                       ),
-                      onPressed: isLoading ? null : loginUser,
-                      child: isLoading
-                          ? const SizedBox(
-                              height: 22,
-                              width: 22,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.5,
+                      child: Center(
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Text(
+                                "MASUK",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  letterSpacing: 1.5,
+                                ),
                               ),
-                            )
-                          : const Text(
-                              "MASUK",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                letterSpacing: 1.5,
-                              ),
-                            ),
+                      ),
                     ),
                   ),
 
@@ -385,10 +384,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           );
                         },
-                        child: const Text(
+                        child: Text(
                           "Daftar",
                           style: TextStyle(
-                            color: AppColor.gradien2,
+                            color: AppColor.accentColor(context),
                             fontWeight: FontWeight.bold,
                           ),
                         ),

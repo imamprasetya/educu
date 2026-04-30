@@ -53,13 +53,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     }
 
-    return CircleAvatar(
-      radius: 35,
-      backgroundColor: const Color(0xFF6C7AE0),
-      backgroundImage: imageProvider,
-      child: imageProvider == null
-          ? const Icon(Icons.person, color: Colors.white, size: 30)
-          : null,
+    return GestureDetector(
+      onLongPress: () {
+        if (imageProvider != null) {
+          _showFullPhoto(imageProvider);
+        }
+      },
+      child: CircleAvatar(
+        radius: 35,
+        backgroundColor: const Color(0xFF6C7AE0),
+        backgroundImage: imageProvider,
+        child: imageProvider == null
+            ? const Icon(Icons.person, color: Colors.white, size: 30)
+            : null,
+      ),
+    );
+  }
+
+  // Show full profile photo in a dialog
+  void _showFullPhoto(ImageProvider image) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image(
+                  image: image,
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "Ketuk untuk menutup",
+                style: TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
