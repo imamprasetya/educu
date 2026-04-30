@@ -28,9 +28,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   // GENERATE WEEK
   void generateWeek() {
-    DateTime now = DateTime.now();
+    DateTime base = selectedDate;
 
-    DateTime monday = now.subtract(Duration(days: now.weekday - 1));
+    DateTime monday = base.subtract(Duration(days: base.weekday - 1));
 
     weekDays = [];
 
@@ -368,7 +368,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       backgroundColor: AppColor.scaffoldColor(context),
 
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(120),
+        preferredSize: const Size.fromHeight(150),
 
         child: Container(
           padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
@@ -388,21 +388,57 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             ),
           ),
 
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Jadwal Belajar",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Jadwal Belajar",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () async {
+                      final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: AppColor.isDark(context)
+                                  ? const ColorScheme.dark(
+                                      primary: Color(0xFF4D6FFF),
+                                      surface: Color(0xFF1E1E3A),
+                                    )
+                                  : const ColorScheme.light(
+                                      primary: Color(0xFF4D6FFF),
+                                    ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (picked != null && picked != selectedDate) {
+                        setState(() {
+                          selectedDate = picked;
+                          generateWeek();
+                        });
+                        loadSchedule();
+                      }
+                    },
+                    icon: const Icon(Icons.calendar_month, color: Colors.white),
+                  ),
+                ],
               ),
-
-              SizedBox(height: 5),
-
-              Text(
+              const SizedBox(height: 5),
+              const Text(
                 "Rencanakan hari ini, sukses esok hari.",
                 style: TextStyle(color: Colors.white70),
               ),
