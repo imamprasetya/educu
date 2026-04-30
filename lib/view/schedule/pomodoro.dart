@@ -294,8 +294,9 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   }
 
   // RESET
-  void resetTimer() {
+  void resetTimer() async {
     FlutterForegroundTask.sendDataToTask({'action': 'reset'});
+    await _stopService();
     setState(() {
       totalElapsed = 0;
       currentCycle = 1;

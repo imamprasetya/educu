@@ -298,16 +298,78 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   // logout setelah register agar user login sendiri
                                   await FirebaseService.signOut();
 
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Registrasi Berhasil! Silakan login.",
+                                  clearForm();
+
+                                  if (!mounted) return;
+
+                                  // Tampilkan dialog verifikasi email
+                                  await showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (ctx) => AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
                                       ),
-                                      backgroundColor: Colors.green,
+                                      title: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.mark_email_read_outlined,
+                                            color: AppColor.gradien2,
+                                            size: 28,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Text(
+                                              "Verifikasi Email",
+                                              style: TextStyle(
+                                                color: AppColor.textPrimary(context),
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            "Kami telah mengirim link verifikasi ke:",
+                                            style: TextStyle(
+                                              color: AppColor.textSecondary(context),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            emailController.text.isNotEmpty
+                                                ? emailController.text.trim()
+                                                : "email Anda",
+                                            style: TextStyle(
+                                              color: AppColor.textPrimary(context),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            "Silakan buka email Anda dan klik link verifikasi sebelum login.",
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              color: AppColor.textSecondary(context),
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx),
+                                          child: const Text("OK, MENGERTI"),
+                                        ),
+                                      ],
                                     ),
                                   );
 
-                                  clearForm();
+                                  if (!mounted) return;
 
                                   // navigate ke login
                                   Navigator.pushReplacement(

@@ -59,8 +59,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-
-
   // Hapus foto
   void _removePhoto() {
     setState(() {

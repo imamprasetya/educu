@@ -12,6 +12,7 @@ class FirebaseService {
   // ==================== AUTH ====================
 
   // Register user dengan email & password, simpan profil ke Firestore
+  // Otomatis kirim email verifikasi setelah registrasi
   static Future<UserModel> registerUser({
     required String email,
     required String password,
@@ -26,7 +27,27 @@ class FirebaseService {
     final model = UserModel(uid: user.uid, email: email, name: name);
 
     await _firestore.collection('users').doc(user.uid).set(model.toMap());
+
+    // Kirim email verifikasi
+    await user.sendEmailVerification();
+
     return model;
+  }
+
+  // Kirim ulang email verifikasi
+  static Future<void> resendEmailVerification() async {
+    final user = _auth.currentUser;
+    if (user != null && !user.emailVerified) {
+      await user.sendEmailVerification();
+    }
+  }
+
+  // Cek apakah email sudah terverifikasi
+  static Future<bool> isEmailVerified() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+    await user.reload();
+    return user.emailVerified;
   }
 
   // Login user dengan email & password, ambil profil dari Firestore
@@ -70,6 +91,32 @@ class FirebaseService {
   // Logout
   static Future<void> signOut() async {
     await _auth.signOut();
+  }
+
+  // Kirim email reset password
+  static Future<void> sendPasswordReset(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  // Ganti password (perlu re-authenticate dulu)
+  static Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null || user.email == null) {
+      throw Exception('User tidak ditemukan');
+    }
+
+    // Re-authenticate dengan password lama
+    final credential = EmailAuthProvider.credential(
+      email: user.email!,
+      password: oldPassword,
+    );
+    await user.reauthenticateWithCredential(credential);
+
+    // Update ke password baru
+    await user.updatePassword(newPassword);
   }
 
   // Update profil user di Firestore

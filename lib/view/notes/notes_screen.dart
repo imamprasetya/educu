@@ -105,15 +105,6 @@ class _NotesScreenState extends State<NotesScreen> {
               children: [
                 Row(
                   children: [
-                    IconButton(
-                      onPressed: () async {
-                        Navigator.pop(context);
-                      },
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    ),
-
-                    const SizedBox(width: 15),
-
                     const Text(
                       "Catatan Saya",
                       style: TextStyle(

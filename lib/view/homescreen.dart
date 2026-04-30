@@ -1,6 +1,7 @@
 import 'package:educu_project/constant/app_color.dart';
 import 'package:educu_project/models/user_model.dart';
 import 'package:educu_project/view/home_content.dart';
+import 'package:educu_project/view/notes/notes_screen.dart';
 import 'package:educu_project/view/schedule/schedule.dart';
 import 'package:educu_project/view/profile/profile.dart';
 import 'package:educu_project/view/programs/program.dart';
@@ -28,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
       HomeContent(user: widget.user),
       const ScheduleScreen(),
       const ProgramScreen(),
+      const NotesScreen(),
       ProfileScreen(user: widget.user),
     ];
   }
@@ -65,6 +67,11 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.menu_book),
             label: "Program",
+          ),
+
+          BottomNavigationBarItem(
+            icon: Icon(Icons.sticky_note_2_outlined),
+            label: "Catatan",
           ),
 
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),

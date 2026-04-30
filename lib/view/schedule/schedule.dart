@@ -144,6 +144,72 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
+  // DIALOG: Belum waktunya
+  Future<bool?> _showStartTimeDialog(DateTime startTime) {
+    final List<String> months = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+
+    final dateStr = "${startTime.day} ${months[startTime.month - 1]} ${startTime.year}";
+    final timeStr = "${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}";
+
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Icon(Icons.info_outline, size: 50, color: Colors.blue),
+        content: Text(
+          "Jadwal ini belum waktunya ($dateStr pukul $timeStr).\nTetap ingin mulai belajar sekarang?",
+          textAlign: TextAlign.center,
+          style: TextStyle(color: AppColor.textPrimary(context)),
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              "Batal",
+              style: TextStyle(color: AppColor.textHint(context)),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4D6FFF),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text("Lanjut", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper parse time "08:00" atau "08:00 PM"
+  DateTime? _parseTime(String time, DateTime baseDate) {
+    try {
+      final cleaned = time.trim();
+
+      if (cleaned.contains(':')) {
+        final parts = cleaned.split(':');
+        int hour = int.parse(parts[0]);
+
+        // Handle AM/PM
+        if (cleaned.toLowerCase().contains('pm') && hour != 12) hour += 12;
+        if (cleaned.toLowerCase().contains('am') && hour == 12) hour = 0;
+
+        final minute = int.parse(parts[1].replaceAll(RegExp(r'[^0-9]'), ''));
+        return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   // CARD JADWAL
   Widget scheduleCard(Map<String, dynamic> data) {
     final bool isCompleted = data["completed"] == true;
@@ -257,6 +323,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       _showPomodoroRunningDialog();
                       return;
                     }
+                  }
+
+                  // Check if it's too early
+                  final startTimeStr = data["startTime"] ?? "";
+                  final startTime = _parseTime(startTimeStr, selectedDate);
+                  if (startTime != null && DateTime.now().isBefore(startTime)) {
+                    final proceed = await _showStartTimeDialog(startTime);
+                    if (proceed != true) return;
                   }
 
                   final result = await Navigator.push(

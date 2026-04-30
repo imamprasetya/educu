@@ -5,7 +5,7 @@ import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/services/notification_service.dart';
 import 'package:educu_project/constant/theme_notifier.dart';
 import 'package:educu_project/view/auth/login.dart';
-import 'package:educu_project/view/notes/notes_screen.dart';
+import 'package:educu_project/view/profile/change_password.dart';
 import 'package:educu_project/view/profile/edit_profile.dart';
 import 'package:flutter/material.dart';
 import '../../constant/app_color.dart';
@@ -585,8 +585,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Divider(height: 1, color: AppColor.borderColor(context)),
 
                   settingItem(
-                    icon: Icons.notes,
-                    title: "Catatan",
+                    icon: Icons.lock_outline,
+                    title: "Kata sandi dan keamanan",
                     trailing: Icon(
                       Icons.chevron_right,
                       color: AppColor.iconColor(context),
@@ -595,7 +595,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const NotesScreen(),
+                          builder: (context) => const ChangePasswordScreen(),
                         ),
                       );
                     },

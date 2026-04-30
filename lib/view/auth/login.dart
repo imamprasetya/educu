@@ -38,6 +38,91 @@ class _LoginScreenState extends State<LoginScreen> {
         password: passwordController.text,
       );
 
+      // Cek apakah email sudah terverifikasi
+      final verified = await FirebaseService.isEmailVerified();
+      if (!verified) {
+        if (!mounted) return;
+
+        // Tampilkan dialog verifikasi
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.orange,
+                  size: 28,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    "Email Belum Diverifikasi",
+                    style: TextStyle(
+                      color: AppColor.textPrimary(context),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 17,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              "Silakan cek email Anda dan klik link verifikasi terlebih dahulu sebelum login.",
+              style: TextStyle(color: AppColor.textSecondary(context)),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () async {
+                  try {
+                    // Re-login dulu untuk bisa kirim ulang verifikasi
+                    await FirebaseService.loginUser(
+                      email: emailController.text.trim(),
+                      password: passwordController.text,
+                    );
+                    await FirebaseService.resendEmailVerification();
+                    await FirebaseService.signOut();
+                    if (ctx.mounted) Navigator.pop(ctx);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Email verifikasi telah dikirim ulang"),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (ctx.mounted) Navigator.pop(ctx);
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            "Gagal mengirim ulang. Coba lagi nanti.",
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: const Text("KIRIM ULANG"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+
+        // Logout karena belum terverifikasi
+        await FirebaseService.signOut();
+        return;
+      }
+
       await PreferenceHandler().storingIsLogin(true);
       await PreferenceHandler().storingUserId(user.uid!);
 
@@ -95,6 +180,135 @@ class _LoginScreenState extends State<LoginScreen> {
             child: const Text("OK"),
           ),
         ],
+      ),
+    );
+  }
+
+  // DIALOG LUPA PASSWORD
+  void _showForgotPasswordDialog() {
+    final resetEmailController = TextEditingController(
+      text: emailController.text.trim(),
+    );
+    bool isSending = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.lock_reset, color: AppColor.gradien2, size: 28),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  "Lupa Password",
+                  style: TextStyle(
+                    color: AppColor.textPrimary(context),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Masukkan email Anda, kami akan mengirim link untuk mereset password.",
+                style: TextStyle(
+                  color: AppColor.textSecondary(context),
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: resetEmailController,
+                style: TextStyle(color: AppColor.textPrimary(context)),
+                decoration: InputDecoration(
+                  prefixIcon: Icon(
+                    Icons.email_outlined,
+                    color: AppColor.iconColor(context),
+                  ),
+                  hintText: "Masukkan email Anda",
+                  hintStyle: TextStyle(color: AppColor.textHint(context)),
+                  filled: true,
+                  fillColor: AppColor.inputFill(context),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                "BATAL",
+                style: TextStyle(color: AppColor.textHint(context)),
+              ),
+            ),
+            TextButton(
+              onPressed: isSending
+                  ? null
+                  : () async {
+                      final email = resetEmailController.text.trim();
+                      if (email.isEmpty || !email.contains("@")) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Masukkan email yang valid"),
+                          ),
+                        );
+                        return;
+                      }
+
+                      setDialogState(() => isSending = true);
+
+                      try {
+                        await FirebaseService.sendPasswordReset(email);
+                        if (ctx.mounted) Navigator.pop(ctx);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "Link reset password telah dikirim ke email Anda",
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        setDialogState(() => isSending = false);
+                        String msg = "Gagal mengirim email reset";
+                        if (e.toString().contains("user-not-found")) {
+                          msg = "Email tidak terdaftar";
+                        } else if (e.toString().contains("invalid-email")) {
+                          msg = "Format email tidak valid";
+                        } else if (e.toString().contains("too-many-requests")) {
+                          msg = "Terlalu banyak percobaan. Coba lagi nanti";
+                        }
+                        if (mounted) {
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(msg)));
+                        }
+                      }
+                    },
+              child: isSending
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text("KIRIM"),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -266,7 +480,25 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 15),
+
+                  //Lupa Password
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () => _showForgotPasswordDialog(),
+                      child: Text(
+                        "Lupa Password?",
+                        style: TextStyle(
+                          color: AppColor.accentColor(context),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
 
                   // LOGIN BUTTON
                   GestureDetector(
@@ -314,7 +546,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 16),
 
                   // OR SIGN IN WITH
                   Row(
