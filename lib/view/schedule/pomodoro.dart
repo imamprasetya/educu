@@ -1,9 +1,8 @@
 import 'dart:async';
+import 'package:educu_project/database/preference.dart';
 import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/services/notification_service.dart';
-import 'package:educu_project/services/pomodoro_task_handler.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../../constant/app_color.dart';
 
 class PomodoroScreen extends StatefulWidget {
@@ -27,10 +26,16 @@ class PomodoroScreen extends StatefulWidget {
 }
 
 class _PomodoroScreenState extends State<PomodoroScreen> {
-  // Pomodoro constants (for display only, logic is in TaskHandler)
+  // Pomodoro constants
+  static const int studyDuration = 25 * 60;
+  static const int shortBreakDuration = 5 * 60;
+  static const int longBreakDuration = 20 * 60;
   static const int cyclesBeforeLongBreak = 4;
 
-  // UI state — updated from foreground service
+  // Timer logic
+  Timer? _timer;
+
+  // UI state
   int phaseTimeLeft = 0;
   int phaseTotalTime = 0;
   int totalElapsed = 0;
@@ -42,48 +47,127 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   bool isAllCompleted = false;
   bool hasStarted = false;
 
-  // Track previous break state for notification triggering
-  bool _prevIsBreak = false;
-  bool _prevIsAllCompleted = false;
-
   @override
   void initState() {
     super.initState();
     totalDurationSeconds = _calcTotalDuration();
-    phaseTimeLeft = totalDurationSeconds < 25 * 60
-        ? totalDurationSeconds
-        : 25 * 60;
-    phaseTotalTime = phaseTimeLeft;
+    
+    // Setup initial phase
+    _setupPhase(study: true);
+    
+    // Save params for recovery
+    PreferenceHandler().savePomodoroParams(
+      subject: widget.subject,
+      topic: widget.topic,
+      sessionId: widget.sessionId,
+      startTime: widget.startTime,
+      endTime: widget.endTime,
+    );
+  }
 
-    FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
+  void _setupPhase({required bool study}) {
+    if (study) {
+      isBreak = false;
+      isLongBreak = false;
+      int remaining = totalDurationSeconds - totalElapsed;
+      if (remaining <= 0) {
+        isAllCompleted = true;
+        isPaused = true;
+        phaseTimeLeft = 0;
+        return;
+      }
+      phaseTotalTime = remaining < studyDuration ? remaining : studyDuration;
+      phaseTimeLeft = phaseTotalTime;
+    } else {
+      isBreak = true;
+      if (currentCycle >= cyclesBeforeLongBreak) {
+        isLongBreak = true;
+        phaseTotalTime = longBreakDuration;
+      } else {
+        isLongBreak = false;
+        phaseTotalTime = shortBreakDuration;
+      }
+      int remaining = totalDurationSeconds - totalElapsed;
+      if (remaining <= 0) {
+        // No more schedule time, but we can still have a break? 
+        // Usually, if schedule ends, we end.
+        isAllCompleted = true;
+        isPaused = true;
+        phaseTimeLeft = 0;
+        return;
+      }
+      phaseTimeLeft = phaseTotalTime;
+    }
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initForegroundService();
+  void _tick() {
+    if (isPaused || isAllCompleted) return;
+
+    setState(() {
+      if (phaseTimeLeft > 0) {
+        phaseTimeLeft--;
+        if (!isBreak) {
+          totalElapsed++;
+        }
+
+        // Check if total schedule time is exhausted during study
+        if (!isBreak && totalElapsed >= totalDurationSeconds) {
+          isAllCompleted = true;
+          isPaused = true;
+          phaseTimeLeft = 0;
+          _stopTimer();
+          _showCompletedDialog();
+          return;
+        }
+      } else {
+        // Phase ended
+        _onPhaseEnd();
+      }
     });
   }
 
-  /// Initialize the foreground service configuration
-  void _initForegroundService() {
-    FlutterForegroundTask.init(
-      androidNotificationOptions: AndroidNotificationOptions(
-        channelId: 'educu_pomodoro_service',
-        channelName: 'Pomodoro Timer',
-        channelDescription: 'Timer Pomodoro berjalan di background',
-        onlyAlertOnce: true,
-        playSound: false,
-        enableVibration: false,
-      ),
-      iosNotificationOptions: const IOSNotificationOptions(
-        showNotification: false,
-        playSound: false,
-      ),
-      foregroundTaskOptions: ForegroundTaskOptions(
-        eventAction: ForegroundTaskEventAction.nothing(),
-        autoRunOnBoot: false,
-        allowWakeLock: true,
-        allowWifiLock: false,
-      ),
-    );
+  void _onPhaseEnd() {
+    if (isBreak) {
+      // Break finished → start study
+      if (isLongBreak) {
+        currentCycle = 1;
+      } else {
+        currentCycle++;
+      }
+      _setupPhase(study: true);
+
+      if (!isAllCompleted) {
+        NotificationService().showPomodoroStudy(subject: widget.subject);
+      }
+    } else {
+      // Study finished → check remaining time
+      int remaining = totalDurationSeconds - totalElapsed;
+      if (remaining <= 0) {
+        isAllCompleted = true;
+        isPaused = true;
+        phaseTimeLeft = 0;
+        _stopTimer();
+        _showCompletedDialog();
+        return;
+      }
+
+      // Start break
+      _setupPhase(study: false);
+      NotificationService().showPomodoroBreak(
+        subject: widget.subject,
+        isLongBreak: isLongBreak,
+      );
+    }
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) => _tick());
+  }
+
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
   }
 
   /// Calculate total duration from startTime - endTime
@@ -118,104 +202,6 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
       return DateTime(2000, 1, 1, hour, minute);
     } catch (_) {
       return null;
-    }
-  }
-
-  /// Callback receiving state from the foreground TaskHandler
-  void _onReceiveTaskData(Object data) {
-    if (data is Map<String, dynamic>) {
-      if (!mounted) return;
-
-      final newIsBreak = data['isBreak'] as bool? ?? false;
-      final newIsLongBreak = data['isLongBreak'] as bool? ?? false;
-      final newIsAllCompleted = data['isAllCompleted'] as bool? ?? false;
-
-      // Trigger notifications on phase transitions
-      if (hasStarted) {
-        // Went from study → break
-        if (newIsBreak && !_prevIsBreak) {
-          NotificationService().showPomodoroBreak(
-            subject: widget.subject,
-            isLongBreak: newIsLongBreak,
-          );
-        }
-        // Went from break → study
-        if (!newIsBreak && _prevIsBreak && !newIsAllCompleted) {
-          NotificationService().showPomodoroStudy(subject: widget.subject);
-        }
-        // All completed
-        if (newIsAllCompleted && !_prevIsAllCompleted) {
-          _showCompletedDialog();
-        }
-      }
-
-      setState(() {
-        phaseTimeLeft = data['phaseTimeLeft'] as int? ?? 0;
-        phaseTotalTime = data['phaseTotalTime'] as int? ?? 0;
-        totalElapsed = data['totalElapsed'] as int? ?? 0;
-        totalDurationSeconds = data['totalDurationSeconds'] as int? ?? 3600;
-        currentCycle = data['currentCycle'] as int? ?? 1;
-        isBreak = newIsBreak;
-        isLongBreak = newIsLongBreak;
-        isPaused = data['isPaused'] as bool? ?? true;
-        isAllCompleted = newIsAllCompleted;
-
-        _prevIsBreak = newIsBreak;
-        _prevIsAllCompleted = newIsAllCompleted;
-      });
-    }
-  }
-
-  /// Start the foreground service
-  Future<void> _startService() async {
-    // Save config for the task handler
-    await FlutterForegroundTask.saveData(
-        key: 'totalDurationSeconds', value: totalDurationSeconds);
-    await FlutterForegroundTask.saveData(
-        key: 'subject', value: widget.subject);
-    await FlutterForegroundTask.saveData(
-        key: 'totalElapsed', value: totalElapsed);
-    await FlutterForegroundTask.saveData(
-        key: 'currentCycle', value: currentCycle);
-    await FlutterForegroundTask.saveData(
-        key: 'phaseTimeLeft', value: phaseTimeLeft);
-    await FlutterForegroundTask.saveData(
-        key: 'phaseTotalTime', value: phaseTotalTime);
-    await FlutterForegroundTask.saveData(key: 'isBreak', value: isBreak);
-    await FlutterForegroundTask.saveData(
-        key: 'isLongBreak', value: isLongBreak);
-    await FlutterForegroundTask.saveData(key: 'isPaused', value: false);
-
-    // Save session params for cold-start recovery
-    await FlutterForegroundTask.saveData(
-        key: 'topic', value: widget.topic);
-    await FlutterForegroundTask.saveData(
-        key: 'sessionId', value: widget.sessionId ?? '');
-    await FlutterForegroundTask.saveData(
-        key: 'startTime', value: widget.startTime);
-    await FlutterForegroundTask.saveData(
-        key: 'endTime', value: widget.endTime);
-
-    if (await FlutterForegroundTask.isRunningService) {
-      await FlutterForegroundTask.restartService();
-    } else {
-      await FlutterForegroundTask.startService(
-        serviceId: 888,
-        notificationTitle: '📖 ${widget.subject} — Belajar',
-        notificationText: 'Memulai timer Pomodoro...',
-        notificationButtons: [
-          const NotificationButton(id: 'btn_pause_resume', text: 'Jeda/Lanjut'),
-        ],
-        notificationInitialRoute: '/pomodoro',
-        callback: startPomodoroCallback,
-      );
-    }
-  }
-
-  /// Stop the foreground service
-  Future<void> _stopService() async {
-    if (await FlutterForegroundTask.isRunningService) {
-      await FlutterForegroundTask.stopService();
     }
   }
 
@@ -264,24 +250,20 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   }
 
   // START / RESUME
-  void _onStart() async {
-    hasStarted = true;
-    if (await FlutterForegroundTask.isRunningService) {
-      FlutterForegroundTask.sendDataToTask({'action': 'resume'});
-    } else {
-      await _startService();
-    }
+  void _onStart() {
     setState(() {
+      hasStarted = true;
       isPaused = false;
     });
+    _startTimer();
   }
 
   // PAUSE
   void _onPause() {
-    FlutterForegroundTask.sendDataToTask({'action': 'pause'});
     setState(() {
       isPaused = true;
     });
+    _stopTimer();
   }
 
   // TOGGLE
@@ -294,9 +276,8 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   }
 
   // RESET
-  void resetTimer() async {
-    FlutterForegroundTask.sendDataToTask({'action': 'reset'});
-    await _stopService();
+  void resetTimer() {
+    _stopTimer();
     setState(() {
       totalElapsed = 0;
       currentCycle = 1;
@@ -305,11 +286,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
       hasStarted = false;
       isBreak = false;
       isLongBreak = false;
-      int initial = totalDurationSeconds < 25 * 60
-          ? totalDurationSeconds
-          : 25 * 60;
-      phaseTimeLeft = initial;
-      phaseTotalTime = initial;
+      _setupPhase(study: true);
     });
   }
 
@@ -321,7 +298,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
 
     NotificationService().scheduleAllNotifications();
 
-    await _stopService();
+    _stopTimer();
 
     setState(() {
       isPaused = true;
@@ -435,8 +412,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
 
   @override
   void dispose() {
-    FlutterForegroundTask.removeTaskDataCallback(_onReceiveTaskData);
-    // NOTE: We do NOT stop the service here — it keeps running in background
+    _stopTimer();
     super.dispose();
   }
 
@@ -578,8 +554,8 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                         color: completed
                             ? Colors.white
                             : isCurrent
-                                ? Colors.white.withValues(alpha: 0.8)
-                                : Colors.white.withValues(alpha: 0.3),
+                                ? Colors.white.withOpacity(0.8)
+                                : Colors.white.withOpacity(0.3),
                         border: isCurrent
                             ? Border.all(color: Colors.white, width: 2)
                             : null,
@@ -621,7 +597,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                       gradient: LinearGradient(colors: phaseGradient),
                       boxShadow: [
                         BoxShadow(
-                          color: phaseColor.withValues(alpha: 0.3),
+                          color: phaseColor.withOpacity(0.3),
                           blurRadius: 15,
                           spreadRadius: 2,
                         ),
@@ -650,7 +626,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                                   phaseLabel,
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: Colors.white.withValues(alpha: 0.8),
+                                    color: Colors.white.withOpacity(0.8),
                                   ),
                                 ),
                               ],

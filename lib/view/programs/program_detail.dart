@@ -3,7 +3,6 @@ import 'package:educu_project/models/session_model.dart';
 import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../../models/program_model.dart';
 
 class ProgramDetail extends StatefulWidget {
@@ -91,35 +90,6 @@ class _ProgramDetailState extends State<ProgramDetail> {
     }
   }
 
-  // DIALOG: Pomodoro sedang berjalan
-  void _showPomodoroRunningDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Icon(Icons.timer, size: 50, color: Colors.orange),
-        content: Text(
-          "Timer Pomodoro sedang berjalan!\nSelesaikan atau hentikan timer yang aktif terlebih dahulu.",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppColor.textPrimary(context)),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColor.gradien2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final program = widget.program;
@@ -192,11 +162,11 @@ class _ProgramDetailState extends State<ProgramDetail> {
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: AppColor.isDark(context)
-                            ? Colors.blue.withValues(alpha: 0.1)
-                            : Colors.blue.withValues(alpha: 0.1),
+                            ? Colors.blue.withOpacity(0.1)
+                            : Colors.blue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.blue.withValues(alpha: 0.3),
+                          color: Colors.blue.withOpacity(0.3),
                         ),
                       ),
                       child: Column(
@@ -373,7 +343,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
                             borderRadius: BorderRadius.circular(15),
                             border: Border.all(
                               color: session.completed
-                                  ? Colors.green.withValues(alpha: 0.4)
+                                  ? Colors.green.withOpacity(0.4)
                                   : AppColor.borderColor(context),
                             ),
                             boxShadow: [
@@ -482,7 +452,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.green.withValues(alpha: 0.15),
+                                    color: Colors.green.withOpacity(0.15),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: const Text(
@@ -508,15 +478,6 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                       ),
                                     ),
                                     onPressed: () async {
-                                      // Check if pomodoro is already running for a DIFFERENT session
-                                      if (await FlutterForegroundTask.isRunningService) {
-                                        final runningId = await FlutterForegroundTask.getData<String>(key: 'sessionId');
-                                        if (runningId != null && runningId != session.id) {
-                                          _showPomodoroRunningDialog();
-                                          return;
-                                        }
-                                      }
-
                                       final result = await Navigator.push(
                                         context,
                                         MaterialPageRoute(

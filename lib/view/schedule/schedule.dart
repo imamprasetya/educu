@@ -1,6 +1,5 @@
 import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../../constant/app_color.dart';
 import '../../services/firebase_service.dart';
 
@@ -115,35 +114,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // DIALOG: Pomodoro sedang berjalan
-  void _showPomodoroRunningDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Icon(Icons.timer, size: 50, color: Colors.orange),
-        content: Text(
-          "Timer Pomodoro sedang berjalan!\nSelesaikan atau hentikan timer yang aktif terlebih dahulu.",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppColor.textPrimary(context)),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4D6FFF),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
   // DIALOG: Belum waktunya
   Future<bool?> _showStartTimeDialog(DateTime startTime) {
     final List<String> months = [
@@ -222,7 +192,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         color: AppColor.cardColor(context),
         borderRadius: BorderRadius.circular(20),
         border: isCompleted
-            ? Border.all(color: Colors.green.withValues(alpha: 0.4))
+            ? Border.all(color: Colors.green.withOpacity(0.4))
             : null,
 
         boxShadow: [
@@ -284,7 +254,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
+                color: Colors.green.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(15),
               ),
               child: const Row(
@@ -316,15 +286,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ),
 
                 onPressed: () async {
-                  // Check if pomodoro is already running for a DIFFERENT session
-                  if (await FlutterForegroundTask.isRunningService) {
-                    final runningId = await FlutterForegroundTask.getData<String>(key: 'sessionId');
-                    if (runningId != null && runningId != data["id"]) {
-                      _showPomodoroRunningDialog();
-                      return;
-                    }
-                  }
-
                   // Check if it's too early
                   final startTimeStr = data["startTime"] ?? "";
                   final startTime = _parseTime(startTimeStr, selectedDate);

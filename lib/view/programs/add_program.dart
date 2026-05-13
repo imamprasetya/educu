@@ -174,6 +174,132 @@ class _AddProgramState extends State<AddProgram> {
     return false;
   }
 
+  // Cari tanggal yang tidak ada sesi
+  List<String> _getUncoveredDates() {
+    if (startController.text.isEmpty || endController.text.isEmpty) return [];
+
+    DateTime start = _parseDateIndo(startController.text);
+    DateTime end = _parseDateIndo(endController.text);
+
+    // Kumpulkan semua tanggal sesi (dalam format dd/MM/yyyy)
+    Set<String> sessionDates = {};
+    for (var s in sessions) {
+      if (s.dateController.text.isNotEmpty) {
+        sessionDates.add(s.dateController.text);
+      }
+    }
+
+    // Cari tanggal yang tidak terisi
+    List<String> uncovered = [];
+    DateTime current = start;
+    while (!current.isAfter(end)) {
+      String formatted = _formatDateIndo(current);
+      if (!sessionDates.contains(formatted)) {
+        uncovered.add(formatted);
+      }
+      current = current.add(const Duration(days: 1));
+    }
+
+    return uncovered;
+  }
+
+  // Dialog konfirmasi tanggal kosong
+  Future<bool> _showUncoveredDatesDialog(List<String> uncoveredDates) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  "Tanggal Kosong",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Ada ${uncoveredDates.length} tanggal yang belum memiliki sesi:",
+                style: TextStyle(color: AppColor.textSecondary(context)),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                constraints: const BoxConstraints(maxHeight: 200),
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: uncoveredDates.map((date) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.orange.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Text(
+                          date,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "Apakah Anda tetap ingin menyimpan?",
+                style: TextStyle(
+                  color: AppColor.textPrimary(context),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("Batal"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColor.gradien1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                "Tetap Simpan",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+    return result ?? false;
+  }
+
   // save data program dan session
   Future<void> _submitAndExit() async {
     if (_hasConflictingSessions()) {
@@ -183,6 +309,13 @@ class _AddProgramState extends State<AddProgram> {
         ),
       );
       return;
+    }
+
+    // Cek tanggal yang tidak ada sesi
+    final uncoveredDates = _getUncoveredDates();
+    if (uncoveredDates.isNotEmpty) {
+      final confirmed = await _showUncoveredDatesDialog(uncoveredDates);
+      if (!confirmed) return;
     }
 
     // ambil user id yang sedang login dari Firebase

@@ -83,6 +83,16 @@ class FirebaseService {
     return UserModel(uid: user.uid, email: user.email, name: '');
   }
 
+  // Ambil stream data user untuk real-time update
+  static Stream<UserModel?> getUserStream(String uid) {
+    return _firestore.collection('users').doc(uid).snapshots().map((doc) {
+      if (doc.exists) {
+        return UserModel.fromMap(doc.data()!);
+      }
+      return null;
+    });
+  }
+
   // Get current Firebase Auth UID
   static String? getCurrentUid() {
     return _auth.currentUser?.uid;

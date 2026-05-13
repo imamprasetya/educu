@@ -4,7 +4,6 @@ import 'package:educu_project/models/user_model.dart';
 import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import '../constant/app_color.dart';
 
 class HomeContent extends StatefulWidget {
@@ -113,84 +112,94 @@ class _HomeContentState extends State<HomeContent> {
     return Scaffold(
       backgroundColor: AppColor.scaffoldColor(context),
 
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // header
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: AppColor.isDark(context)
-                      ? [AppColor.darkSurface, AppColor.darkCard]
-                      : [AppColor.gradien1, AppColor.gradien2],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(25),
-                  bottomRight: Radius.circular(25),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      widget.user.photoBase64 != null
-                          ? CircleAvatar(
-                              radius: 22,
-                              backgroundImage: MemoryImage(
-                                base64Decode(widget.user.photoBase64!),
-                              ),
-                            )
-                          : const CircleAvatar(
-                              radius: 22,
-                              backgroundColor: Colors.white30,
-                              child: Icon(Icons.person, color: Colors.white),
-                            ),
-                      const SizedBox(width: 10),
+      body: StreamBuilder<UserModel?>(
+        stream: widget.user.uid != null 
+          ? FirebaseService.getUserStream(widget.user.uid!) 
+          : null,
+        initialData: widget.user,
+        builder: (context, snapshot) {
+          final user = snapshot.data ?? widget.user;
+          final userName = user.name ?? "User";
+          final photoBase64 = user.photoBase64;
 
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                // header
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: AppColor.isDark(context)
+                          ? [AppColor.darkSurface, AppColor.darkCard]
+                          : [AppColor.gradien1, AppColor.gradien2],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(25),
+                      bottomRight: Radius.circular(25),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
-                          const Text(
-                            "Selamat datang kembali",
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                          Text(
-                            userName,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          photoBase64 != null
+                              ? CircleAvatar(
+                                  radius: 22,
+                                  backgroundImage: MemoryImage(
+                                    base64Decode(photoBase64),
+                                  ),
+                                )
+                              : const CircleAvatar(
+                                  radius: 22,
+                                  backgroundColor: Colors.white30,
+                                  child: Icon(Icons.person, color: Colors.white),
+                                ),
+                          const SizedBox(width: 10),
+
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                "Selamat datang kembali",
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              Text(
+                                userName,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
+
+                      const SizedBox(height: 15),
+
+                      Text(
+                        "${_getGreeting()}, $userName 👋",
+                        style: const TextStyle(
+                          fontSize: 20,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 5),
+
+                      const Text(
+                        "Siap untuk belajar hari ini?",
+                        style: TextStyle(color: Colors.white70),
+                      ),
                     ],
                   ),
-
-                  const SizedBox(height: 15),
-
-                  Text(
-                    "${_getGreeting()}, $userName 👋",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 5),
-
-                  const Text(
-                    "Siap untuk belajar hari ini?",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                ],
-              ),
-            ),
+                ),
 
             const SizedBox(height: 20),
 
@@ -356,9 +365,11 @@ class _HomeContentState extends State<HomeContent> {
             const SizedBox(height: 30),
           ],
         ),
-      ),
-    );
-  }
+      );
+    },
+  ),
+);
+}
 
   // stat item widget
   Widget _statItem(IconData icon, Color color, String label, String value) {
@@ -366,7 +377,7 @@ class _HomeContentState extends State<HomeContent> {
       children: [
         CircleAvatar(
           radius: 22,
-          backgroundColor: color.withValues(alpha: 0.15),
+          backgroundColor: color.withOpacity(0.15),
           child: Icon(icon, color: color, size: 22),
         ),
         const SizedBox(height: 8),
@@ -399,35 +410,6 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-  // DIALOG: Pomodoro sedang berjalan
-  void _showPomodoroRunningDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Icon(Icons.timer, size: 50, color: Colors.orange),
-        content: Text(
-          "Timer Pomodoro sedang berjalan!\nSelesaikan atau hentikan timer yang aktif terlebih dahulu.",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppColor.textPrimary(context)),
-        ),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK", style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
   // schedule card (from Firebase data)
   Widget scheduleCard(
     String subject,
@@ -445,7 +427,7 @@ class _HomeContentState extends State<HomeContent> {
         color: AppColor.cardColor(context),
         borderRadius: BorderRadius.circular(18),
         border: isCompleted
-            ? Border.all(color: Colors.green.withValues(alpha: 0.4))
+            ? Border.all(color: Colors.green.withOpacity(0.4))
             : null,
         boxShadow: [
           BoxShadow(
@@ -510,7 +492,7 @@ class _HomeContentState extends State<HomeContent> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.15),
+                color: Colors.green.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Row(
@@ -539,15 +521,6 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ),
               onPressed: () async {
-                // Check if pomodoro is already running for a DIFFERENT session
-                if (await FlutterForegroundTask.isRunningService) {
-                  final runningId = await FlutterForegroundTask.getData<String>(key: 'sessionId');
-                  if (runningId != null && runningId != data["id"]) {
-                    _showPomodoroRunningDialog();
-                    return;
-                  }
-                }
-
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(

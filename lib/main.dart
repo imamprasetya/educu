@@ -1,4 +1,4 @@
-import 'dart:math';
+
 
 import 'package:educu_project/constant/theme_notifier.dart';
 import 'package:educu_project/database/preference.dart';
@@ -9,13 +9,9 @@ import 'package:educu_project/view/splash_screen.dart';
 import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize foreground task communication port
-  FlutterForegroundTask.initCommunicationPort();
 
   await PreferenceHandler().init();
 
@@ -51,50 +47,11 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    FlutterForegroundTask.addTaskDataCallback(_onReceiveTaskData);
   }
 
   @override
   void dispose() {
-    FlutterForegroundTask.removeTaskDataCallback(_onReceiveTaskData);
     super.dispose();
-  }
-
-  /// Handle data from the foreground service — navigate on notification tap
-  void _onReceiveTaskData(Object data) {
-    if (data is Map<String, dynamic>) {
-      final action = data['action'] as String?;
-      if (action == 'navigate_pomodoro') {
-        _navigateToPomodoro();
-      }
-    }
-  }
-
-  /// Navigate to PomodoroScreen using saved session data
-  Future<void> _navigateToPomodoro() async {
-    final navigator = MyApp.navigatorKey.currentState;
-    if (navigator == null) return;
-
-    final subject = await FlutterForegroundTask.getData<String>(key: 'subject');
-    final topic = await FlutterForegroundTask.getData<String>(key: 'topic');
-    final sessionId =
-        await FlutterForegroundTask.getData<String>(key: 'sessionId');
-    final startTime =
-        await FlutterForegroundTask.getData<String>(key: 'startTime');
-    final endTime =
-        await FlutterForegroundTask.getData<String>(key: 'endTime');
-
-    navigator.push(
-      MaterialPageRoute(
-        builder: (_) => PomodoroScreen(
-          subject: subject ?? 'Belajar',
-          topic: topic ?? '',
-          sessionId: (sessionId?.isNotEmpty ?? false) ? sessionId : null,
-          startTime: startTime ?? '08:00',
-          endTime: endTime ?? '09:00',
-        ),
-      ),
-    );
   }
 
   @override
@@ -137,7 +94,7 @@ class _MyAppState extends State<MyApp> {
               }),
               trackColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return const Color(0xFF4388FF).withValues(alpha: 0.4);
+                  return const Color(0xFF4388FF).withOpacity(0.4);
                 }
                 return Colors.grey.shade300;
               }),
@@ -183,7 +140,7 @@ class _MyAppState extends State<MyApp> {
               }),
               trackColor: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return const Color(0xFF4D8CFF).withValues(alpha: 0.4);
+                  return const Color(0xFF4D8CFF).withOpacity(0.4);
                 }
                 return Colors.grey.shade700;
               }),
@@ -216,28 +173,16 @@ class _MyAppState extends State<MyApp> {
           home: const SplashScreen(),
           onGenerateRoute: (settings) {
             if (settings.name == '/pomodoro') {
-              // Cold-start from notification: build PomodoroScreen asynchronously
+              final params = PreferenceHandler().getPomodoroParams();
               return MaterialPageRoute(
-                builder: (_) => FutureBuilder(
-                  future: _loadPomodoroParams(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done &&
-                        snapshot.hasData) {
-                      final params = snapshot.data as Map<String, String>;
-                      return PomodoroScreen(
-                        subject: params['subject'] ?? 'Belajar',
-                        topic: params['topic'] ?? '',
-                        sessionId: (params['sessionId']?.isNotEmpty ?? false)
-                            ? params['sessionId']
-                            : null,
-                        startTime: params['startTime'] ?? '08:00',
-                        endTime: params['endTime'] ?? '09:00',
-                      );
-                    }
-                    return const Scaffold(
-                      body: Center(child: CircularProgressIndicator()),
-                    );
-                  },
+                builder: (_) => PomodoroScreen(
+                  subject: params['subject'] ?? 'Belajar',
+                  topic: params['topic'] ?? '',
+                  sessionId: (params['sessionId']?.isNotEmpty ?? false)
+                      ? params['sessionId']
+                      : null,
+                  startTime: params['startTime'] ?? '08:00',
+                  endTime: params['endTime'] ?? '09:00',
                 ),
               );
             }
@@ -246,26 +191,5 @@ class _MyAppState extends State<MyApp> {
         );
       },
     );
-  }
-
-  /// Load saved pomodoro session params for cold-start route
-  Future<Map<String, String>> _loadPomodoroParams() async {
-    final subject =
-        await FlutterForegroundTask.getData<String>(key: 'subject') ?? 'Belajar';
-    final topic =
-        await FlutterForegroundTask.getData<String>(key: 'topic') ?? '';
-    final sessionId =
-        await FlutterForegroundTask.getData<String>(key: 'sessionId') ?? '';
-    final startTime =
-        await FlutterForegroundTask.getData<String>(key: 'startTime') ?? '08:00';
-    final endTime =
-        await FlutterForegroundTask.getData<String>(key: 'endTime') ?? '09:00';
-    return {
-      'subject': subject,
-      'topic': topic,
-      'sessionId': sessionId,
-      'startTime': startTime,
-      'endTime': endTime,
-    };
   }
 }

@@ -86,9 +86,49 @@ class PreferenceHandler {
     return _preferences.getInt(_reminderMinutes) ?? 60;
   }
 
+  static const String _pomodoroSubject = 'pomodoroSubject';
+  static const String _pomodoroTopic = 'pomodoroTopic';
+  static const String _pomodoroSessionId = 'pomodoroSessionId';
+  static const String _pomodoroStartTime = 'pomodoroStartTime';
+  static const String _pomodoroEndTime = 'pomodoroEndTime';
+
+  // POMODORO SESSION STORAGE
+  Future<void> savePomodoroParams({
+    required String subject,
+    required String topic,
+    String? sessionId,
+    required String startTime,
+    required String endTime,
+  }) async {
+    await _preferences.setString(_pomodoroSubject, subject);
+    await _preferences.setString(_pomodoroTopic, topic);
+    if (sessionId != null) {
+      await _preferences.setString(_pomodoroSessionId, sessionId);
+    } else {
+      await _preferences.remove(_pomodoroSessionId);
+    }
+    await _preferences.setString(_pomodoroStartTime, startTime);
+    await _preferences.setString(_pomodoroEndTime, endTime);
+  }
+
+  Map<String, String> getPomodoroParams() {
+    return {
+      'subject': _preferences.getString(_pomodoroSubject) ?? 'Belajar',
+      'topic': _preferences.getString(_pomodoroTopic) ?? '',
+      'sessionId': _preferences.getString(_pomodoroSessionId) ?? '',
+      'startTime': _preferences.getString(_pomodoroStartTime) ?? '08:00',
+      'endTime': _preferences.getString(_pomodoroEndTime) ?? '09:00',
+    };
+  }
+
   // clear all on logout
   Future<void> clearAll() async {
     await deleteIsLogin();
     await deleteUserId();
+    await _preferences.remove(_pomodoroSubject);
+    await _preferences.remove(_pomodoroTopic);
+    await _preferences.remove(_pomodoroSessionId);
+    await _preferences.remove(_pomodoroStartTime);
+    await _preferences.remove(_pomodoroEndTime);
   }
 }

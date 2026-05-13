@@ -43,11 +43,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // Build avatar with photo
-  Widget _buildAvatar() {
+  Widget _buildAvatar(String? photo) {
     ImageProvider? imageProvider;
-    if (photoBase64 != null && photoBase64!.isNotEmpty) {
+    if (photo != null && photo.isNotEmpty) {
       try {
-        imageProvider = MemoryImage(base64Decode(photoBase64!));
+        imageProvider = MemoryImage(base64Decode(photo));
       } catch (_) {
         imageProvider = null;
       }
@@ -336,321 +336,319 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final reminderLabel = reminderMinutes == 60
-        ? "1 jam sebelumnya"
-        : "$reminderMinutes mnt sebelumnya";
+    return StreamBuilder<UserModel?>(
+      stream: FirebaseService.getUserStream(widget.user.uid!),
+      initialData: widget.user,
+      builder: (context, snapshot) {
+        final user = snapshot.data ?? widget.user;
+        final currentUserName = user.name ?? "User";
+        final currentUserEmail = user.email ?? "";
+        final currentPhotoBase64 = user.photoBase64;
+        
+        final reminderLabel = reminderMinutes == 60
+            ? "1 jam sebelumnya"
+            : "$reminderMinutes mnt sebelumnya";
 
-    return Scaffold(
-      backgroundColor: AppColor.scaffoldColor(context),
-
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // HEADER
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: AppColor.isDark(context)
-                      ? [AppColor.darkSurface, AppColor.darkCard]
-                      : [AppColor.gradien1, AppColor.gradien2],
-                ),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(25),
-                  bottomRight: Radius.circular(25),
-                ),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Profil",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+        return Scaffold(
+          backgroundColor: AppColor.scaffoldColor(context),
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                // HEADER
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: AppColor.isDark(context)
+                          ? [AppColor.darkSurface, AppColor.darkCard]
+                          : [AppColor.gradien1, AppColor.gradien2],
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(25),
+                      bottomRight: Radius.circular(25),
                     ),
                   ),
-                  SizedBox(height: 5),
-                  Text(
-                    "Kelola pengaturan akun Anda",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // PROFILE CARD
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColor.cardColor(context),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.shadowColor(context),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Row(
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildAvatar(),
-                      const SizedBox(width: 15),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            userName,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColor.textPrimary(context),
-                            ),
-                          ),
-                          Text(
-                            userEmail,
-                            style: TextStyle(color: AppColor.textHint(context)),
-                          ),
-                        ],
+                      Text(
+                        "Profil",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        "Kelola pengaturan akun Anda",
+                        style: TextStyle(color: Colors.white70),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 15),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColor.gradien2,
-                        side: const BorderSide(color: AppColor.gradien2),
+                ),
+
+                const SizedBox(height: 20),
+
+                // PROFILE CARD
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColor.cardColor(context),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColor.shadowColor(context),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
-                      onPressed: () async {
-                        final updatedUser = await Navigator.push<UserModel>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditProfileScreen(
-                              user: widget.user.copyWith(
-                                name: userName,
-                                email: userEmail,
-                                photoBase64: photoBase64,
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          _buildAvatar(currentPhotoBase64),
+                          const SizedBox(width: 15),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                currentUserName,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColor.textPrimary(context),
+                                ),
                               ),
-                            ),
+                              Text(
+                                currentUserEmail,
+                                style: TextStyle(color: AppColor.textHint(context)),
+                              ),
+                            ],
                           ),
-                        );
-
-                        if (updatedUser != null) {
-                          setState(() {
-                            userName = updatedUser.name ?? "User";
-                            userEmail = updatedUser.email ?? "";
-                            photoBase64 = updatedUser.photoBase64;
-                          });
-                        }
-                      },
-                      child: const Text("Edit Profil"),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // NOTIFICATION SETTINGS TITLE
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Notifikasi",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColor.textPrimary(context),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // NOTIFICATION SETTINGS CARD
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: AppColor.cardColor(context),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.shadowColor(context),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  settingItem(
-                    icon: Icons.notifications_none,
-                    title: "Notifikasi popup",
-                    subtitle: popupNotif ? "Aktif" : "Nonaktif",
-                    trailing: Switch(
-                      value: popupNotif,
-                      onChanged: _togglePopup,
-                    ),
-                  ),
-
-                  Divider(height: 1, color: AppColor.borderColor(context)),
-
-                  settingItem(
-                    icon: Icons.volume_up_outlined,
-                    title: "Notifikasi suara",
-                    subtitle: soundNotif ? "Aktif" : "Bisukan",
-                    trailing: Switch(
-                      value: soundNotif,
-                      onChanged: _toggleSound,
-                    ),
-                  ),
-
-                  Divider(height: 1, color: AppColor.borderColor(context)),
-
-                  settingItem(
-                    icon: Icons.timer_outlined,
-                    title: "Waktu pengingat",
-                    subtitle: reminderLabel,
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      color: AppColor.iconColor(context),
-                    ),
-                    onTap: _showReminderTimePicker,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // GENERAL SETTINGS TITLE
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Umum",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColor.textPrimary(context),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // GENERAL SETTINGS CARD
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: AppColor.cardColor(context),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.shadowColor(context),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  settingItem(
-                    icon: Icons.dark_mode_outlined,
-                    title: "Mode gelap",
-                    trailing: Switch(
-                      value: darkMode,
-                      onChanged: (value) {
-                        ThemeNotifier().toggleTheme(value);
-                        setState(() {
-                          darkMode = value;
-                        });
-                      },
-                    ),
-                  ),
-
-                  Divider(height: 1, color: AppColor.borderColor(context)),
-
-                  settingItem(
-                    icon: Icons.lock_outline,
-                    title: "Kata sandi dan keamanan",
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      color: AppColor.iconColor(context),
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ChangePasswordScreen(),
+                        ],
+                      ),
+                      const SizedBox(height: 15),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColor.gradien2,
+                            side: const BorderSide(color: AppColor.gradien2),
+                          ),
+                          onPressed: () async {
+                            await Navigator.push<UserModel>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EditProfileScreen(
+                                  user: user,
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text("Edit Profil"),
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
-
-                  Divider(height: 1, color: AppColor.borderColor(context)),
-
-                  settingItem(
-                    icon: Icons.mail_outline,
-                    title: "Hubungi kami",
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      color: AppColor.iconColor(context),
-                    ),
-                    onTap: contactUs,
-                  ),
-
-                  Divider(height: 1, color: AppColor.borderColor(context)),
-
-                  settingItem(
-                    icon: Icons.info_outline,
-                    title: "Tentang aplikasi",
-                    trailing: Icon(
-                      Icons.chevron_right,
-                      color: AppColor.iconColor(context),
-                    ),
-                    onTap: aboutApp,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // LOGOUT
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                  ),
-                  onPressed: _showLogoutDialog,
-                  icon: const Icon(Icons.logout),
-                  label: const Text("Keluar"),
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
+                const SizedBox(height: 20),
+
+                // NOTIFICATION SETTINGS TITLE
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Notifikasi",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.textPrimary(context),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // NOTIFICATION SETTINGS CARD
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: AppColor.cardColor(context),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColor.shadowColor(context),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      settingItem(
+                        icon: Icons.notifications_none,
+                        title: "Notifikasi popup",
+                        subtitle: popupNotif ? "Aktif" : "Nonaktif",
+                        trailing: Switch(
+                          value: popupNotif,
+                          onChanged: _togglePopup,
+                        ),
+                      ),
+
+                      Divider(height: 1, color: AppColor.borderColor(context)),
+
+                      settingItem(
+                        icon: Icons.volume_up_outlined,
+                        title: "Notifikasi suara",
+                        subtitle: soundNotif ? "Aktif" : "Bisukan",
+                        trailing: Switch(
+                          value: soundNotif,
+                          onChanged: _toggleSound,
+                        ),
+                      ),
+
+                      Divider(height: 1, color: AppColor.borderColor(context)),
+
+                      settingItem(
+                        icon: Icons.timer_outlined,
+                        title: "Waktu pengingat",
+                        subtitle: reminderLabel,
+                        trailing: Icon(
+                          Icons.chevron_right,
+                          color: AppColor.iconColor(context),
+                        ),
+                        onTap: _showReminderTimePicker,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // GENERAL SETTINGS TITLE
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Umum",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.textPrimary(context),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // GENERAL SETTINGS CARD
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: AppColor.cardColor(context),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColor.shadowColor(context),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      settingItem(
+                        icon: Icons.dark_mode_outlined,
+                        title: "Mode gelap",
+                        trailing: Switch(
+                          value: darkMode,
+                          onChanged: (value) {
+                            ThemeNotifier().toggleTheme(value);
+                            setState(() {
+                              darkMode = value;
+                            });
+                          },
+                        ),
+                      ),
+
+                      Divider(height: 1, color: AppColor.borderColor(context)),
+
+                      settingItem(
+                        icon: Icons.lock_outline,
+                        title: "Kata sandi dan keamanan",
+                        trailing: Icon(
+                          Icons.chevron_right,
+                          color: AppColor.iconColor(context),
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ChangePasswordScreen(),
+                            ),
+                          );
+                        },
+                      ),
+
+                      Divider(height: 1, color: AppColor.borderColor(context)),
+
+                      settingItem(
+                        icon: Icons.mail_outline,
+                        title: "Hubungi kami",
+                        trailing: Icon(
+                          Icons.chevron_right,
+                          color: AppColor.iconColor(context),
+                        ),
+                        onTap: contactUs,
+                      ),
+
+                      Divider(height: 1, color: AppColor.borderColor(context)),
+
+                      settingItem(
+                        icon: Icons.info_outline,
+                        title: "Tentang aplikasi",
+                        trailing: Icon(
+                          Icons.chevron_right,
+                          color: AppColor.iconColor(context),
+                        ),
+                        onTap: aboutApp,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // LOGOUT
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                      ),
+                      onPressed: _showLogoutDialog,
+                      icon: const Icon(Icons.logout),
+                      label: const Text("Keluar"),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
