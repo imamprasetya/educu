@@ -27,7 +27,11 @@ class _AddProgramState extends State<AddProgram> {
   // Parse tanggal Indonesia (dd/MM/yyyy) ke DateTime
   DateTime _parseDateIndo(String dateStr) {
     final parts = dateStr.split('/');
-    return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+    return DateTime(
+      int.parse(parts[2]),
+      int.parse(parts[1]),
+      int.parse(parts[0]),
+    );
   }
 
   // Convert tanggal Indonesia ke ISO (yyyy-MM-dd) untuk storage
@@ -74,6 +78,36 @@ class _AddProgramState extends State<AddProgram> {
     }
   }
 
+  // tanggal selesai - tidak bisa sebelum tanggal mulai
+  Future<void> _selectEndDate(BuildContext context) async {
+    if (startController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Silakan pilih Tanggal Mulai terlebih dahulu!"),
+        ),
+      );
+      return;
+    }
+
+    DateTime startDate = _parseDateIndo(startController.text);
+    DateTime initialDate = startDate;
+    if (endController.text.isNotEmpty) {
+      initialDate = _parseDateIndo(endController.text);
+    }
+
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: startDate,
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      endController.text = _formatDateIndo(picked);
+      setState(() {});
+    }
+  }
+
   // validasi tanggal sesi
   Future<void> _selectSessionsDate(
     BuildContext context,
@@ -82,7 +116,9 @@ class _AddProgramState extends State<AddProgram> {
     if (startController.text.isEmpty || endController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Silakan pilih Tanggal Mulai dan Tanggal Selesai terlebih dahulu!"),
+          content: Text(
+            "Silakan pilih Tanggal Mulai dan Tanggal Selesai terlebih dahulu!",
+          ),
         ),
       );
       return;
@@ -104,14 +140,20 @@ class _AddProgramState extends State<AddProgram> {
     }
   }
 
-  // pilih waktu sesi
-  Future<void> _selectTime(
+  // pilih waktu mulai sesi
+  Future<void> _selectStartTime(
     BuildContext context,
-    TextEditingController controller,
-  ) async {
+    TextEditingController controller, {
+    int? sessionIndex,
+  }) async {
     TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: controller.text.isNotEmpty
+          ? TimeOfDay(
+              hour: int.parse(controller.text.split(':')[0]),
+              minute: int.parse(controller.text.split(':')[1]),
+            )
+          : TimeOfDay.now(),
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
@@ -123,6 +165,188 @@ class _AddProgramState extends State<AddProgram> {
     if (picked != null) {
       controller.text = _formatTime24(picked);
       setState(() {});
+
+      // Jika ini sesi pertama dan ada sesi lain, tanya user
+      if (sessionIndex == 0 && sessions.length > 1) {
+        await _showDefaultTimeDialog('start', _formatTime24(picked));
+      }
+    }
+  }
+
+  // pilih waktu selesai sesi - tidak bisa sebelum waktu mulai
+  Future<void> _selectEndTime(
+    BuildContext context,
+    TextEditingController controller,
+    TextEditingController startTimeController, {
+    int? sessionIndex,
+  }) async {
+    if (startTimeController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Silakan pilih Waktu Mulai terlebih dahulu!"),
+        ),
+      );
+      return;
+    }
+
+    final startParts = startTimeController.text.split(':');
+    final startHour = int.parse(startParts[0]);
+    final startMinute = int.parse(startParts[1]);
+    final startTimeOfDay = TimeOfDay(hour: startHour, minute: startMinute);
+
+    TimeOfDay initialTime = startTimeOfDay;
+    if (controller.text.isNotEmpty) {
+      final endParts = controller.text.split(':');
+      initialTime = TimeOfDay(
+        hour: int.parse(endParts[0]),
+        minute: int.parse(endParts[1]),
+      );
+    }
+
+    TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      // Validasi: waktu selesai harus setelah waktu mulai
+      final pickedMinutes = picked.hour * 60 + picked.minute;
+      final startMinutes = startHour * 60 + startMinute;
+
+      if (pickedMinutes <= startMinutes) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Waktu Selesai harus setelah Waktu Mulai (${startTimeController.text})!",
+            ),
+          ),
+        );
+        return;
+      }
+
+      controller.text = _formatTime24(picked);
+      setState(() {});
+
+      // Jika ini sesi pertama dan ada sesi lain, tanya user
+      if (sessionIndex == 0 && sessions.length > 1) {
+        await _showDefaultTimeDialog('end', _formatTime24(picked));
+      }
+    }
+  }
+
+  // Dialog untuk menjadikan jam default ke sesi lain
+  Future<void> _showDefaultTimeDialog(
+    String fieldType,
+    String timeValue,
+  ) async {
+    final fieldLabel = fieldType == 'start' ? 'Waktu Mulai' : 'Waktu Selesai';
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.access_time_filled,
+                color: AppColor.gradien2,
+                size: 28,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  "Jadikan Default?",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppColor.textPrimary(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RichText(
+                text: TextSpan(
+                  style: TextStyle(
+                    color: AppColor.textSecondary(context),
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                  children: [
+                    TextSpan(text: "Apakah "),
+                    TextSpan(
+                      text: "$fieldLabel ($timeValue)",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.textPrimary(context),
+                      ),
+                    ),
+                    TextSpan(
+                      text:
+                          " ingin dijadikan default untuk semua sesi lainnya?",
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Anda tetap bisa mengubah jam di masing-masing sesi.",
+                style: TextStyle(
+                  color: AppColor.textHint(context),
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(
+                "Tidak",
+                style: TextStyle(color: AppColor.textSecondary(context)),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColor.gradien1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                "Ya, Jadikan Default",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      setState(() {
+        for (var i = 1; i < sessions.length; i++) {
+          if (fieldType == 'start') {
+            sessions[i].startTimeController.text = timeValue;
+          } else {
+            sessions[i].endTimeController.text = timeValue;
+          }
+        }
+      });
     }
   }
 
@@ -305,7 +529,9 @@ class _AddProgramState extends State<AddProgram> {
     if (_hasConflictingSessions()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Waktu sesi tidak boleh tumpang tindih pada tanggal yang sama."),
+          content: Text(
+            "Waktu sesi tidak boleh tumpang tindih pada tanggal dan jam yang sama.",
+          ),
         ),
       );
       return;
@@ -489,10 +715,14 @@ class _AddProgramState extends State<AddProgram> {
                             controller: startController,
                             readOnly: true,
                             onTap: () => _selectDate(context, startController),
-                            style: TextStyle(color: AppColor.textPrimary(context)),
+                            style: TextStyle(
+                              color: AppColor.textPrimary(context),
+                            ),
                             decoration: InputDecoration(
                               hintText: "Tanggal Mulai",
-                              hintStyle: TextStyle(color: AppColor.textHint(context)),
+                              hintStyle: TextStyle(
+                                color: AppColor.textHint(context),
+                              ),
                               filled: true,
                               fillColor: AppColor.inputFill(context),
                               suffixIcon: Icon(
@@ -513,11 +743,15 @@ class _AddProgramState extends State<AddProgram> {
                           child: TextFormField(
                             controller: endController,
                             readOnly: true,
-                            onTap: () => _selectDate(context, endController),
-                            style: TextStyle(color: AppColor.textPrimary(context)),
+                            onTap: () => _selectEndDate(context),
+                            style: TextStyle(
+                              color: AppColor.textPrimary(context),
+                            ),
                             decoration: InputDecoration(
                               hintText: "Tanggal Selesai",
-                              hintStyle: TextStyle(color: AppColor.textHint(context)),
+                              hintStyle: TextStyle(
+                                color: AppColor.textHint(context),
+                              ),
                               filled: true,
                               fillColor: AppColor.inputFill(context),
                               suffixIcon: Icon(
@@ -650,10 +884,14 @@ class _AddProgramState extends State<AddProgram> {
 
                         TextFormField(
                           controller: session.topicController,
-                          style: TextStyle(color: AppColor.textPrimary(context)),
+                          style: TextStyle(
+                            color: AppColor.textPrimary(context),
+                          ),
                           decoration: InputDecoration(
                             hintText: "Masukkan topik",
-                            hintStyle: TextStyle(color: AppColor.textHint(context)),
+                            hintStyle: TextStyle(
+                              color: AppColor.textHint(context),
+                            ),
                             filled: true,
                             fillColor: AppColor.inputFill(context),
                             border: OutlineInputBorder(
@@ -672,10 +910,14 @@ class _AddProgramState extends State<AddProgram> {
                             context,
                             session.dateController,
                           ),
-                          style: TextStyle(color: AppColor.textPrimary(context)),
+                          style: TextStyle(
+                            color: AppColor.textPrimary(context),
+                          ),
                           decoration: InputDecoration(
                             hintText: "Pilih Tanggal",
-                            hintStyle: TextStyle(color: AppColor.textHint(context)),
+                            hintStyle: TextStyle(
+                              color: AppColor.textHint(context),
+                            ),
                             prefixIcon: Icon(
                               Icons.calendar_today,
                               color: AppColor.iconColor(context),
@@ -697,14 +939,19 @@ class _AddProgramState extends State<AddProgram> {
                               child: TextFormField(
                                 controller: session.startTimeController,
                                 readOnly: true,
-                                onTap: () => _selectTime(
+                                onTap: () => _selectStartTime(
                                   context,
                                   session.startTimeController,
+                                  sessionIndex: index,
                                 ),
-                                style: TextStyle(color: AppColor.textPrimary(context)),
+                                style: TextStyle(
+                                  color: AppColor.textPrimary(context),
+                                ),
                                 decoration: InputDecoration(
                                   hintText: "Waktu Mulai",
-                                  hintStyle: TextStyle(color: AppColor.textHint(context)),
+                                  hintStyle: TextStyle(
+                                    color: AppColor.textHint(context),
+                                  ),
                                   prefixIcon: Icon(
                                     Icons.access_time,
                                     color: AppColor.iconColor(context),
@@ -725,14 +972,20 @@ class _AddProgramState extends State<AddProgram> {
                               child: TextFormField(
                                 controller: session.endTimeController,
                                 readOnly: true,
-                                onTap: () => _selectTime(
+                                onTap: () => _selectEndTime(
                                   context,
                                   session.endTimeController,
+                                  session.startTimeController,
+                                  sessionIndex: index,
                                 ),
-                                style: TextStyle(color: AppColor.textPrimary(context)),
+                                style: TextStyle(
+                                  color: AppColor.textPrimary(context),
+                                ),
                                 decoration: InputDecoration(
                                   hintText: "Waktu Selesai",
-                                  hintStyle: TextStyle(color: AppColor.textHint(context)),
+                                  hintStyle: TextStyle(
+                                    color: AppColor.textHint(context),
+                                  ),
                                   prefixIcon: Icon(
                                     Icons.access_time,
                                     color: AppColor.iconColor(context),
