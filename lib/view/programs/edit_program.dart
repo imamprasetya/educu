@@ -161,9 +161,7 @@ class _EditProgramState extends State<EditProgram> {
           controller.text = previousValue;
           setState(() {});
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Waktu bertabrakan dengan $conflict!"),
-            ),
+            SnackBar(content: Text("Waktu bertabrakan dengan $conflict!")),
           );
           return;
         }
@@ -244,9 +242,7 @@ class _EditProgramState extends State<EditProgram> {
           controller.text = previousValue;
           setState(() {});
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Waktu bertabrakan dengan $conflict!"),
-            ),
+            SnackBar(content: Text("Waktu bertabrakan dengan $conflict!")),
           );
           return;
         }
@@ -481,7 +477,8 @@ class _EditProgramState extends State<EditProgram> {
     // Urutkan sesi berdasarkan tanggal dan jam terawal
     sessions.sort((a, b) {
       // Bandingkan tanggal
-      if (a.dateController.text.isNotEmpty && b.dateController.text.isNotEmpty) {
+      if (a.dateController.text.isNotEmpty &&
+          b.dateController.text.isNotEmpty) {
         final dateA = _parseDateIndo(a.dateController.text);
         final dateB = _parseDateIndo(b.dateController.text);
         final dateComparison = dateA.compareTo(dateB);
@@ -683,11 +680,7 @@ class _EditProgramState extends State<EditProgram> {
             ),
             title: Row(
               children: [
-                Icon(
-                  Icons.info_outline_rounded,
-                  color: Colors.red,
-                  size: 28,
-                ),
+                Icon(Icons.info_outline_rounded, color: Colors.red, size: 28),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -707,9 +700,7 @@ class _EditProgramState extends State<EditProgram> {
               children: [
                 Text(
                   "Silakan lengkapi data berikut:",
-                  style: TextStyle(
-                    color: AppColor.textSecondary(context),
-                  ),
+                  style: TextStyle(color: AppColor.textSecondary(context)),
                 ),
                 const SizedBox(height: 12),
                 Container(
@@ -865,11 +856,7 @@ class _EditProgramState extends State<EditProgram> {
           ),
           title: Row(
             children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.orange,
-                size: 28,
-              ),
+              Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -930,378 +917,426 @@ class _EditProgramState extends State<EditProgram> {
         }
       },
       child: Scaffold(
-      backgroundColor: AppColor.scaffoldColor(context),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () async {
-            final shouldExit = await _showExitConfirmDialog();
-            if (shouldExit && mounted) {
-              Navigator.pop(context);
-            }
-          },
+        backgroundColor: AppColor.scaffoldColor(context),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () async {
+              final shouldExit = await _showExitConfirmDialog();
+              if (shouldExit && mounted) {
+                Navigator.pop(context);
+              }
+            },
+          ),
+          title: const Text(
+            "Edit Program Belajar",
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: AppColor.isDark(context)
+              ? AppColor.darkSurface
+              : AppColor.gradien1,
         ),
-        title: const Text(
-          "Edit Program Belajar",
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: AppColor.isDark(context)
-            ? AppColor.darkSurface
-            : AppColor.gradien1,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // PROGRAM
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColor.cardColor(context),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColor.shadowColor(context),
-                    blurRadius: 6,
-                  ),
-                ],
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // PROGRAM
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColor.cardColor(context),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColor.shadowColor(context),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Nama Subjek",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.textPrimary(context),
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+
+                    TextFormField(
+                      controller: subjectController,
+                      style: TextStyle(color: AppColor.textPrimary(context)),
+                      decoration: InputDecoration(
+                        hintText: "Masukkan nama subjek",
+                        hintStyle: TextStyle(color: AppColor.textHint(context)),
+                        filled: true,
+                        fillColor: AppColor.inputFill(context),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    Text(
+                      "Tanggal",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.textPrimary(context),
+                      ),
+                    ),
+
+                    const SizedBox(height: 7),
+
+                    // START & END DATE
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller: startController,
+                            readOnly: true,
+                            onTap: () => pickStartDate(),
+                            style: TextStyle(
+                              color: AppColor.textPrimary(context),
+                            ),
+                            decoration: InputDecoration(
+                              hintText: "Mulai",
+                              hintStyle: TextStyle(
+                                color: AppColor.textHint(context),
+                              ),
+                              suffixIcon: Icon(
+                                Icons.calendar_today,
+                                color: AppColor.iconColor(context),
+                              ),
+                              filled: true,
+                              fillColor: AppColor.inputFill(context),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(25),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 10),
+
+                        Expanded(
+                          child: TextFormField(
+                            controller: endController,
+                            readOnly: true,
+                            onTap: () => pickEndDate(),
+                            style: TextStyle(
+                              color: AppColor.textPrimary(context),
+                            ),
+                            decoration: InputDecoration(
+                              hintText: "Selesai",
+                              hintStyle: TextStyle(
+                                color: AppColor.textHint(context),
+                              ),
+                              suffixIcon: Icon(
+                                Icons.calendar_today,
+                                color: AppColor.iconColor(context),
+                              ),
+                              filled: true,
+                              fillColor: AppColor.inputFill(context),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(25),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    Text(
+                      "Deskripsi",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.textPrimary(context),
+                      ),
+                    ),
+
+                    const SizedBox(height: 7),
+
+                    TextFormField(
+                      controller: deskController,
+                      maxLines: 4,
+                      style: TextStyle(color: AppColor.textPrimary(context)),
+                      decoration: InputDecoration(
+                        hintText: "Masukkan deskripsi program",
+                        hintStyle: TextStyle(color: AppColor.textHint(context)),
+                        filled: true,
+                        fillColor: AppColor.inputFill(context),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(25),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+
+              const SizedBox(height: 20),
+
+              /// SESSION TITLE
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Nama Subjek",
+                    "Sesi",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
+                      fontSize: 20,
                       color: AppColor.textPrimary(context),
                     ),
                   ),
-                  const SizedBox(height: 7),
-
-                  TextFormField(
-                    controller: subjectController,
-                    style: TextStyle(color: AppColor.textPrimary(context)),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppColor.inputFill(context),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  // START & END DATE
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: startController,
-                          readOnly: true,
-                          onTap: () => pickStartDate(),
-                          style: TextStyle(
-                            color: AppColor.textPrimary(context),
-                          ),
-                          decoration: InputDecoration(
-                            hintText: "Tanggal Mulai",
-                            hintStyle: TextStyle(
-                              color: AppColor.textHint(context),
-                            ),
-                            suffixIcon: Icon(
-                              Icons.calendar_today,
-                              color: AppColor.iconColor(context),
-                            ),
-                            filled: true,
-                            fillColor: AppColor.inputFill(context),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(width: 10),
-
-                      Expanded(
-                        child: TextFormField(
-                          controller: endController,
-                          readOnly: true,
-                          onTap: () => pickEndDate(),
-                          style: TextStyle(
-                            color: AppColor.textPrimary(context),
-                          ),
-                          decoration: InputDecoration(
-                            hintText: "Tanggal Selesai",
-                            hintStyle: TextStyle(
-                              color: AppColor.textHint(context),
-                            ),
-                            suffixIcon: Icon(
-                              Icons.calendar_today,
-                              color: AppColor.iconColor(context),
-                            ),
-                            filled: true,
-                            fillColor: AppColor.inputFill(context),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(25),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 15),
-
-                  Text(
-                    "Deskripsi",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColor.textPrimary(context),
-                    ),
-                  ),
-
-                  const SizedBox(height: 7),
-
-                  TextFormField(
-                    controller: deskController,
-                    maxLines: 4,
-                    style: TextStyle(color: AppColor.textPrimary(context)),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppColor.inputFill(context),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25),
-                        borderSide: BorderSide.none,
-                      ),
+                  IconButton(
+                    onPressed: addSession,
+                    icon: const Icon(
+                      Icons.add_circle,
+                      color: AppColor.gradien2,
+                      size: 32,
                     ),
                   ),
                 ],
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
-            /// SESSION TITLE
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Sesi",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    color: AppColor.textPrimary(context),
-                  ),
-                ),
-                IconButton(
-                  onPressed: addSession,
-                  icon: const Icon(
-                    Icons.add_circle,
-                    color: AppColor.gradien2,
-                    size: 32,
-                  ),
-                ),
-              ],
-            ),
+              /// SESSION LIST
+              Column(
+                children: List.generate(sessions.length, (index) {
+                  final session = sessions[index];
 
-            const SizedBox(height: 10),
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(16),
 
-            /// SESSION LIST
-            Column(
-              children: List.generate(sessions.length, (index) {
-                final session = sessions[index];
+                    decoration: BoxDecoration(
+                      color: AppColor.cardColor(context),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColor.shadowColor(context),
+                          spreadRadius: 3,
+                          blurRadius: 5,
+                        ),
+                      ],
+                    ),
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
 
-                  decoration: BoxDecoration(
-                    color: AppColor.cardColor(context),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColor.shadowColor(context),
-                        spreadRadius: 3,
-                        blurRadius: 5,
-                      ),
-                    ],
-                  ),
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Sesi ${index + 1}",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blueAccent,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => removeSession(index),
+                            ),
+                          ],
+                        ),
 
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: 10),
 
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Sesi ${index + 1}",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueAccent,
+                        Text(
+                          "Topik Materi",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColor.textPrimary(context),
+                          ),
+                        ),
+
+                        const SizedBox(height: 7),
+
+                        /// TOPIC
+                        TextFormField(
+                          controller: session.topicController,
+                          style: TextStyle(
+                            color: AppColor.textPrimary(context),
+                          ),
+                          decoration: InputDecoration(
+                            hintText: "Masukkan topik materi",
+                            hintStyle: TextStyle(
+                              color: AppColor.textHint(context),
+                            ),
+                            filled: true,
+                            fillColor: AppColor.inputFill(context),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide.none,
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => removeSession(index),
-                          ),
-                        ],
-                      ),
+                        ),
 
-                      const SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                      /// TOPIC
-                      TextFormField(
-                        controller: session.topicController,
-                        style: TextStyle(color: AppColor.textPrimary(context)),
-                        decoration: InputDecoration(
-                          hintText: "Topik",
-                          hintStyle: TextStyle(
-                            color: AppColor.textHint(context),
-                          ),
-                          filled: true,
-                          fillColor: AppColor.inputFill(context),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide.none,
+                        Text(
+                          "Tanggal",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColor.textPrimary(context),
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 10),
+                        const SizedBox(height: 7),
 
-                      /// DATE
-                      TextFormField(
-                        controller: session.dateController,
-                        readOnly: true,
-                        onTap: () => pickSessionDate(session.dateController),
-                        style: TextStyle(color: AppColor.textPrimary(context)),
-                        decoration: InputDecoration(
-                          hintText: "Tanggal",
-                          hintStyle: TextStyle(
-                            color: AppColor.textHint(context),
+                        /// DATE
+                        TextFormField(
+                          controller: session.dateController,
+                          readOnly: true,
+                          onTap: () => pickSessionDate(session.dateController),
+                          style: TextStyle(
+                            color: AppColor.textPrimary(context),
                           ),
-                          suffixIcon: Icon(
-                            Icons.calendar_today,
-                            color: AppColor.iconColor(context),
-                          ),
-                          filled: true,
-                          fillColor: AppColor.inputFill(context),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            borderSide: BorderSide.none,
+                          decoration: InputDecoration(
+                            hintText: "Tanggal",
+                            hintStyle: TextStyle(
+                              color: AppColor.textHint(context),
+                            ),
+                            suffixIcon: Icon(
+                              Icons.calendar_today,
+                              color: AppColor.iconColor(context),
+                            ),
+                            filled: true,
+                            fillColor: AppColor.inputFill(context),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide.none,
+                            ),
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 10),
+                        const SizedBox(height: 10),
 
-                      /// TIME
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: session.startTimeController,
-                              readOnly: true,
-                              onTap: () => pickStartTime(
+                        Text(
+                          "Waktu",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColor.textPrimary(context),
+                          ),
+                        ),
+
+                        const SizedBox(height: 7),
+
+                        /// TIME
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: session.startTimeController,
+                                readOnly: true,
+                                onTap: () => pickStartTime(
                                   session.startTimeController,
                                   sessionIndex: index,
                                 ),
-                              style: TextStyle(
-                                color: AppColor.textPrimary(context),
-                              ),
-                              decoration: InputDecoration(
-                                hintText: "Waktu Mulai",
-                                hintStyle: TextStyle(
-                                  color: AppColor.textHint(context),
+                                style: TextStyle(
+                                  color: AppColor.textPrimary(context),
                                 ),
-                                suffixIcon: Icon(
-                                  Icons.access_time,
-                                  color: AppColor.iconColor(context),
-                                ),
-                                filled: true,
-                                fillColor: AppColor.inputFill(context),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide.none,
+                                decoration: InputDecoration(
+                                  hintText: "Waktu Mulai",
+                                  hintStyle: TextStyle(
+                                    color: AppColor.textHint(context),
+                                  ),
+                                  suffixIcon: Icon(
+                                    Icons.access_time,
+                                    color: AppColor.iconColor(context),
+                                  ),
+                                  filled: true,
+                                  fillColor: AppColor.inputFill(context),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
 
-                          const SizedBox(width: 10),
+                            const SizedBox(width: 10),
 
-                          Expanded(
-                            child: TextFormField(
-                              controller: session.endTimeController,
-                              readOnly: true,
-                              onTap: () => pickEndTime(
+                            Expanded(
+                              child: TextFormField(
+                                controller: session.endTimeController,
+                                readOnly: true,
+                                onTap: () => pickEndTime(
                                   session.endTimeController,
                                   session.startTimeController,
                                   sessionIndex: index,
                                 ),
-                              style: TextStyle(
-                                color: AppColor.textPrimary(context),
-                              ),
-                              decoration: InputDecoration(
-                                hintText: "Waktu Selesai",
-                                hintStyle: TextStyle(
-                                  color: AppColor.textHint(context),
+                                style: TextStyle(
+                                  color: AppColor.textPrimary(context),
                                 ),
-                                suffixIcon: Icon(
-                                  Icons.access_time,
-                                  color: AppColor.iconColor(context),
-                                ),
-                                filled: true,
-                                fillColor: AppColor.inputFill(context),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                  borderSide: BorderSide.none,
+                                decoration: InputDecoration(
+                                  hintText: "Waktu Selesai",
+                                  hintStyle: TextStyle(
+                                    color: AppColor.textHint(context),
+                                  ),
+                                  suffixIcon: Icon(
+                                    Icons.access_time,
+                                    color: AppColor.iconColor(context),
+                                  ),
+                                  filled: true,
+                                  fillColor: AppColor.inputFill(context),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    borderSide: BorderSide.none,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ),
+
+              const SizedBox(height: 20),
+
+              /// UPDATE BUTTON
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColor.gradien1,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                   ),
-                );
-              }),
-            ),
 
-            const SizedBox(height: 20),
+                  onPressed: updateProgram,
 
-            /// UPDATE BUTTON
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColor.gradien1,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-
-                onPressed: updateProgram,
-
-                child: const Text(
-                  "Perbarui Program",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                  child: const Text(
+                    "Perbarui Program",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
