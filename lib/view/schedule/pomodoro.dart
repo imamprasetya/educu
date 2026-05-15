@@ -277,17 +277,84 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
 
   // RESET
   void resetTimer() {
-    _stopTimer();
-    setState(() {
-      totalElapsed = 0;
-      currentCycle = 1;
-      isPaused = true;
-      isAllCompleted = false;
-      hasStarted = false;
-      isBreak = false;
-      isLongBreak = false;
-      _setupPhase(study: true);
-    });
+    final wasRunning = !isPaused;
+    if (wasRunning) _onPause();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.refresh,
+                color: Colors.red,
+                size: 28,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  "Reset Timer?",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppColor.textPrimary(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            "Semua progres belajar pada sesi ini akan direset dari awal. Apakah Anda yakin?",
+            style: TextStyle(
+              color: AppColor.textSecondary(context),
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                if (wasRunning) _onStart();
+              },
+              child: Text(
+                "Batal",
+                style: TextStyle(color: AppColor.textSecondary(context)),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+                _stopTimer();
+                setState(() {
+                  totalElapsed = 0;
+                  currentCycle = 1;
+                  isPaused = true;
+                  isAllCompleted = false;
+                  hasStarted = false;
+                  isBreak = false;
+                  isLongBreak = false;
+                  _setupPhase(study: true);
+                });
+              },
+              child: const Text(
+                "Ya, Reset",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // SELESAI - mark session as completed
@@ -416,6 +483,81 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     super.dispose();
   }
 
+  // Dialog konfirmasi keluar
+  Future<bool> _showExitConfirmDialog() async {
+    final wasRunning = !isPaused;
+    if (wasRunning) _onPause();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange,
+                size: 28,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  "Keluar?",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppColor.textPrimary(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            "Timer akan dihentikan dan progres sesi ini tidak akan disimpan. Apakah Anda yakin ingin keluar?",
+            style: TextStyle(
+              color: AppColor.textSecondary(context),
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+                if (wasRunning) _onStart();
+              },
+              child: Text(
+                "Batal",
+                style: TextStyle(color: AppColor.textSecondary(context)),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                "Ya, Keluar",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != true && wasRunning) {
+      // Dialog dismissed without choosing, resume timer
+    }
+
+    return result ?? false;
+  }
+
   double get phaseProgress {
     if (phaseTotalTime == 0) return 0;
     return 1 - (phaseTimeLeft / phaseTotalTime);
@@ -430,7 +572,22 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        // Jika belum mulai, langsung keluar tanpa dialog
+        if (!hasStarted) {
+          Navigator.pop(context);
+          return;
+        }
+        final shouldExit = await _showExitConfirmDialog();
+        if (shouldExit && mounted) {
+          _stopTimer();
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
       backgroundColor: AppColor.scaffoldColor(context),
 
       appBar: PreferredSize(
@@ -449,7 +606,21 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
           child: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            iconTheme: const IconThemeData(color: Colors.white),
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () async {
+                if (!hasStarted) {
+                  Navigator.pop(context);
+                  return;
+                }
+                final shouldExit = await _showExitConfirmDialog();
+                if (shouldExit && mounted) {
+                  _stopTimer();
+                  Navigator.pop(context);
+                }
+              },
+            ),
             title: Text(
               isBreak ? "Istirahat" : "Timer Belajar",
               style: const TextStyle(color: Colors.white),
@@ -773,6 +944,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

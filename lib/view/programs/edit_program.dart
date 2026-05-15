@@ -129,11 +129,19 @@ class _EditProgramState extends State<EditProgram> {
     }
   }
 
-  // TIME PICKER
-  Future<void> pickTime(TextEditingController controller) async {
-    TimeOfDay? pickedTime = await showTimePicker(
+  // pilih waktu mulai sesi
+  Future<void> pickStartTime(
+    TextEditingController controller, {
+    int? sessionIndex,
+  }) async {
+    TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: controller.text.isNotEmpty
+          ? TimeOfDay(
+              hour: int.parse(controller.text.split(':')[0]),
+              minute: int.parse(controller.text.split(':')[1]),
+            )
+          : TimeOfDay.now(),
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
@@ -142,8 +150,261 @@ class _EditProgramState extends State<EditProgram> {
       },
     );
 
-    if (pickedTime != null) {
-      controller.text = _formatTime24(pickedTime);
+    if (picked != null) {
+      final previousValue = controller.text;
+      controller.text = _formatTime24(picked);
+
+      // Cek konflik jika end time sudah diisi
+      if (sessionIndex != null) {
+        final conflict = _getTimeConflict(sessionIndex);
+        if (conflict != null) {
+          controller.text = previousValue;
+          setState(() {});
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Waktu bertabrakan dengan $conflict!"),
+            ),
+          );
+          return;
+        }
+      }
+
+      setState(() {});
+
+      // Jika ini sesi pertama dan ada sesi lain, tanya user
+      if (sessionIndex == 0 && sessions.length > 1) {
+        await _showDefaultTimeDialog('start', _formatTime24(picked));
+      }
+    }
+  }
+
+  // pilih waktu selesai sesi - tidak bisa sebelum waktu mulai
+  Future<void> pickEndTime(
+    TextEditingController controller,
+    TextEditingController startTimeController, {
+    int? sessionIndex,
+  }) async {
+    if (startTimeController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Silakan pilih Waktu Mulai terlebih dahulu!"),
+        ),
+      );
+      return;
+    }
+
+    final startParts = startTimeController.text.split(':');
+    final startHour = int.parse(startParts[0]);
+    final startMinute = int.parse(startParts[1]);
+    final startTimeOfDay = TimeOfDay(hour: startHour, minute: startMinute);
+
+    TimeOfDay initialTime = startTimeOfDay;
+    if (controller.text.isNotEmpty) {
+      final endParts = controller.text.split(':');
+      initialTime = TimeOfDay(
+        hour: int.parse(endParts[0]),
+        minute: int.parse(endParts[1]),
+      );
+    }
+
+    TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      // Validasi: waktu selesai harus setelah waktu mulai
+      final pickedMinutes = picked.hour * 60 + picked.minute;
+      final startMinutes = startHour * 60 + startMinute;
+
+      if (pickedMinutes <= startMinutes) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Waktu Selesai harus setelah Waktu Mulai (${startTimeController.text})!",
+            ),
+          ),
+        );
+        return;
+      }
+
+      final previousValue = controller.text;
+      controller.text = _formatTime24(picked);
+
+      // Cek konflik dengan sesi lain
+      if (sessionIndex != null) {
+        final conflict = _getTimeConflict(sessionIndex);
+        if (conflict != null) {
+          controller.text = previousValue;
+          setState(() {});
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Waktu bertabrakan dengan $conflict!"),
+            ),
+          );
+          return;
+        }
+      }
+
+      setState(() {});
+
+      // Jika ini sesi pertama dan ada sesi lain, tanya user
+      if (sessionIndex == 0 && sessions.length > 1) {
+        await _showDefaultTimeDialog('end', _formatTime24(picked));
+      }
+    }
+  }
+
+  // Cek konflik waktu sesi dengan sesi lain pada tanggal yang sama
+  String? _getTimeConflict(int currentIndex) {
+    final current = sessions[currentIndex];
+    if (current.dateController.text.isEmpty ||
+        current.startTimeController.text.isEmpty ||
+        current.endTimeController.text.isEmpty) {
+      return null;
+    }
+
+    final currentDate = current.dateController.text;
+    final currentStart = _parseTime(current.startTimeController.text);
+    final currentEnd = _parseTime(current.endTimeController.text);
+    if (currentStart == null || currentEnd == null) return null;
+
+    for (var i = 0; i < sessions.length; i++) {
+      if (i == currentIndex) continue;
+      final other = sessions[i];
+      if (other.dateController.text != currentDate) continue;
+      if (other.startTimeController.text.isEmpty ||
+          other.endTimeController.text.isEmpty) {
+        continue;
+      }
+
+      final otherStart = _parseTime(other.startTimeController.text);
+      final otherEnd = _parseTime(other.endTimeController.text);
+      if (otherStart == null || otherEnd == null) continue;
+
+      final overlap =
+          currentStart.isBefore(otherEnd) && otherStart.isBefore(currentEnd);
+      if (overlap) {
+        return 'Sesi ${i + 1} (${other.dateController.text}, ${other.startTimeController.text} - ${other.endTimeController.text})';
+      }
+    }
+
+    return null;
+  }
+
+  // Dialog untuk menjadikan jam default ke sesi lain
+  Future<void> _showDefaultTimeDialog(
+    String fieldType,
+    String timeValue,
+  ) async {
+    final fieldLabel = fieldType == 'start' ? 'Waktu Mulai' : 'Waktu Selesai';
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.access_time_filled,
+                color: AppColor.gradien2,
+                size: 28,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  "Jadikan Default?",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppColor.textPrimary(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RichText(
+                text: TextSpan(
+                  style: TextStyle(
+                    color: AppColor.textSecondary(context),
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                  children: [
+                    TextSpan(text: "Apakah "),
+                    TextSpan(
+                      text: "$fieldLabel ($timeValue)",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColor.textPrimary(context),
+                      ),
+                    ),
+                    TextSpan(
+                      text:
+                          " ingin dijadikan default untuk semua sesi lainnya?",
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Anda tetap bisa mengubah jam di masing-masing sesi.",
+                style: TextStyle(
+                  color: AppColor.textHint(context),
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(
+                "Tidak",
+                style: TextStyle(color: AppColor.textSecondary(context)),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColor.gradien1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                "Ya, Jadikan Default",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      setState(() {
+        for (var i = 1; i < sessions.length; i++) {
+          if (fieldType == 'start') {
+            sessions[i].startTimeController.text = timeValue;
+          } else {
+            sessions[i].endTimeController.text = timeValue;
+          }
+        }
+      });
     }
   }
 
@@ -216,6 +477,25 @@ class _EditProgramState extends State<EditProgram> {
 
       return session;
     }).toList();
+
+    // Urutkan sesi berdasarkan tanggal dan jam terawal
+    sessions.sort((a, b) {
+      // Bandingkan tanggal
+      if (a.dateController.text.isNotEmpty && b.dateController.text.isNotEmpty) {
+        final dateA = _parseDateIndo(a.dateController.text);
+        final dateB = _parseDateIndo(b.dateController.text);
+        final dateComparison = dateA.compareTo(dateB);
+        if (dateComparison != 0) return dateComparison;
+      }
+
+      // Jika tanggal sama, bandingkan waktu mulai
+      final timeA = _parseTime(a.startTimeController.text);
+      final timeB = _parseTime(b.startTimeController.text);
+      if (timeA != null && timeB != null) {
+        return timeA.compareTo(timeB);
+      }
+      return 0;
+    });
 
     setState(() {});
   }
@@ -363,11 +643,136 @@ class _EditProgramState extends State<EditProgram> {
 
   // UPDATE PROGRAM
   Future<void> updateProgram() async {
+    // Validasi field program
+    List<String> emptyFields = [];
+    if (subjectController.text.trim().isEmpty) {
+      emptyFields.add("Nama Subjek");
+    }
+    if (startController.text.isEmpty) {
+      emptyFields.add("Tanggal Mulai");
+    }
+    if (endController.text.isEmpty) {
+      emptyFields.add("Tanggal Selesai");
+    }
+
+    // Validasi field setiap sesi
+    for (var i = 0; i < sessions.length; i++) {
+      final s = sessions[i];
+      final sesiLabel = "Sesi ${i + 1}";
+      if (s.topicController.text.trim().isEmpty) {
+        emptyFields.add("$sesiLabel - Topik Materi");
+      }
+      if (s.dateController.text.isEmpty) {
+        emptyFields.add("$sesiLabel - Tanggal");
+      }
+      if (s.startTimeController.text.isEmpty) {
+        emptyFields.add("$sesiLabel - Waktu Mulai");
+      }
+      if (s.endTimeController.text.isEmpty) {
+        emptyFields.add("$sesiLabel - Waktu Selesai");
+      }
+    }
+
+    if (emptyFields.isNotEmpty) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                Icon(
+                  Icons.info_outline_rounded,
+                  color: Colors.red,
+                  size: 28,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Data Belum Lengkap",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: AppColor.textPrimary(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Silakan lengkapi data berikut:",
+                  style: TextStyle(
+                    color: AppColor.textSecondary(context),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: emptyFields.map((field) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                size: 8,
+                                color: Colors.red.withOpacity(0.7),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  field,
+                                  style: TextStyle(
+                                    color: AppColor.textPrimary(context),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColor.gradien1,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  "Mengerti",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
     if (_hasConflictingSessions()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            "Waktu sesi tidak boleh tumpang tindih pada tanggal yang sama.",
+            "Waktu sesi tidak boleh tumpang tindih pada tanggal dan jam yang sama.",
           ),
         ),
       );
@@ -449,12 +854,94 @@ class _EditProgramState extends State<EditProgram> {
     super.dispose();
   }
 
+  // Dialog konfirmasi keluar
+  Future<bool> _showExitConfirmDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.orange,
+                size: 28,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  "Keluar?",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppColor.textPrimary(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            "Perubahan yang belum disimpan akan hilang. Apakah Anda yakin ingin keluar?",
+            style: TextStyle(
+              color: AppColor.textSecondary(context),
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(
+                "Batal",
+                style: TextStyle(color: AppColor.textSecondary(context)),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                "Ya, Keluar",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+    return result ?? false;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldExit = await _showExitConfirmDialog();
+        if (shouldExit && mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
       backgroundColor: AppColor.scaffoldColor(context),
       appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () async {
+            final shouldExit = await _showExitConfirmDialog();
+            if (shouldExit && mounted) {
+              Navigator.pop(context);
+            }
+          },
+        ),
         title: const Text(
           "Edit Program Belajar",
           style: TextStyle(color: Colors.white),
@@ -721,8 +1208,10 @@ class _EditProgramState extends State<EditProgram> {
                             child: TextFormField(
                               controller: session.startTimeController,
                               readOnly: true,
-                              onTap: () =>
-                                  pickTime(session.startTimeController),
+                              onTap: () => pickStartTime(
+                                  session.startTimeController,
+                                  sessionIndex: index,
+                                ),
                               style: TextStyle(
                                 color: AppColor.textPrimary(context),
                               ),
@@ -751,7 +1240,11 @@ class _EditProgramState extends State<EditProgram> {
                             child: TextFormField(
                               controller: session.endTimeController,
                               readOnly: true,
-                              onTap: () => pickTime(session.endTimeController),
+                              onTap: () => pickEndTime(
+                                  session.endTimeController,
+                                  session.startTimeController,
+                                  sessionIndex: index,
+                                ),
                               style: TextStyle(
                                 color: AppColor.textPrimary(context),
                               ),
@@ -808,6 +1301,7 @@ class _EditProgramState extends State<EditProgram> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

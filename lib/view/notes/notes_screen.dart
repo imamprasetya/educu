@@ -144,7 +144,37 @@ class _NotesScreenState extends State<NotesScreen> {
           const SizedBox(height: 10),
 
           Expanded(
-            child: ListView.builder(
+            child: filteredNotes.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.note_alt_outlined,
+                          size: 80,
+                          color: AppColor.textHint(context).withOpacity(0.4),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Belum ada catatan",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColor.textHint(context),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          "Tekan tombol + untuk membuat catatan baru",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColor.textHint(context).withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
               itemCount: filteredNotes.length,
               itemBuilder: (context, index) {
                 final note = filteredNotes[index];

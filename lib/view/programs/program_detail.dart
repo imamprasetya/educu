@@ -478,6 +478,116 @@ class _ProgramDetailState extends State<ProgramDetail> {
                                       ),
                                     ),
                                     onPressed: () async {
+                                      // Cek apakah sudah waktunya
+                                      final now = DateTime.now();
+                                      final sessionDate = DateTime.tryParse(session.date);
+                                      final timeParts = session.startTime.split(':');
+                                      
+                                      if (sessionDate != null && timeParts.length == 2) {
+                                        final scheduledDateTime = DateTime(
+                                          sessionDate.year,
+                                          sessionDate.month,
+                                          sessionDate.day,
+                                          int.tryParse(timeParts[0]) ?? 0,
+                                          int.tryParse(timeParts[1]) ?? 0,
+                                        );
+
+                                        if (now.isBefore(scheduledDateTime)) {
+                                          // Belum waktunya, tampilkan dialog
+                                          final confirmed = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(20),
+                                                ),
+                                                title: Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.schedule_rounded,
+                                                      color: Colors.orange,
+                                                      size: 28,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "Belum Waktunya",
+                                                        style: TextStyle(
+                                                          fontWeight: FontWeight.bold,
+                                                          fontSize: 18,
+                                                          color: AppColor.textPrimary(context),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                content: Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    RichText(
+                                                      text: TextSpan(
+                                                        style: TextStyle(
+                                                          color: AppColor.textSecondary(context),
+                                                          fontSize: 14,
+                                                          height: 1.5,
+                                                        ),
+                                                        children: [
+                                                          TextSpan(
+                                                            text: "Sesi ini dijadwalkan pada:\n",
+                                                          ),
+                                                          TextSpan(
+                                                            text: "${_isoToIndo(session.date)}, ${session.startTime} - ${session.endTime}",
+                                                            style: TextStyle(
+                                                              fontWeight: FontWeight.bold,
+                                                              color: AppColor.textPrimary(context),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 12),
+                                                    Text(
+                                                      "Apakah Anda tetap ingin memulai belajar sekarang?",
+                                                      style: TextStyle(
+                                                        color: AppColor.textPrimary(context),
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.pop(context, false),
+                                                    child: Text(
+                                                      "Batal",
+                                                      style: TextStyle(
+                                                        color: AppColor.textSecondary(context),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  ElevatedButton(
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: AppColor.gradien2,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius: BorderRadius.circular(12),
+                                                      ),
+                                                    ),
+                                                    onPressed: () => Navigator.pop(context, true),
+                                                    child: const Text(
+                                                      "Ya, Mulai Sekarang",
+                                                      style: TextStyle(color: Colors.white),
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+
+                                          if (confirmed != true) return;
+                                        }
+                                      }
+
                                       final result = await Navigator.push(
                                         context,
                                         MaterialPageRoute(

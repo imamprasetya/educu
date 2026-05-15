@@ -322,7 +322,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             child: Text(
                                               "Verifikasi Email",
                                               style: TextStyle(
-                                                color: AppColor.textPrimary(context),
+                                                color: AppColor.textPrimary(
+                                                  context,
+                                                ),
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
@@ -335,7 +337,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                           Text(
                                             "Kami telah mengirim link verifikasi ke:",
                                             style: TextStyle(
-                                              color: AppColor.textSecondary(context),
+                                              color: AppColor.textSecondary(
+                                                context,
+                                              ),
                                             ),
                                           ),
                                           const SizedBox(height: 8),
@@ -344,17 +348,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                 ? emailController.text.trim()
                                                 : "email Anda",
                                             style: TextStyle(
-                                              color: AppColor.textPrimary(context),
+                                              color: AppColor.textPrimary(
+                                                context,
+                                              ),
                                               fontWeight: FontWeight.bold,
                                               fontSize: 15,
                                             ),
                                           ),
                                           const SizedBox(height: 16),
                                           Text(
-                                            "Silakan buka email Anda dan klik link verifikasi sebelum login.",
+                                            "Silakan buka email lihat pada kotak masuk atau folder spam Anda dan klik link verifikasi sebelum login.",
                                             textAlign: TextAlign.center,
                                             style: TextStyle(
-                                              color: AppColor.textSecondary(context),
+                                              color: AppColor.textSecondary(
+                                                context,
+                                              ),
                                               fontSize: 13,
                                             ),
                                           ),
