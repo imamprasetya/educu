@@ -104,13 +104,13 @@ class _EditProgramState extends State<EditProgram> {
   }
 
   // DATE PICKER untuk Sesi (dibatasi antara tanggal mulai dan tanggal selesai)
-  Future<void> pickSessionDate(TextEditingController controller) async {
+  Future<void> pickSessionDate(SessionData session) async {
     DateTime startDate = _parseDateIndo(startController.text);
     DateTime endDate = _parseDateIndo(endController.text);
 
     DateTime initialDate;
-    if (controller.text.isNotEmpty) {
-      initialDate = _parseDateIndo(controller.text);
+    if (session.dateController.text.isNotEmpty) {
+      initialDate = _parseDateIndo(session.dateController.text);
       if (initialDate.isBefore(startDate)) initialDate = startDate;
       if (initialDate.isAfter(endDate)) initialDate = endDate;
     } else {
@@ -126,21 +126,29 @@ class _EditProgramState extends State<EditProgram> {
     );
 
     if (pickedDate != null) {
-      controller.text = _formatDateIndo(pickedDate);
+      session.dateController.text = _formatDateIndo(pickedDate);
+      _sortSessions();
+      setState(() {});
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (session.key.currentContext != null) {
+          Scrollable.ensureVisible(
+            session.key.currentContext!,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
     }
   }
 
   // pilih waktu mulai sesi
-  Future<void> pickStartTime(
-    TextEditingController controller, {
-    int? sessionIndex,
-  }) async {
+  Future<void> pickStartTime(SessionData session, {int? sessionIndex}) async {
     TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: controller.text.isNotEmpty
+      initialTime: session.startTimeController.text.isNotEmpty
           ? TimeOfDay(
-              hour: int.parse(controller.text.split(':')[0]),
-              minute: int.parse(controller.text.split(':')[1]),
+              hour: int.parse(session.startTimeController.text.split(':')[0]),
+              minute: int.parse(session.startTimeController.text.split(':')[1]),
             )
           : TimeOfDay.now(),
       builder: (context, child) {
@@ -152,23 +160,30 @@ class _EditProgramState extends State<EditProgram> {
     );
 
     if (picked != null) {
-      final previousValue = controller.text;
-      controller.text = _formatTime24(picked);
+      session.startTimeController.text = _formatTime24(picked);
 
       // Cek konflik jika end time sudah diisi
       if (sessionIndex != null) {
         final conflict = _getTimeConflict(sessionIndex);
         if (conflict != null) {
-          controller.text = previousValue;
-          setState(() {});
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Waktu bertabrakan dengan $conflict!")),
           );
-          return;
         }
       }
 
+      _sortSessions();
       setState(() {});
+
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (session.key.currentContext != null) {
+          Scrollable.ensureVisible(
+            session.key.currentContext!,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
 
       // Jika ini sesi pertama dan ada sesi lain, tanya user
       if (sessionIndex == 0 && sessions.length > 1) {
@@ -233,19 +248,15 @@ class _EditProgramState extends State<EditProgram> {
         return;
       }
 
-      final previousValue = controller.text;
       controller.text = _formatTime24(picked);
 
       // Cek konflik dengan sesi lain
       if (sessionIndex != null) {
         final conflict = _getTimeConflict(sessionIndex);
         if (conflict != null) {
-          controller.text = previousValue;
-          setState(() {});
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Waktu bertabrakan dengan $conflict!")),
           );
-          return;
         }
       }
 
@@ -417,7 +428,7 @@ class _EditProgramState extends State<EditProgram> {
     }
   }
 
-  bool _hasConflictingSessions() {
+  bool _hasConflictingSessions({bool ignoreExactMatches = false}) {
     for (var i = 0; i < sessions.length; i++) {
       final first = sessions[i];
       if (first.dateController.text.isEmpty ||
@@ -446,6 +457,9 @@ class _EditProgramState extends State<EditProgram> {
         final overlap =
             firstStart.isBefore(secondEnd) && secondStart.isBefore(firstEnd);
         if (overlap) {
+          if (ignoreExactMatches && firstStart.isAtSameMomentAs(secondStart)) {
+            continue;
+          }
           return true;
         }
       }
@@ -503,6 +517,15 @@ class _EditProgramState extends State<EditProgram> {
     setState(() {
       sessions.add(SessionData());
     });
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (sessions.isNotEmpty && sessions.last.key.currentContext != null) {
+        Scrollable.ensureVisible(
+          sessions.last.key.currentContext!,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   // HAPUS SESSION
@@ -510,6 +533,102 @@ class _EditProgramState extends State<EditProgram> {
     setState(() {
       sessions[index].dispose();
       sessions.removeAt(index);
+    });
+  }
+
+  void _sortSessions() {
+    sessions.sort((a, b) {
+      final dateA = a.dateController.text.isNotEmpty
+          ? _parseDateIndo(a.dateController.text)
+          : DateTime(2100);
+      final dateB = b.dateController.text.isNotEmpty
+          ? _parseDateIndo(b.dateController.text)
+          : DateTime(2100);
+
+      final dateComp = dateA.compareTo(dateB);
+      if (dateComp != 0) return dateComp;
+
+      final timeA = a.startTimeController.text.isNotEmpty
+          ? a.startTimeController.text
+          : "23:59";
+      final timeB = b.startTimeController.text.isNotEmpty
+          ? b.startTimeController.text
+          : "23:59";
+
+      return timeA.compareTo(timeB);
+    });
+  }
+
+  int? _getHariKe(String sessionDateStr) {
+    if (startController.text.isEmpty || sessionDateStr.isEmpty) return null;
+    try {
+      final start = _parseDateIndo(startController.text);
+      final current = _parseDateIndo(sessionDateStr);
+      final diff = current.difference(start).inDays;
+      if (diff >= 0) return diff + 1;
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> _generateSessions() async {
+    if (startController.text.isEmpty || endController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Pilih Tanggal Mulai dan Selesai terlebih dahulu!"),
+        ),
+      );
+      return;
+    }
+
+    DateTime startDate = _parseDateIndo(startController.text);
+    DateTime endDate = _parseDateIndo(endController.text);
+
+    if (endDate.isBefore(startDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Tanggal Selesai tidak boleh sebelum Tanggal Mulai!"),
+        ),
+      );
+      return;
+    }
+
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Lengkapi Sesi"),
+        content: const Text(
+          "Semua sesi yang sudah ada akan dihapus dan diganti dengan sesi baru. Lanjutkan?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Batal"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Ya, Lengkapi"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    final diff = endDate.difference(startDate).inDays;
+
+    setState(() {
+      for (var s in sessions) {
+        s.dispose();
+      }
+      sessions.clear();
+
+      for (int i = 0; i <= diff; i++) {
+        final date = startDate.add(Duration(days: i));
+        final s = SessionData();
+        s.dateController.text = _formatDateIndo(date);
+        sessions.add(s);
+      }
+      _sortSessions();
     });
   }
 
@@ -639,6 +758,120 @@ class _EditProgramState extends State<EditProgram> {
     return result ?? false;
   }
 
+  Future<bool> _showDuplicateSessionsDialog(
+    List<Map<String, dynamic>> duplicates,
+  ) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      "Waktu Sama",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Terdapat beberapa sesi dengan tanggal dan jam mulai yang sama persis:",
+                    style: TextStyle(color: AppColor.textSecondary(context)),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: duplicates.map((d) {
+                          return Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.orange.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Sesi ${d['index'] + 1} (Hari Ke - ${d['hariKe'] ?? '-'})",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  "${d['tanggal']} • ${d['jam']}",
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Apakah Anda yakin tetap ingin menyimpan program ini?",
+                    style: TextStyle(color: AppColor.textSecondary(context)),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(
+                    "Batal",
+                    style: TextStyle(color: AppColor.textSecondary(context)),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text(
+                    "Tetap Simpan",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
   // UPDATE PROGRAM
   Future<void> updateProgram() async {
     // Validasi field program
@@ -760,7 +993,48 @@ class _EditProgramState extends State<EditProgram> {
       return;
     }
 
-    if (_hasConflictingSessions()) {
+    // Cek duplikat sesi berdasarkan tanggal dan jam yang sama
+    List<Map<String, dynamic>> duplicateSessions = [];
+    for (int i = 0; i < sessions.length; i++) {
+      for (int j = i + 1; j < sessions.length; j++) {
+        if (sessions[i].dateController.text.isNotEmpty &&
+            sessions[i].startTimeController.text.isNotEmpty &&
+            sessions[i].dateController.text ==
+                sessions[j].dateController.text &&
+            sessions[i].startTimeController.text ==
+                sessions[j].startTimeController.text) {
+          bool alreadyAddedI = duplicateSessions.any((d) => d['index'] == i);
+          if (!alreadyAddedI) {
+            duplicateSessions.add({
+              'index': i,
+              'hariKe': _getHariKe(sessions[i].dateController.text),
+              'tanggal': sessions[i].dateController.text,
+              'jam': sessions[i].startTimeController.text,
+            });
+          }
+
+          bool alreadyAddedJ = duplicateSessions.any((d) => d['index'] == j);
+          if (!alreadyAddedJ) {
+            duplicateSessions.add({
+              'index': j,
+              'hariKe': _getHariKe(sessions[j].dateController.text),
+              'tanggal': sessions[j].dateController.text,
+              'jam': sessions[j].startTimeController.text,
+            });
+          }
+        }
+      }
+    }
+
+    if (duplicateSessions.isNotEmpty) {
+      duplicateSessions.sort(
+        (a, b) => (a['index'] as int).compareTo(b['index'] as int),
+      );
+      final confirmed = await _showDuplicateSessionsDialog(duplicateSessions);
+      if (!confirmed) return;
+    }
+
+    if (_hasConflictingSessions(ignoreExactMatches: true)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -919,6 +1193,11 @@ class _EditProgramState extends State<EditProgram> {
       },
       child: Scaffold(
         backgroundColor: AppColor.scaffoldColor(context),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: AppColor.gradien2,
+          onPressed: addSession,
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
         appBar: AppBar(
           automaticallyImplyLeading: false,
           leading: IconButton(
@@ -1089,12 +1368,22 @@ class _EditProgramState extends State<EditProgram> {
                       color: AppColor.textPrimary(context),
                     ),
                   ),
-                  IconButton(
-                    onPressed: addSession,
+                  ElevatedButton.icon(
+                    onPressed: _generateSessions,
                     icon: const Icon(
-                      Icons.add_circle,
-                      color: AppColor.gradien2,
-                      size: 32,
+                      Icons.auto_awesome,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    label: const Text(
+                      "Lengkapi",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColor.gradien2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                   ),
                 ],
@@ -1106,195 +1395,231 @@ class _EditProgramState extends State<EditProgram> {
               Column(
                 children: List.generate(sessions.length, (index) {
                   final session = sessions[index];
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(16),
-
-                    decoration: BoxDecoration(
-                      color: AppColor.cardColor(context),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColor.shadowColor(context),
-                          spreadRadius: 3,
-                          blurRadius: 5,
+                  final hariKe = _getHariKe(session.dateController.text);
+                  Widget? header;
+                  if (hariKe != null) {
+                    if (index == 0 ||
+                        _getHariKe(sessions[index - 1].dateController.text) !=
+                            hariKe) {
+                      header = Padding(
+                        padding: const EdgeInsets.only(
+                          left: 10,
+                          bottom: 8,
+                          top: 8,
                         ),
-                      ],
-                    ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Hari Ke - $hariKe",
+                            style: const TextStyle(
+                              color: Colors.blueAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  }
 
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (header != null) header,
+                      Container(
+                        key: session.key,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(16),
 
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        decoration: BoxDecoration(
+                          color: AppColor.cardColor(context),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColor.shadowColor(context),
+                              spreadRadius: 3,
+                              blurRadius: 5,
+                            ),
+                          ],
+                        ),
+
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+
                           children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Sesi ${index + 1}",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blueAccent,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () => removeSession(index),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
                             Text(
-                              "Sesi ${index + 1}",
-                              style: const TextStyle(
+                              "Topik Materi",
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blueAccent,
+                                color: AppColor.textPrimary(context),
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => removeSession(index),
+
+                            const SizedBox(height: 7),
+
+                            /// TOPIC
+                            TextFormField(
+                              controller: session.topicController,
+                              style: TextStyle(
+                                color: AppColor.textPrimary(context),
+                              ),
+                              decoration: InputDecoration(
+                                hintText: "Masukkan topik materi",
+                                hintStyle: TextStyle(
+                                  color: AppColor.textHint(context),
+                                ),
+                                filled: true,
+                                fillColor: AppColor.inputFill(context),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            Text(
+                              "Tanggal",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColor.textPrimary(context),
+                              ),
+                            ),
+
+                            const SizedBox(height: 7),
+
+                            /// DATE
+                            TextFormField(
+                              controller: session.dateController,
+                              readOnly: true,
+                              onTap: () => pickSessionDate(session),
+                              style: TextStyle(
+                                color: AppColor.textPrimary(context),
+                              ),
+                              decoration: InputDecoration(
+                                hintText: "Tanggal",
+                                hintStyle: TextStyle(
+                                  color: AppColor.textHint(context),
+                                ),
+                                prefixIcon: Icon(
+                                  Icons.calendar_month,
+                                  color: AppColor.iconColor(context),
+                                ),
+                                filled: true,
+                                fillColor: AppColor.inputFill(context),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            Text(
+                              "Waktu",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColor.textPrimary(context),
+                              ),
+                            ),
+
+                            const SizedBox(height: 7),
+
+                            /// TIME
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: session.startTimeController,
+                                    readOnly: true,
+                                    onTap: () => pickStartTime(
+                                      session,
+                                      sessionIndex: index,
+                                    ),
+                                    style: TextStyle(
+                                      color: AppColor.textPrimary(context),
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText: "Waktu Mulai",
+                                      hintStyle: TextStyle(
+                                        color: AppColor.textHint(context),
+                                      ),
+                                      suffixIcon: Icon(
+                                        Icons.access_time,
+                                        color: AppColor.iconColor(context),
+                                      ),
+                                      filled: true,
+                                      fillColor: AppColor.inputFill(context),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(width: 10),
+
+                                Expanded(
+                                  child: TextFormField(
+                                    controller: session.endTimeController,
+                                    readOnly: true,
+                                    onTap: () => pickEndTime(
+                                      session.endTimeController,
+                                      session.startTimeController,
+                                      sessionIndex: index,
+                                    ),
+                                    style: TextStyle(
+                                      color: AppColor.textPrimary(context),
+                                    ),
+                                    decoration: InputDecoration(
+                                      hintText: "Waktu Selesai",
+                                      hintStyle: TextStyle(
+                                        color: AppColor.textHint(context),
+                                      ),
+                                      suffixIcon: Icon(
+                                        Icons.access_time,
+                                        color: AppColor.iconColor(context),
+                                      ),
+                                      filled: true,
+                                      fillColor: AppColor.inputFill(context),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-
-                        const SizedBox(height: 10),
-
-                        Text(
-                          "Topik Materi",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppColor.textPrimary(context),
-                          ),
-                        ),
-
-                        const SizedBox(height: 7),
-
-                        /// TOPIC
-                        TextFormField(
-                          controller: session.topicController,
-                          style: TextStyle(
-                            color: AppColor.textPrimary(context),
-                          ),
-                          decoration: InputDecoration(
-                            hintText: "Masukkan topik materi",
-                            hintStyle: TextStyle(
-                              color: AppColor.textHint(context),
-                            ),
-                            filled: true,
-                            fillColor: AppColor.inputFill(context),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        Text(
-                          "Tanggal",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppColor.textPrimary(context),
-                          ),
-                        ),
-
-                        const SizedBox(height: 7),
-
-                        /// DATE
-                        TextFormField(
-                          controller: session.dateController,
-                          readOnly: true,
-                          onTap: () => pickSessionDate(session.dateController),
-                          style: TextStyle(
-                            color: AppColor.textPrimary(context),
-                          ),
-                          decoration: InputDecoration(
-                            hintText: "Tanggal",
-                            hintStyle: TextStyle(
-                              color: AppColor.textHint(context),
-                            ),
-                            prefixIcon: Icon(
-                              Icons.calendar_month,
-                              color: AppColor.iconColor(context),
-                            ),
-                            filled: true,
-                            fillColor: AppColor.inputFill(context),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-
-                        Text(
-                          "Waktu",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppColor.textPrimary(context),
-                          ),
-                        ),
-
-                        const SizedBox(height: 7),
-
-                        /// TIME
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextFormField(
-                                controller: session.startTimeController,
-                                readOnly: true,
-                                onTap: () => pickStartTime(
-                                  session.startTimeController,
-                                  sessionIndex: index,
-                                ),
-                                style: TextStyle(
-                                  color: AppColor.textPrimary(context),
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: "Waktu Mulai",
-                                  hintStyle: TextStyle(
-                                    color: AppColor.textHint(context),
-                                  ),
-                                  suffixIcon: Icon(
-                                    Icons.access_time,
-                                    color: AppColor.iconColor(context),
-                                  ),
-                                  filled: true,
-                                  fillColor: AppColor.inputFill(context),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(width: 10),
-
-                            Expanded(
-                              child: TextFormField(
-                                controller: session.endTimeController,
-                                readOnly: true,
-                                onTap: () => pickEndTime(
-                                  session.endTimeController,
-                                  session.startTimeController,
-                                  sessionIndex: index,
-                                ),
-                                style: TextStyle(
-                                  color: AppColor.textPrimary(context),
-                                ),
-                                decoration: InputDecoration(
-                                  hintText: "Waktu Selesai",
-                                  hintStyle: TextStyle(
-                                    color: AppColor.textHint(context),
-                                  ),
-                                  suffixIcon: Icon(
-                                    Icons.access_time,
-                                    color: AppColor.iconColor(context),
-                                  ),
-                                  filled: true,
-                                  fillColor: AppColor.inputFill(context),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   );
                 }),
               ),
@@ -1335,6 +1660,7 @@ class _EditProgramState extends State<EditProgram> {
 class SessionData {
   String? id;
   bool completed = false;
+  final GlobalKey key = GlobalKey();
   TextEditingController topicController = TextEditingController();
   TextEditingController dateController = TextEditingController();
   TextEditingController startTimeController = TextEditingController();
