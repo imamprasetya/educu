@@ -73,6 +73,11 @@ class _HomeContentState extends State<HomeContent> {
         "${now.day.toString().padLeft(2, '0')}";
 
     final sessions = await FirebaseService.getSessionsByDate(dateStr);
+    sessions.sort((a, b) {
+      final startA = a["startTime"] ?? "";
+      final startB = b["startTime"] ?? "";
+      return startA.compareTo(startB);
+    });
 
     // load programs count
     final programs = await FirebaseService.getProgramsByUser(uid);

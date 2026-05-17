@@ -3,6 +3,8 @@ import 'package:educu_project/models/session_model.dart';
 import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/view/schedule/pomodoro.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import '../../models/program_model.dart';
 
 class ProgramDetail extends StatefulWidget {
@@ -19,11 +21,11 @@ class _ProgramDetailState extends State<ProgramDetail> {
   bool isLoading = true;
   double progress = 0;
 
-  // Format ISO (yyyy-MM-dd) ke Indonesia (dd/MM/yyyy)
+  // Format ISO (yyyy-MM-dd) ke Indonesia (dd MMMM yyyy)
   String _isoToIndo(String isoDate) {
     try {
       final dt = DateTime.parse(isoDate);
-      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+      return DateFormat('dd MMMM yyyy', 'id_ID').format(dt);
     } catch (_) {
       return isoDate;
     }
@@ -32,6 +34,7 @@ class _ProgramDetailState extends State<ProgramDetail> {
   @override
   void initState() {
     super.initState();
+    initializeDateFormatting('id_ID', null);
     loadSessions();
   }
 

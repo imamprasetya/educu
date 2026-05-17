@@ -46,6 +46,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         "${selectedDate.day.toString().padLeft(2, '0')}";
 
     final data = await FirebaseService.getSessionsByDate(date);
+    data.sort((a, b) {
+      final startA = a["startTime"] ?? "";
+      final startB = b["startTime"] ?? "";
+      return startA.compareTo(startB);
+    });
 
     setState(() {
       sessions = data;
@@ -370,6 +375,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         initialDate: selectedDate,
                         firstDate: DateTime(2000),
                         lastDate: DateTime(2100),
+                        locale: const Locale('id', 'ID'),
                         builder: (context, child) {
                           return Theme(
                             data: Theme.of(context).copyWith(

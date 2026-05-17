@@ -20,6 +20,8 @@ class PreferenceHandler {
   static const String _popupNotif = 'popupNotif';
   static const String _soundNotif = 'soundNotif';
   static const String _reminderMinutes = 'reminderMinutes';
+  static const String _programSort = 'programSort';
+  static const String _noteSort = 'noteSort';
 
   //  LOGIN STATUS
 
@@ -84,6 +86,23 @@ class PreferenceHandler {
 
   int getReminderMinutes() {
     return _preferences.getInt(_reminderMinutes) ?? 60;
+  }
+
+  // SORT PREFERENCES
+  Future<void> setProgramSort(String sort) async {
+    await _preferences.setString(_programSort, sort);
+  }
+
+  String getProgramSort() {
+    return _preferences.getString(_programSort) ?? 'startAsc';
+  }
+
+  Future<void> setNoteSort(String sort) async {
+    await _preferences.setString(_noteSort, sort);
+  }
+
+  String getNoteSort() {
+    return _preferences.getString(_noteSort) ?? 'titleAsc';
   }
 
   static const String _pomodoroSubject = 'pomodoroSubject';

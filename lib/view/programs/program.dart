@@ -3,16 +3,28 @@ import 'package:educu_project/view/programs/edit_program.dart';
 import 'package:educu_project/view/programs/program_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:educu_project/constant/app_color.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import '../../services/firebase_service.dart';
 import '../../models/program_model.dart';
 import 'add_program.dart';
+import '../../database/preference.dart';
 
 class ProgramScreen extends StatefulWidget {
   const ProgramScreen({super.key});
 
   @override
   State<ProgramScreen> createState() => _ProgramScreenState();
+}
+
+enum ProgramSortOption {
+  titleAsc,
+  startAsc,
+  startDesc,
+  endAsc,
+  endDesc,
+  durationDesc,
 }
 
 class _ProgramScreenState extends State<ProgramScreen> {
@@ -27,16 +39,17 @@ class _ProgramScreenState extends State<ProgramScreen> {
 
   bool isFocused = false;
   String? userId;
+  ProgramSortOption _sortOption = ProgramSortOption.startAsc;
 
   // Tab filter
   int selectedTab = 1; // 0=Semua, 1=Active, 2=Terlewat, 3=Selesai
   final List<String> tabLabels = ["Semua", "Active", "Terlewat", "Selesai"];
 
-  // Format ISO (yyyy-MM-dd) ke Indonesia (dd/MM/yyyy)
+  // Format ISO (yyyy-MM-dd) ke Indonesia (dd MMMM yyyy)
   String _isoToIndo(String isoDate) {
     try {
       final dt = DateTime.parse(isoDate);
-      return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+      return DateFormat('dd MMMM yyyy', 'id_ID').format(dt);
     } catch (_) {
       return isoDate;
     }
@@ -45,6 +58,14 @@ class _ProgramScreenState extends State<ProgramScreen> {
   @override
   void initState() {
     super.initState();
+    initializeDateFormatting('id_ID', null);
+    
+    final savedSort = PreferenceHandler().getProgramSort();
+    _sortOption = ProgramSortOption.values.firstWhere(
+      (e) => e.name == savedSort,
+      orElse: () => ProgramSortOption.startAsc,
+    );
+    
     getUser();
     searchFocus.addListener(() {
       setState(() {
@@ -117,6 +138,40 @@ class _ProgramScreenState extends State<ProgramScreen> {
           .toList();
     }
 
+    // apply sort
+    filtered.sort((a, b) {
+      switch (_sortOption) {
+        case ProgramSortOption.titleAsc:
+          return a.subject.toLowerCase().compareTo(b.subject.toLowerCase());
+        case ProgramSortOption.startAsc:
+          final dateA = DateTime.tryParse(a.startDate) ?? DateTime(2000);
+          final dateB = DateTime.tryParse(b.startDate) ?? DateTime(2000);
+          return dateA.compareTo(dateB);
+        case ProgramSortOption.startDesc:
+          final dateA = DateTime.tryParse(a.startDate) ?? DateTime(2000);
+          final dateB = DateTime.tryParse(b.startDate) ?? DateTime(2000);
+          return dateB.compareTo(dateA);
+        case ProgramSortOption.endAsc:
+          final dateA = DateTime.tryParse(a.endDate) ?? DateTime(2100);
+          final dateB = DateTime.tryParse(b.endDate) ?? DateTime(2100);
+          return dateA.compareTo(dateB);
+        case ProgramSortOption.endDesc:
+          final dateA = DateTime.tryParse(a.endDate) ?? DateTime(2100);
+          final dateB = DateTime.tryParse(b.endDate) ?? DateTime(2100);
+          return dateB.compareTo(dateA);
+        case ProgramSortOption.durationDesc:
+          final startA = DateTime.tryParse(a.startDate) ?? DateTime.now();
+          final endA = DateTime.tryParse(a.endDate) ?? DateTime.now();
+          final diffA = endA.difference(startA).inDays;
+          
+          final startB = DateTime.tryParse(b.startDate) ?? DateTime.now();
+          final endB = DateTime.tryParse(b.endDate) ?? DateTime.now();
+          final diffB = endB.difference(startB).inDays;
+          
+          return diffB.compareTo(diffA);
+      }
+    });
+
     setState(() {
       filteredPrograms = filtered;
     });
@@ -134,6 +189,28 @@ class _ProgramScreenState extends State<ProgramScreen> {
       total += (progressMap[p.id] ?? 0);
     }
     return total / programs.length;
+  }
+
+  PopupMenuItem<ProgramSortOption> _buildPopupItem(ProgramSortOption value, String text) {
+    final isSelected = _sortOption == value;
+    return PopupMenuItem<ProgramSortOption>(
+      value: value,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue.withOpacity(0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: isSelected ? Colors.blue : AppColor.textPrimary(context),
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -158,24 +235,48 @@ class _ProgramScreenState extends State<ProgramScreen> {
               bottomRight: Radius.circular(25),
             ),
           ),
-          child: const SafeArea(
+          child: SafeArea(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    "Program Belajar",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Program Belajar",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        "Pantau progres belajar Anda",
+                        style: TextStyle(color: Colors.white, fontSize: 15),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 4),
-                  Text(
-                    "Pantau progres belajar Anda",
-                    style: TextStyle(color: Colors.white, fontSize: 15),
+                  PopupMenuButton<ProgramSortOption>(
+                    icon: const Icon(Icons.sort, color: Colors.white),
+                    onSelected: (ProgramSortOption result) {
+                      setState(() {
+                        _sortOption = result;
+                        _applyFilter();
+                      });
+                      PreferenceHandler().setProgramSort(result.name);
+                    },
+                    itemBuilder: (BuildContext context) => <PopupMenuEntry<ProgramSortOption>>[
+                      _buildPopupItem(ProgramSortOption.titleAsc, 'Abjad (A-Z)'),
+                      _buildPopupItem(ProgramSortOption.startAsc, 'Mulai Terawal'),
+                      _buildPopupItem(ProgramSortOption.startDesc, 'Mulai Terakhir'),
+                      _buildPopupItem(ProgramSortOption.endAsc, 'Selesai Terawal'),
+                      _buildPopupItem(ProgramSortOption.endDesc, 'Selesai Terakhir'),
+                      _buildPopupItem(ProgramSortOption.durationDesc, 'Durasi Terlama'),
+                    ],
                   ),
                 ],
               ),
@@ -184,55 +285,59 @@ class _ProgramScreenState extends State<ProgramScreen> {
         ),
       ),
 
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // search
-              Container(
-                height: 45,
-                decoration: BoxDecoration(
-                  color: AppColor.searchBox(context),
-                  borderRadius: BorderRadius.circular(25),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColor.shadowColor(context),
-                      blurRadius: 2,
-                      spreadRadius: 1,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-                child: TextFormField(
-                  controller: searchController,
-                  focusNode: searchFocus,
-                  onChanged: searchProgram,
-                  textAlignVertical: TextAlignVertical.center,
-                  style: TextStyle(color: AppColor.textPrimary(context)),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: AppColor.iconColor(context),
-                    ),
-                    hintText: "Cari subjek...",
-                    hintStyle: TextStyle(color: AppColor.textHint(context)),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: BorderSide.none,
-                    ),
+      body: Column(
+        children: [
+          // search
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+            child: Container(
+              height: 45,
+              decoration: BoxDecoration(
+                color: AppColor.searchBox(context),
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColor.shadowColor(context),
+                    blurRadius: 2,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: TextFormField(
+                controller: searchController,
+                focusNode: searchFocus,
+                onChanged: searchProgram,
+                textAlignVertical: TextAlignVertical.center,
+                style: TextStyle(color: AppColor.textPrimary(context)),
+                decoration: InputDecoration(
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: AppColor.iconColor(context),
+                  ),
+                  hintText: "Cari subjek...",
+                  hintStyle: TextStyle(color: AppColor.textHint(context)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
                   ),
                 ),
               ),
+            ),
+          ),
 
-              const SizedBox(height: 20),
-
-              // overall progress card
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    // overall progress card
               Container(
                 padding: const EdgeInsets.all(16),
-                height: 100,
+                height: 120,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColor.isDark(context)
@@ -508,9 +613,12 @@ class _ProgramScreenState extends State<ProgramScreen> {
                         );
                       },
                     ),
-            ],
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
+        ],
       ),
 
       floatingActionButton: FloatingActionButton(

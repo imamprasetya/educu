@@ -3,6 +3,8 @@ import 'package:educu_project/services/firebase_service.dart';
 import 'package:educu_project/services/notification_service.dart';
 import 'package:educu_project/models/session_model.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class AddProgram extends StatefulWidget {
   const AddProgram({super.key});
@@ -19,19 +21,20 @@ class _AddProgramState extends State<AddProgram> {
 
   List<SessionData> sessions = [SessionData()];
 
-  // Format tanggal ke format Indonesia (dd/MM/yyyy)
-  String _formatDateIndo(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  @override
+  void initState() {
+    super.initState();
+    initializeDateFormatting('id_ID', null);
   }
 
-  // Parse tanggal Indonesia (dd/MM/yyyy) ke DateTime
+  // Format tanggal ke format Indonesia (dd MMMM yyyy)
+  String _formatDateIndo(DateTime date) {
+    return DateFormat('dd MMMM yyyy', 'id_ID').format(date);
+  }
+
+  // Parse tanggal Indonesia (dd MMMM yyyy) ke DateTime
   DateTime _parseDateIndo(String dateStr) {
-    final parts = dateStr.split('/');
-    return DateTime(
-      int.parse(parts[2]),
-      int.parse(parts[1]),
-      int.parse(parts[0]),
-    );
+    return DateFormat('dd MMMM yyyy', 'id_ID').parse(dateStr);
   }
 
   // Convert tanggal Indonesia ke ISO (yyyy-MM-dd) untuk storage
@@ -70,6 +73,7 @@ class _AddProgramState extends State<AddProgram> {
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      locale: const Locale('id', 'ID'),
     );
 
     if (picked != null) {
@@ -100,6 +104,7 @@ class _AddProgramState extends State<AddProgram> {
       initialDate: initialDate,
       firstDate: startDate,
       lastDate: DateTime(2100),
+      locale: const Locale('id', 'ID'),
     );
 
     if (picked != null) {
@@ -132,6 +137,7 @@ class _AddProgramState extends State<AddProgram> {
       initialDate: firstAllowed,
       firstDate: firstAllowed,
       lastDate: lastAllowed,
+      locale: const Locale('id', 'ID'),
     );
 
     if (picked != null) {
@@ -974,74 +980,67 @@ class _AddProgramState extends State<AddProgram> {
                       const SizedBox(height: 15),
 
                       Text(
-                        "Tanggal",
+                        "Tanggal Mulai",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: AppColor.textPrimary(context),
                         ),
                       ),
-
                       const SizedBox(height: 7),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: startController,
-                              readOnly: true,
-                              onTap: () =>
-                                  _selectDate(context, startController),
-                              style: TextStyle(
-                                color: AppColor.textPrimary(context),
-                              ),
-                              decoration: InputDecoration(
-                                hintText: "Mulai",
-                                hintStyle: TextStyle(
-                                  color: AppColor.textHint(context),
-                                ),
-                                filled: true,
-                                fillColor: AppColor.inputFill(context),
-                                suffixIcon: Icon(
-                                  Icons.calendar_today,
-                                  color: AppColor.iconColor(context),
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(25),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                            ),
+                      TextFormField(
+                        controller: startController,
+                        readOnly: true,
+                        onTap: () => _selectDate(context, startController),
+                        style: TextStyle(color: AppColor.textPrimary(context)),
+                        decoration: InputDecoration(
+                          hintText: "Mulai",
+                          hintStyle: TextStyle(
+                            color: AppColor.textHint(context),
                           ),
-
-                          const SizedBox(width: 10),
-
-                          Expanded(
-                            child: TextFormField(
-                              controller: endController,
-                              readOnly: true,
-                              onTap: () => _selectEndDate(context),
-                              style: TextStyle(
-                                color: AppColor.textPrimary(context),
-                              ),
-                              decoration: InputDecoration(
-                                hintText: "Selesai",
-                                hintStyle: TextStyle(
-                                  color: AppColor.textHint(context),
-                                ),
-                                filled: true,
-                                fillColor: AppColor.inputFill(context),
-                                suffixIcon: Icon(
-                                  Icons.calendar_today,
-                                  color: AppColor.iconColor(context),
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(25),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                            ),
+                          filled: true,
+                          fillColor: AppColor.inputFill(context),
+                          prefixIcon: Icon(
+                            Icons.calendar_month,
+                            color: AppColor.iconColor(context),
                           ),
-                        ],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      Text(
+                        "Tanggal Selesai",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColor.textPrimary(context),
+                        ),
+                      ),
+                      const SizedBox(height: 7),
+                      TextFormField(
+                        controller: endController,
+                        readOnly: true,
+                        onTap: () => _selectEndDate(context),
+                        style: TextStyle(color: AppColor.textPrimary(context)),
+                        decoration: InputDecoration(
+                          hintText: "Selesai",
+                          hintStyle: TextStyle(
+                            color: AppColor.textHint(context),
+                          ),
+                          filled: true,
+                          fillColor: AppColor.inputFill(context),
+                          prefixIcon: Icon(
+                            Icons.calendar_month,
+                            color: AppColor.iconColor(context),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
                       ),
 
                       const SizedBox(height: 15),
@@ -1205,7 +1204,7 @@ class _AddProgramState extends State<AddProgram> {
                                 color: AppColor.textHint(context),
                               ),
                               prefixIcon: Icon(
-                                Icons.calendar_today,
+                                Icons.calendar_month,
                                 color: AppColor.iconColor(context),
                               ),
                               filled: true,
