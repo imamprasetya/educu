@@ -33,6 +33,8 @@ class _ProgramScreenState extends State<ProgramScreen> {
 
   // progress cache per program
   Map<String, double> progressMap = {};
+  Map<String, String> startTimeMap = {};
+  Map<String, String> endTimeMap = {};
 
   final TextEditingController searchController = TextEditingController();
   final FocusNode searchFocus = FocusNode();
@@ -84,17 +86,43 @@ class _ProgramScreenState extends State<ProgramScreen> {
 
     final result = await FirebaseService.getProgramsByUser(userId!);
 
-    // load progress for each program
+    // load progress and session times for each program
     Map<String, double> pMap = {};
+    Map<String, String> sMap = {};
+    Map<String, String> eMap = {};
+    
     for (var p in result) {
       if (p.id != null) {
         pMap[p.id!] = await FirebaseService.getProgramProgress(p.id!);
+        final sessions = await FirebaseService.getSessionModels(p.id!);
+        if (sessions.isNotEmpty) {
+          // Earliest start time
+          sessions.sort((a, b) {
+            final dComp = a.date.compareTo(b.date);
+            if (dComp != 0) return dComp;
+            return a.startTime.compareTo(b.startTime);
+          });
+          sMap[p.id!] = sessions.first.startTime;
+
+          // Latest end time
+          sessions.sort((a, b) {
+            final dComp = b.date.compareTo(a.date);
+            if (dComp != 0) return dComp;
+            return b.endTime.compareTo(a.endTime);
+          });
+          eMap[p.id!] = sessions.first.endTime;
+        } else {
+          sMap[p.id!] = "23:59";
+          eMap[p.id!] = "00:00";
+        }
       }
     }
 
     setState(() {
       programs = result;
       progressMap = pMap;
+      startTimeMap = sMap;
+      endTimeMap = eMap;
       _applyFilter();
     });
   }
@@ -146,19 +174,43 @@ class _ProgramScreenState extends State<ProgramScreen> {
         case ProgramSortOption.startAsc:
           final dateA = DateTime.tryParse(a.startDate) ?? DateTime(2000);
           final dateB = DateTime.tryParse(b.startDate) ?? DateTime(2000);
-          return dateA.compareTo(dateB);
+          final dateComp = dateA.compareTo(dateB);
+          if (dateComp == 0) {
+            final timeA = startTimeMap[a.id] ?? "23:59";
+            final timeB = startTimeMap[b.id] ?? "23:59";
+            return timeA.compareTo(timeB);
+          }
+          return dateComp;
         case ProgramSortOption.startDesc:
           final dateA = DateTime.tryParse(a.startDate) ?? DateTime(2000);
           final dateB = DateTime.tryParse(b.startDate) ?? DateTime(2000);
-          return dateB.compareTo(dateA);
+          final dateComp = dateB.compareTo(dateA);
+          if (dateComp == 0) {
+            final timeA = startTimeMap[a.id] ?? "23:59";
+            final timeB = startTimeMap[b.id] ?? "23:59";
+            return timeB.compareTo(timeA);
+          }
+          return dateComp;
         case ProgramSortOption.endAsc:
           final dateA = DateTime.tryParse(a.endDate) ?? DateTime(2100);
           final dateB = DateTime.tryParse(b.endDate) ?? DateTime(2100);
-          return dateA.compareTo(dateB);
+          final dateComp = dateA.compareTo(dateB);
+          if (dateComp == 0) {
+            final timeA = endTimeMap[a.id] ?? "00:00";
+            final timeB = endTimeMap[b.id] ?? "00:00";
+            return timeA.compareTo(timeB);
+          }
+          return dateComp;
         case ProgramSortOption.endDesc:
           final dateA = DateTime.tryParse(a.endDate) ?? DateTime(2100);
           final dateB = DateTime.tryParse(b.endDate) ?? DateTime(2100);
-          return dateB.compareTo(dateA);
+          final dateComp = dateB.compareTo(dateA);
+          if (dateComp == 0) {
+            final timeA = endTimeMap[a.id] ?? "00:00";
+            final timeB = endTimeMap[b.id] ?? "00:00";
+            return timeB.compareTo(timeA);
+          }
+          return dateComp;
         case ProgramSortOption.durationDesc:
           final startA = DateTime.tryParse(a.startDate) ?? DateTime.now();
           final endA = DateTime.tryParse(a.endDate) ?? DateTime.now();
@@ -168,7 +220,11 @@ class _ProgramScreenState extends State<ProgramScreen> {
           final endB = DateTime.tryParse(b.endDate) ?? DateTime.now();
           final diffB = endB.difference(startB).inDays;
           
-          return diffB.compareTo(diffA);
+          final diffComp = diffB.compareTo(diffA);
+          if (diffComp == 0) {
+            return a.subject.toLowerCase().compareTo(b.subject.toLowerCase());
+          }
+          return diffComp;
       }
     });
 

@@ -925,15 +925,15 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      isAllCompleted ? Colors.grey : AppColor.gradien1,
+                      isAllCompleted ? Colors.green : AppColor.gradien1,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
                   ),
                 ),
-                onPressed: isAllCompleted ? null : _handleFinish,
+                onPressed: _handleFinish,
                 icon: const Icon(Icons.check_circle, color: Colors.white),
                 label: Text(
-                  isAllCompleted ? "Sudah Selesai" : "Selesai",
+                  isAllCompleted ? "Selesai Sekarang" : "Selesai",
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,

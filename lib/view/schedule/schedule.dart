@@ -122,12 +122,24 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   // DIALOG: Belum waktunya
   Future<bool?> _showStartTimeDialog(DateTime startTime) {
     final List<String> months = [
-      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+      "Januari",
+      "Februari",
+      "Maret",
+      "April",
+      "Mei",
+      "Juni",
+      "Juli",
+      "Agustus",
+      "September",
+      "Oktober",
+      "November",
+      "Desember",
     ];
 
-    final dateStr = "${startTime.day} ${months[startTime.month - 1]} ${startTime.year}";
-    final timeStr = "${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}";
+    final dateStr =
+        "${startTime.day} ${months[startTime.month - 1]} ${startTime.year}";
+    final timeStr =
+        "${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}";
 
     return showDialog<bool>(
       context: context,
@@ -177,7 +189,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         if (cleaned.toLowerCase().contains('am') && hour == 12) hour = 0;
 
         final minute = int.parse(parts[1].replaceAll(RegExp(r'[^0-9]'), ''));
-        return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+        return DateTime(
+          baseDate.year,
+          baseDate.month,
+          baseDate.day,
+          hour,
+          minute,
+        );
       }
       return null;
     } catch (_) {
@@ -334,39 +352,45 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       backgroundColor: AppColor.scaffoldColor(context),
 
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(150),
-
+        preferredSize: const Size.fromHeight(100),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
-
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: AppColor.isDark(context)
                   ? [AppColor.darkSurface, AppColor.darkCard]
-                  : [AppColor.gradien1, AppColor.gradien2],
+                  : [AppColor.gradien2, AppColor.gradien1],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-
             borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(25),
               bottomRight: Radius.circular(25),
             ),
           ),
-
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    "Jadwal Belajar",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Jadwal Belajar",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        "Rencanakan hari ini, sukses esok hari.",
+                        style: TextStyle(color: Colors.white, fontSize: 15),
+                      ),
+                    ],
                   ),
                   IconButton(
                     onPressed: () async {
@@ -404,12 +428,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 5),
-              const Text(
-                "Rencanakan hari ini, sukses esok hari.",
-                style: TextStyle(color: Colors.white70),
-              ),
-            ],
+            ),
           ),
         ),
       ),
