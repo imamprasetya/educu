@@ -61,10 +61,68 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   // Hapus foto
   void _removePhoto() {
-    setState(() {
-      selectedImage = null;
-      photoBase64 = null;
-    });
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Hapus Foto"),
+        content: const Text("Apakah Anda yakin ingin menghapus foto profil?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Batal"),
+          ),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                selectedImage = null;
+                photoBase64 = null;
+              });
+              Navigator.pop(context);
+            },
+            child: const Text(
+              "Hapus",
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool get _hasChanges {
+    final currentName = nameController.text.trim();
+    final originalName = widget.user.name ?? "";
+    final currentPhoto = photoBase64;
+    final originalPhoto = widget.user.photoBase64;
+
+    return currentName != originalName || currentPhoto != originalPhoto || selectedImage != null;
+  }
+
+  Future<bool> _onWillPop() async {
+    if (!_hasChanges) return true;
+
+    final shouldPop = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Buang Perubahan?"),
+        content: const Text("Ada perubahan yang belum disimpan. Yakin ingin kembali?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text("Batal", style: TextStyle(color: AppColor.textSecondary(context))),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              "Buang",
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return shouldPop ?? false;
   }
 
   // Simpan perubahan ke Firebase
@@ -161,7 +219,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
       backgroundColor: AppColor.scaffoldColor(context),
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
@@ -295,6 +355,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
